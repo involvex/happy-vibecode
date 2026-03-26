@@ -41,7 +41,7 @@ export async function handleGithubCallback(
 	const error = url.searchParams.get('error')
 
 	if (error || !code) {
-		return Response.redirect('/login?error=oauth_denied', 302)
+		return Response.redirect(`${url.origin}/login?error=oauth_denied`, 302)
 	}
 
 	// Exchange code for access token
@@ -65,7 +65,7 @@ export async function handleGithubCallback(
 	}
 
 	if (!tokenData.access_token) {
-		return Response.redirect('/login?error=oauth_failed', 302)
+		return Response.redirect(`${url.origin}/login?error=oauth_failed`, 302)
 	}
 
 	const ghHeaders = {
@@ -90,7 +90,7 @@ export async function handleGithubCallback(
 			null
 	}
 	if (!email) {
-		return Response.redirect('/login?error=no_email', 302)
+		return Response.redirect(`${url.origin}/login?error=no_email`, 302)
 	}
 
 	const githubId = `github:${ghUser.id}`
@@ -128,7 +128,7 @@ export async function handleGithubCallback(
 	}
 
 	return Response.redirect(
-		`/auth/callback?token=${encodeURIComponent(apiToken)}&userId=${encodeURIComponent(userId)}`,
+		`${url.origin}/auth/callback?token=${encodeURIComponent(apiToken)}&userId=${encodeURIComponent(userId)}`,
 		302,
 	)
 }

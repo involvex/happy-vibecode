@@ -213,7 +213,7 @@ export default function DashboardPage() {
 							No sessions yet. Start by connecting your local agent.
 						</Text>
 						<code className="text-sm text-kumo-accent bg-kumo-control px-3 py-1.5 rounded-lg">
-							$ happy connect gemini
+							$ happy-vibecode connect gemini
 						</code>
 					</div>
 				) : (

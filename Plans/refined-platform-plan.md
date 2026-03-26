@@ -47,21 +47,21 @@ Build a production-grade remote control platform for LLM agents. Enable users to
 - **Framework**: Bun + `commander`.
 - **Primary Function**: Bridge local agents (like `gemini-cli`, `claude-code`) to the `happy-vibecode` platform.
 - **Commands**:
-  - `happy login`: Device-code flow or API token authentication.
-  - `happy connect <agent>`:
+  - `happy-vibecode login`: Device-code flow or API token authentication.
+  - `happy-vibecode connect <agent>`:
     - Spawns/attaches to a local agent process.
     - Establishes a secure **WebSocket (WSS)** tunnel to the Cloudflare Worker API.
     - Relays prompt/response messages between the local agent and the remote platform.
-  - `happy init`: Scaffolds agent configuration files.
-  - `happy status`: Checks connectivity and remote session health.
+  - `happy-vibecode init`: Scaffolds agent configuration files.
+  - `happy-vibecode status`: Checks connectivity and remote session health.
 
 ---
 
 ## 3. Technical Architecture & Data Flow
 
 1.  **Local Side**:
-    - User runs `happy connect gemini-cli`.
-    - CLI starts the local agent and opens a WebSocket to `api.happy-vibecode.com`.
+    - User runs `happy-vibecode connect gemini-cli`.
+    - CLI starts the local agent and opens a WebSocket to `happy-vibecode.involvex.workers.dev`.
 2.  **Platform Side**:
     - Cloudflare Worker (API) receives the WebSocket connection and maps it to the `user_id`.
     - Store the "Connected" state in **Cloudflare KV** or **Durable Objects**.
@@ -112,7 +112,7 @@ To build the Android application as an APK for direct installation or testing:
 ## 6. Milestones
 
 1.  **Monorepo Fixes**: Standardize `packages/shared` and `packages/db`.
-2.  **CLI MVP**: Implement `happy login` and a basic WebSocket echo bridge.
+2.  **CLI MVP**: Implement `happy-vibecode login` and a basic WebSocket echo bridge.
 3.  **Web Core**: Build the chat interface and D1 integration as a standard Worker.
 4.  **Mobile Setup**: Initialize Expo project and connect to the API.
 5.  **APK Generation**: Successfully build and sideload the first Android APK.
@@ -122,7 +122,7 @@ To build the Android application as an APK for direct installation or testing:
 
 ## Verification Plan
 
-1.  **CLI Connectivity**: Verify `happy connect` establishes a tunnel and receives test messages.
+1.  **CLI Connectivity**: Verify `happy-vibecode connect` establishes a tunnel and receives test messages.
 2.  **Web UI Real-time**: Confirm messages stream correctly from the "remote" agent.
 3.  **Mobile Navigation**: Verify `expo-router` handles deep links and shared state on Android.
 4.  **APK Installation**: Confirm the generated APK installs and runs without crashes.

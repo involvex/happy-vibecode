@@ -121,8 +121,8 @@ export default function HomePage() {
 						<div className="space-y-3 font-mono text-sm">
 							{[
 								{step: '1', cmd: 'bun install -g @happy-vibecode/cli'},
-								{step: '2', cmd: 'happy login'},
-								{step: '3', cmd: 'happy connect gemini'},
+								{step: '2', cmd: 'happy-vibecode login'},
+								{step: '3', cmd: 'happy-vibecode connect gemini'},
 							].map(({step, cmd}) => (
 								<div key={step} className="flex items-center gap-3">
 									<span className="flex-none w-6 h-6 rounded-full bg-kumo-control text-kumo-secondary text-xs flex items-center justify-center font-sans font-medium">

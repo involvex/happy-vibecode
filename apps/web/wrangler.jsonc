@@ -22,7 +22,7 @@
 	},
 	// GitHub OAuth — set GITHUB_CLIENT_SECRET via: wrangler secret put GITHUB_CLIENT_SECRET
 	"vars": {
-		"GITHUB_CLIENT_ID": "REPLACE_WITH_YOUR_GITHUB_CLIENT_ID",
+		"GITHUB_CLIENT_ID": "Ov23liOufGcx2MYgoM0v",
 	},
 	"d1_databases": [
 		{
@@ -48,8 +48,23 @@
 	},
 	"migrations": [
 		{
-			"new_classes": ["BridgeAgent"],
+			"new_sqlite_classes": ["BridgeAgent"],
 			"tag": "v1",
 		},
 	],
+	"observability": {
+		"enabled": false,
+		"head_sampling_rate": 1,
+		"logs": {
+			"enabled": true,
+			"head_sampling_rate": 1,
+			"persist": true,
+			"invocation_logs": true,
+		},
+		"traces": {
+			"enabled": false,
+			"persist": true,
+			"head_sampling_rate": 1,
+		},
+	},
 }

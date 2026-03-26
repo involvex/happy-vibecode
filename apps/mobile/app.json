@@ -31,6 +31,12 @@
 		"experiments": {
 			"typedRoutes": true
 		},
-		"scheme": "happy-vibecode"
+		"scheme": "happy-vibecode",
+		"extra": {
+			"router": {},
+			"eas": {
+				"projectId": "f7854379-1f74-4e83-9f30-ade960bbc420"
+			}
+		}
 	}
 }

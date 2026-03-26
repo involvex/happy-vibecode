@@ -166,8 +166,8 @@ function LoginForm() {
 								/>
 								<p className="text-xs text-kumo-inactive mt-1">
 									Get your token from{' '}
-									<code className="text-kumo-accent">happy login</code> in the
-									CLI.
+									<code className="text-kumo-accent">happy-vibecode login</code>{' '}
+									in the CLI.
 								</p>
 							</div>
 						)}
@@ -194,8 +194,9 @@ function LoginForm() {
 				</div>
 
 				<Text size="xs" variant="secondary">
-					Need help? Run <code className="text-kumo-accent">happy login</code>{' '}
-					in your terminal.
+					Need help? Run{' '}
+					<code className="text-kumo-accent">happy-vibecode login</code> in your
+					terminal.
 				</Text>
 			</div>
 		</div>

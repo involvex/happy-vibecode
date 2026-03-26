@@ -62,10 +62,10 @@ export const initCommand = new Command('init')
 		console.log(`✓ Created ${AGENTS_FILE}`)
 		console.log('')
 		console.log('Edit the file to add or customize your agents.')
-		console.log('Then run: happy connect <agent-id>')
+		console.log('Then run: happy-vibecode connect <agent-id>')
 
 		const config = readConfig()
 		if (!config) {
-			console.log('\nNext step: happy login')
+			console.log('\nNext step: happy-vibecode login')
 		}
 	})

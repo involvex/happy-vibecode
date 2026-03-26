@@ -154,8 +154,8 @@ export default function SettingsPage() {
 
 					<div className="text-xs text-kumo-inactive bg-kumo-control rounded-lg px-3 py-2">
 						Use this token in the CLI:{' '}
-						<code className="text-kumo-accent">happy login</code>, or set it in
-						your HTTP requests as{' '}
+						<code className="text-kumo-accent">happy-vibecode login</code>, or
+						set it in your HTTP requests as{' '}
 						<code className="text-kumo-accent">
 							Authorization: Bearer {'<token>'}
 						</code>
