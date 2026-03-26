@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
 	title: 'Happy Vibecode',
 	description: 'Remote Agent Control Dashboard',
+	icons: {
+		icon: '/favicon.ico',
+	},
 }
 
 export const viewport = {
@@ -31,7 +34,6 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en" suppressHydrationWarning data-mode="dark">
-			<link rel="icon" href="favicon.ico" />
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
