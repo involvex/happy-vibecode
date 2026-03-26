@@ -4,11 +4,12 @@ import {
 	HouseIcon,
 	ChatCircleDotsIcon,
 	ClockIcon,
-	CloudIcon,
+	// CloudIcon,
 	SignOutIcon,
 	UserIcon,
 } from '@phosphor-icons/react'
 import {usePathname} from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 
 interface NavItem {
@@ -33,18 +34,21 @@ export function Nav({onLogout}: NavProps) {
 	const pathname = usePathname()
 
 	return (
-		<nav className="flex items-center gap-1 px-4 py-3 bg-kumo-base border-b border-kumo-line">
+		<nav
+			className="flex items-center gap-1 px-4 py-3 border-b bg-kumo-base border-kumo-line"
+			style={{position: 'sticky', top: 0, zIndex: 100}}
+		>
 			{/* Logo */}
 			<Link
 				href="/dashboard"
-				className="flex items-center gap-2 mr-6 text-kumo-default font-semibold"
+				className="flex items-center gap-2 mr-6 font-semibold text-kumo-default"
 			>
-				<CloudIcon size={20} weight="duotone" />
+				<Image src="/icon.png" alt="icon" width="35" height="35" />
 				<span>Happy Vibecode</span>
 			</Link>
 
 			{/* Nav links */}
-			<div className="flex items-center gap-1 flex-1">
+			<div className="flex items-center flex-1 gap-1">
 				{NAV_ITEMS.map(item => {
 					const active = pathname === item.href
 					return (

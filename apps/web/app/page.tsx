@@ -9,7 +9,9 @@ import {
 import {useEffect, useState} from 'react'
 import {Button} from '@cloudflare/kumo'
 import {useAuth} from './hooks/useAuth'
+import Image from 'next/image'
 import Link from 'next/link'
+// import '../public/icon.svg' with {as: 'svg'}
 
 interface Feature {
 	icon: React.ReactNode
@@ -66,11 +68,17 @@ export default function HomePage() {
 	return (
 		<div className="min-h-screen bg-kumo-elevated">
 			{/* Header */}
-			<header className="px-6 py-4 bg-kumo-base border-b border-kumo-line">
-				<div className="max-w-5xl mx-auto flex items-center justify-between">
-					<div className="flex items-center gap-2 font-bold text-kumo-default text-lg">
-						⛅ Happy Vibecode
-					</div>
+			<header className="px-6 py-4 border-b bg-kumo-base border-kumo-line">
+				<div className="flex items-center justify-between max-w-5xl mx-auto">
+					<Link
+						href="/"
+						className="flex items-center gap-2 mr-6 font-semibold text-kumo-default"
+					>
+						<div className="flex items-center gap-2 text-lg font-bold text-kumo-default">
+							<Image src="/icon.png" alt="icon" width="35" height="35" /> Happy
+							Vibecode
+						</div>
+					</Link>
 					<div className="flex items-center gap-3">
 						<Link href="/login">
 							<Button variant="secondary" size="sm">
@@ -89,19 +97,19 @@ export default function HomePage() {
 			{/* Hero */}
 			<section className="px-6 py-20 text-center">
 				<div className="max-w-3xl mx-auto">
-					<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-kumo-base border border-kumo-line text-sm text-kumo-secondary mb-6">
+					<div className="inline-flex items-center gap-2 px-3 py-1 mb-6 text-sm border rounded-full bg-kumo-base border-kumo-line text-kumo-secondary">
 						<CircleIcon size={8} weight="fill" className="text-kumo-success" />
 						Powered by Cloudflare Workers
 					</div>
-					<h1 className="text-5xl font-extrabold text-kumo-default mb-6 tracking-tight">
+					<h1 className="mb-6 text-5xl font-extrabold tracking-tight text-kumo-default">
 						Remote control for{' '}
 						<span className="text-kumo-accent">local AI agents</span>
 					</h1>
-					<p className="text-xl text-kumo-secondary mb-10 leading-relaxed">
+					<p className="mb-10 text-xl leading-relaxed text-kumo-secondary">
 						Connect Gemini CLI, Claude, or any local agent to your web browser
 						or mobile device — from anywhere.
 					</p>
-					<div className="flex items-center gap-3 justify-center flex-wrap">
+					<div className="flex flex-wrap items-center justify-center gap-3">
 						<Link href="/login">
 							<Button variant="primary" size="lg">
 								Start for free
@@ -114,8 +122,8 @@ export default function HomePage() {
 			{/* Quick start */}
 			<section className="px-6 pb-20">
 				<div className="max-w-2xl mx-auto">
-					<div className="bg-kumo-base border border-kumo-line rounded-2xl p-6">
-						<h2 className="text-lg font-semibold text-kumo-default mb-4">
+					<div className="p-6 border bg-kumo-base border-kumo-line rounded-2xl">
+						<h2 className="mb-4 text-lg font-semibold text-kumo-default">
 							Quick start
 						</h2>
 						<div className="space-y-3 font-mono text-sm">
@@ -125,7 +133,7 @@ export default function HomePage() {
 								{step: '3', cmd: 'happy-vibecode connect gemini'},
 							].map(({step, cmd}) => (
 								<div key={step} className="flex items-center gap-3">
-									<span className="flex-none w-6 h-6 rounded-full bg-kumo-control text-kumo-secondary text-xs flex items-center justify-center font-sans font-medium">
+									<span className="flex items-center justify-center flex-none w-6 h-6 font-sans text-xs font-medium rounded-full bg-kumo-control text-kumo-secondary">
 										{step}
 									</span>
 									<code className="text-kumo-accent bg-kumo-control px-3 py-1.5 rounded-lg flex-1">
@@ -139,19 +147,19 @@ export default function HomePage() {
 			</section>
 
 			{/* Features */}
-			<section className="px-6 pb-24 bg-kumo-base border-t border-kumo-line">
-				<div className="max-w-5xl mx-auto pt-16">
-					<h2 className="text-3xl font-bold text-kumo-default text-center mb-12">
+			<section className="px-6 pb-24 border-t bg-kumo-base border-kumo-line">
+				<div className="max-w-5xl pt-16 mx-auto">
+					<h2 className="mb-12 text-3xl font-bold text-center text-kumo-default">
 						Everything you need
 					</h2>
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+					<div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
 						{FEATURES.map(f => (
 							<div
 								key={f.title}
-								className="p-5 rounded-2xl border border-kumo-line bg-kumo-elevated"
+								className="p-5 border rounded-2xl border-kumo-line bg-kumo-elevated"
 							>
-								<div className="text-kumo-accent mb-3">{f.icon}</div>
-								<h3 className="font-semibold text-kumo-default mb-1">
+								<div className="mb-3 text-kumo-accent">{f.icon}</div>
+								<h3 className="mb-1 font-semibold text-kumo-default">
 									{f.title}
 								</h3>
 								<p className="text-sm text-kumo-secondary">{f.desc}</p>

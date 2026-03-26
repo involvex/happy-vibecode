@@ -17,6 +17,12 @@ export default defineConfig({
 	server: {
 		host: true,
 	},
+	publicDir: 'public',
+	build: {
+		copyPublicDir: true,
+		emptyOutDir: true,
+		outDir: 'dist',
+	},
 	environments: {
 		rsc: {
 			optimizeDeps: {

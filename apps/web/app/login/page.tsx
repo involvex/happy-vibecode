@@ -1,9 +1,10 @@
 'use client'
 import {useRouter, useSearchParams} from 'next/navigation'
-import {CloudIcon} from '@phosphor-icons/react'
+// import {CloudIcon} from '@phosphor-icons/react'
 import {Button, Text} from '@cloudflare/kumo'
 import {useAuth} from '../hooks/useAuth'
 import {Suspense, useState} from 'react'
+import Image from 'next/image'
 
 type Mode = 'login' | 'register'
 
@@ -69,18 +70,18 @@ function LoginForm() {
 	}
 
 	return (
-		<div className="min-h-screen bg-kumo-elevated flex items-center justify-center p-4">
+		<div className="flex items-center justify-center min-h-screen p-4 bg-kumo-elevated">
 			<div className="w-full max-w-sm">
 				{/* Logo */}
-				<div className="flex items-center gap-3 justify-center mb-8">
-					<CloudIcon size={36} weight="duotone" className="text-kumo-accent" />
+				<div className="flex items-center justify-center gap-3 mb-8">
+					<Image src="/icon.png" alt="icon" width="35" height="35" />
 					<h1 className="text-2xl font-bold text-kumo-default">
 						Happy Vibecode
 					</h1>
 				</div>
 
 				{/* Card */}
-				<div className="bg-kumo-base border border-kumo-line rounded-2xl p-6 shadow-sm">
+				<div className="p-6 border shadow-sm bg-kumo-base border-kumo-line rounded-2xl">
 					{/* GitHub OAuth — primary option */}
 					<a
 						href="/oauth/github"
@@ -107,13 +108,13 @@ function LoginForm() {
 
 					{/* OAuth error from redirect */}
 					{oauthError && OAUTH_ERRORS[oauthError] && (
-						<div className="text-sm text-kumo-danger bg-kumo-danger/10 border border-kumo-danger/20 rounded-lg px-3 py-2 mb-4">
+						<div className="px-3 py-2 mb-4 text-sm border rounded-lg text-kumo-danger bg-kumo-danger/10 border-kumo-danger/20">
 							{OAUTH_ERRORS[oauthError]}
 						</div>
 					)}
 
 					{/* Tab toggle */}
-					<div className="flex rounded-lg bg-kumo-control p-1 mb-6">
+					<div className="flex p-1 mb-6 rounded-lg bg-kumo-control">
 						{(['login', 'register'] as const).map(m => (
 							<button
 								key={m}
@@ -145,9 +146,9 @@ function LoginForm() {
 									onChange={e => setEmail(e.target.value)}
 									placeholder="you@example.com"
 									required
-									className="w-full px-3 py-2 rounded-lg border border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
+									className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
 								/>
-								<p className="text-xs text-kumo-inactive mt-1">
+								<p className="mt-1 text-xs text-kumo-inactive">
 									We'll generate a secure API token for you.
 								</p>
 							</div>
@@ -162,9 +163,9 @@ function LoginForm() {
 									onChange={e => setToken(e.target.value)}
 									placeholder="Paste your token..."
 									required
-									className="w-full px-3 py-2 rounded-lg border border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent font-mono text-sm"
+									className="w-full px-3 py-2 font-mono text-sm border rounded-lg border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
 								/>
-								<p className="text-xs text-kumo-inactive mt-1">
+								<p className="mt-1 text-xs text-kumo-inactive">
 									Get your token from{' '}
 									<code className="text-kumo-accent">happy-vibecode login</code>{' '}
 									in the CLI.
@@ -173,7 +174,7 @@ function LoginForm() {
 						)}
 
 						{error && (
-							<div className="text-sm text-kumo-danger bg-kumo-danger/10 border border-kumo-danger/20 rounded-lg px-3 py-2">
+							<div className="px-3 py-2 text-sm border rounded-lg text-kumo-danger bg-kumo-danger/10 border-kumo-danger/20">
 								{error}
 							</div>
 						)}
@@ -194,9 +195,10 @@ function LoginForm() {
 				</div>
 
 				<Text size="xs" variant="secondary">
-					Need help? Run{' '}
-					<code className="text-kumo-accent">happy-vibecode login</code> in your
-					terminal.
+					Need help? Run: <br />
+					<code className="text-kumo-accent">happy-vibecode login --help</code>
+					<br />
+					in your terminal.
 				</Text>
 			</div>
 		</div>
