@@ -6,7 +6,7 @@ import {logger} from 'hono/logger'
 import {cors} from 'hono/cors'
 import {Hono} from 'hono'
 
-export const api = new Hono<{Bindings: ApiEnv}>()
+export const api = new Hono<{Bindings: ApiEnv}>().basePath('/api')
 
 api.use('*', logger())
 api.use(

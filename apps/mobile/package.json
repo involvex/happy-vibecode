@@ -1,0 +1,37 @@
+{
+	"name": "@happy-vibecode/mobile",
+	"version": "0.0.1",
+	"private": true,
+	"main": "expo-router/entry",
+	"scripts": {
+		"android": "expo run:android",
+		"ios": "expo run:ios",
+		"lint": "eslint .",
+		"start": "expo start",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@expo/vector-icons": "^15.0.2",
+		"@react-native-async-storage/async-storage": "^2.1.2",
+		"expo": "^55.0.8",
+		"expo-constants": "~55.0.9",
+		"expo-font": "~55.0.4",
+		"expo-linking": "~55.0.8",
+		"expo-router": "^55.0.7",
+		"expo-secure-store": "~55.0.9",
+		"expo-status-bar": "~55.0.4",
+		"nativewind": "^4.0.36",
+		"react": "19.2.0",
+		"react-native": "0.83.2",
+		"react-native-gesture-handler": "~2.30.0",
+		"react-native-reanimated": "4.2.1",
+		"react-native-safe-area-context": "~5.6.2",
+		"react-native-screens": "~4.23.0",
+		"react-native-worklets": "0.7.2",
+		"tailwindcss": "^3.4.15"
+	},
+	"devDependencies": {
+		"@types/react": "^19.0.0",
+		"typescript": "~5.9.2"
+	}
+}

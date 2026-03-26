@@ -85,6 +85,9 @@ type BridgeStatus =
 // ── WebSocket bridge hook ─────────────────────────────────────────────
 
 function getOrCreateRoomId(): string {
+	// Prefer userId if the user is authenticated
+	const userId = localStorage.getItem('happy-user-id')
+	if (userId) return userId
 	const key = 'bridge-room-id'
 	let id = localStorage.getItem(key)
 	if (!id) {
@@ -121,7 +124,7 @@ function useBridgeAgent(roomId: string) {
 					content?: string
 					done?: boolean
 					message?: string
-					connected?: boolean
+					status?: string
 				}
 
 				if (msg.type === 'response') {
@@ -147,7 +150,9 @@ function useBridgeAgent(roomId: string) {
 						setIsStreaming(false)
 					}
 				} else if (msg.type === 'status') {
-					setWsStatus(msg.connected ? 'cli_connected' : 'cli_disconnected')
+					const s = msg.status ?? ''
+					if (s === 'cli_connected') setWsStatus('cli_connected')
+					else if (s === 'cli_disconnected') setWsStatus('cli_disconnected')
 				} else if (msg.type === 'error') {
 					const id = crypto.randomUUID()
 					setMessages(prev => [
@@ -194,12 +199,12 @@ function useBridgeAgent(roomId: string) {
 
 // ── Main chat ─────────────────────────────────────────────────────────
 
-function ChatInner() {
+function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 	const [input, setInput] = useState('')
 	const [showDebug, setShowDebug] = useState(false)
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
-	const [roomId] = useState(getOrCreateRoomId)
+	const [roomId] = useState(() => roomIdProp ?? getOrCreateRoomId())
 
 	const {messages, wsStatus, isStreaming, sendMessage, stop, clearHistory} =
 		useBridgeAgent(roomId)
@@ -231,7 +236,7 @@ function ChatInner() {
 	}, [input, isStreaming, sendMessage])
 
 	return (
-		<div className="flex flex-col h-screen bg-kumo-elevated">
+		<div className="flex flex-col h-full bg-kumo-elevated">
 			{/* Header */}
 			<header className="px-5 py-4 bg-kumo-base border-b border-kumo-line">
 				<div className="max-w-3xl mx-auto flex items-center justify-between">
@@ -417,7 +422,7 @@ function ChatInner() {
 	)
 }
 
-export default function Chat() {
+export default function Chat({roomId}: {roomId?: string}) {
 	return (
 		<Suspense
 			fallback={
@@ -426,7 +431,7 @@ export default function Chat() {
 				</div>
 			}
 		>
-			<ChatInner />
+			<ChatInner roomId={roomId} />
 		</Suspense>
 	)
 }

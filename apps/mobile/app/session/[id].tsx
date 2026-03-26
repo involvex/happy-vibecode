@@ -1,0 +1,219 @@
+import {
+	FlatList,
+	KeyboardAvoidingView,
+	Platform,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	View,
+} from 'react-native'
+import {SafeAreaView} from 'react-native-safe-area-context'
+import {useLocalSearchParams, useRouter} from 'expo-router'
+import {useEffect, useRef, useState} from 'react'
+import {useAuth} from '../../hooks/useAuth'
+import {Ionicons} from '@expo/vector-icons'
+
+interface Message {
+	id: string
+	role: 'user' | 'assistant' | 'system'
+	content: string
+	done?: boolean
+}
+
+export default function SessionScreen() {
+	const {id} = useLocalSearchParams<{id: string}>()
+	const router = useRouter()
+	const {userId, serverUrl} = useAuth()
+
+	const [messages, setMessages] = useState<Message[]>([])
+	const [input, setInput] = useState('')
+	const [connected, setConnected] = useState(false)
+	const [cliConnected, setCliConnected] = useState(false)
+	const wsRef = useRef<WebSocket | null>(null)
+	const flatListRef = useRef<FlatList>(null)
+
+	const roomId = id ?? userId ?? 'default'
+
+	useEffect(() => {
+		const host = (serverUrl ?? 'https://happy-vibecode.workers.dev').replace(
+			'http',
+			'ws',
+		)
+		const ws = new WebSocket(
+			`${host}/agents/BridgeAgent/${roomId}?type=mobile&userId=${userId ?? 'anon'}`,
+		)
+		wsRef.current = ws
+
+		ws.onopen = () => {
+			setConnected(true)
+			ws.send(JSON.stringify({type: 'ping'}))
+		}
+
+		ws.onclose = () => {
+			setConnected(false)
+			setCliConnected(false)
+		}
+
+		ws.onmessage = event => {
+			try {
+				const msg = JSON.parse(event.data as string) as {
+					type: string
+					content?: string
+					done?: boolean
+					status?: string
+					message?: string
+				}
+
+				if (msg.type === 'status') {
+					setCliConnected(
+						msg.status === 'cli_connected' || msg.status === 'cli_already_here',
+					)
+					if (msg.status === 'cli_disconnected') setCliConnected(false)
+					return
+				}
+
+				if (msg.type === 'response' && msg.content !== undefined) {
+					setMessages(prev => {
+						const last = prev[prev.length - 1]
+						if (last?.role === 'assistant' && !last.done) {
+							return [
+								...prev.slice(0, -1),
+								{...last, content: last.content + msg.content, done: msg.done},
+							]
+						}
+						return [
+							...prev,
+							{
+								id: Date.now().toString(),
+								role: 'assistant',
+								content: msg.content ?? '',
+								done: msg.done,
+							},
+						]
+					})
+					setTimeout(
+						() => flatListRef.current?.scrollToEnd({animated: true}),
+						80,
+					)
+				}
+
+				if (msg.type === 'error') {
+					setMessages(prev => [
+						...prev,
+						{
+							id: Date.now().toString(),
+							role: 'system',
+							content: msg.message ?? 'Unknown error',
+						},
+					])
+				}
+			} catch {
+				// ignore
+			}
+		}
+
+		return () => ws.close()
+	}, [roomId, userId, serverUrl])
+
+	const send = () => {
+		const content = input.trim()
+		if (!content || wsRef.current?.readyState !== WebSocket.OPEN) return
+
+		wsRef.current.send(
+			JSON.stringify({type: 'prompt', content, sessionId: roomId}),
+		)
+		setMessages(prev => [
+			...prev,
+			{id: Date.now().toString(), role: 'user', content},
+		])
+		setInput('')
+		setTimeout(() => flatListRef.current?.scrollToEnd({animated: true}), 80)
+	}
+
+	return (
+		<SafeAreaView className="flex-1 bg-surface">
+			{/* Header */}
+			<View className="flex-row items-center gap-3 px-4 py-3 border-b border-border">
+				<TouchableOpacity onPress={() => router.back()}>
+					<Ionicons name="arrow-back" size={22} color="#7c3aed" />
+				</TouchableOpacity>
+				<View className="flex-1">
+					<Text className="text-text font-semibold" numberOfLines={1}>
+						Session {roomId.slice(0, 8)}…
+					</Text>
+					<View className="flex-row items-center gap-1.5 mt-0.5">
+						<View
+							className={`w-1.5 h-1.5 rounded-full ${connected ? (cliConnected ? 'bg-success' : 'bg-warning') : 'bg-error'}`}
+						/>
+						<Text className="text-muted text-xs">
+							{connected
+								? cliConnected
+									? 'Agent connected'
+									: 'Waiting for agent'
+								: 'Disconnected'}
+						</Text>
+					</View>
+				</View>
+			</View>
+
+			<KeyboardAvoidingView
+				className="flex-1"
+				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+			>
+				<FlatList
+					ref={flatListRef}
+					data={messages}
+					keyExtractor={item => item.id}
+					className="flex-1 px-4"
+					contentContainerStyle={{paddingVertical: 12, gap: 8}}
+					renderItem={({item}) => (
+						<View
+							className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+								item.role === 'user'
+									? 'self-end bg-primary'
+									: item.role === 'system'
+										? 'self-center bg-border'
+										: 'self-start bg-card border border-border'
+							}`}
+						>
+							<Text
+								className={item.role === 'user' ? 'text-white' : 'text-text'}
+							>
+								{item.content}
+							</Text>
+							{item.role === 'assistant' && !item.done && (
+								<Text className="text-muted text-xs mt-1">●</Text>
+							)}
+						</View>
+					)}
+					ListEmptyComponent={
+						<View className="py-12 items-center">
+							<Text className="text-muted text-sm text-center">
+								No messages yet
+							</Text>
+						</View>
+					}
+				/>
+
+				<View className="flex-row items-end gap-2 px-4 py-3 border-t border-border">
+					<TextInput
+						className="flex-1 bg-card border border-border rounded-2xl px-4 py-3 text-text text-sm"
+						placeholder="Type a message…"
+						placeholderTextColor="#94a3b8"
+						value={input}
+						onChangeText={setInput}
+						multiline
+						maxLength={4000}
+					/>
+					<TouchableOpacity
+						className={`w-10 h-10 rounded-full items-center justify-center ${input.trim() ? 'bg-primary' : 'bg-border'}`}
+						onPress={send}
+						disabled={!input.trim()}
+					>
+						<Ionicons name="arrow-up" size={18} color="white" />
+					</TouchableOpacity>
+				</View>
+			</KeyboardAvoidingView>
+		</SafeAreaView>
+	)
+}

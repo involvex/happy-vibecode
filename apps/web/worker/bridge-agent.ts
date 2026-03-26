@@ -19,8 +19,9 @@ interface BridgeSession {
  * - Web/Mobile clients (sending prompts, receiving responses)
  *
  * Room ID = userId ensures each user has their own isolated bridge.
+ * Messages are persisted to D1 for history.
  */
-export class BridgeAgent extends DurableObject {
+export class BridgeAgent extends DurableObject<Env> {
 	private sessions = new Map<WebSocket, BridgeSession>()
 
 	override async fetch(request: Request): Promise<Response> {
@@ -48,7 +49,6 @@ export class BridgeAgent extends DurableObject {
 
 		server.addEventListener('close', () => {
 			this.sessions.delete(server)
-			// Notify remaining clients that CLI disconnected
 			if (clientType === 'cli') {
 				this.broadcast(
 					JSON.stringify({type: 'status', status: 'cli_disconnected'}),
@@ -61,7 +61,6 @@ export class BridgeAgent extends DurableObject {
 			this.sessions.delete(server)
 		})
 
-		// Notify web/mobile clients that CLI is now connected
 		if (clientType === 'cli') {
 			this.broadcast(
 				JSON.stringify({type: 'status', status: 'cli_connected'}),
@@ -88,16 +87,27 @@ export class BridgeAgent extends DurableObject {
 			return
 		}
 
-		// CLI → web/mobile: relay response chunks
-		if (
-			senderSession.type === 'cli' &&
-			(msg.type === 'response' || msg.type === 'error')
-		) {
-			this.broadcast(data, 'cli')
+		// CLI → web/mobile: relay responses, errors, and status updates
+		if (senderSession.type === 'cli') {
+			if (
+				msg.type === 'response' ||
+				msg.type === 'error' ||
+				msg.type === 'status'
+			) {
+				this.broadcast(data, 'cli')
+				if (msg.type === 'response' && msg.done) {
+					this.persistMessage(
+						msg.sessionId ?? senderSession.userId,
+						senderSession.userId,
+						'assistant',
+						msg.content,
+					).catch(() => {})
+				}
+			}
 			return
 		}
 
-		// web/mobile → CLI: relay prompts
+		// web/mobile → CLI: relay prompts; persist user message
 		if (
 			(senderSession.type === 'web' || senderSession.type === 'mobile') &&
 			msg.type === 'prompt'
@@ -105,6 +115,12 @@ export class BridgeAgent extends DurableObject {
 			const cliSession = this.findCli()
 			if (cliSession) {
 				cliSession.ws.send(data)
+				this.persistMessage(
+					msg.sessionId ?? senderSession.userId,
+					senderSession.userId,
+					'user',
+					msg.content,
+				).catch(() => {})
 			} else {
 				sender.send(
 					JSON.stringify({
@@ -114,6 +130,31 @@ export class BridgeAgent extends DurableObject {
 				)
 			}
 			return
+		}
+	}
+
+	private async persistMessage(
+		sessionId: string,
+		userId: string,
+		role: 'user' | 'assistant',
+		content: string,
+	) {
+		try {
+			await this.env.DB.prepare(
+				`INSERT INTO message_logs (id, session_id, user_id, role, content, created_at)
+				 VALUES (?, ?, ?, ?, ?, ?)`,
+			)
+				.bind(
+					crypto.randomUUID(),
+					sessionId,
+					userId,
+					role,
+					content,
+					new Date().toISOString(),
+				)
+				.run()
+		} catch {
+			// DB may not be available in local dev
 		}
 	}
 
@@ -136,7 +177,6 @@ export class BridgeAgent extends DurableObject {
 		return undefined
 	}
 
-	/** Returns true if a CLI is currently connected to this bridge room */
 	async isCliConnected(): Promise<boolean> {
 		return !!this.findCli()
 	}

@@ -23,15 +23,15 @@
 	"d1_databases": [
 		{
 			"binding": "DB",
-			"database_name": "happy-vibecode",
-			"database_id": "local", // replace with real D1 database ID after `wrangler d1 create happy-vibecode`
+			"database_name": "happy-vibecode-db",
+			"database_id": "2c49dfdf-ec4a-408c-b101-4793a1405cc3", // replace with real D1 database ID after `wrangler d1 create happy-vibecode`
 			"migrations_dir": "../../packages/db/drizzle",
 		},
 	],
 	"kv_namespaces": [
 		{
 			"binding": "KV",
-			"id": "local", // replace with real KV namespace ID after `wrangler kv namespace create happy-vibecode-kv`
+			"id": "ba4e9794ba604de08ce3ceaf4ac3719f", // replace with real KV namespace ID after `wrangler kv namespace create happy-vibecode-kv`
 		},
 	],
 	"durable_objects": {

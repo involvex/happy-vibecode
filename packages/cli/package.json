@@ -1,0 +1,23 @@
+{
+	"name": "@happy-vibecode/cli",
+	"version": "0.1.0",
+	"description": "Happy Vibecode CLI — remote control for local AI agents",
+	"type": "module",
+	"bin": {
+		"happy": "./src/index.ts"
+	},
+	"scripts": {
+		"build": "bun build ./src/index.ts --outfile dist/index.js --target bun",
+		"start": "bun run ./src/index.ts",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@happy-vibecode/shared": "workspace:*",
+		"commander": "^14.0.0",
+		"ws": "^8.18.2"
+	},
+	"devDependencies": {
+		"@types/ws": "^8.5.14",
+		"typescript": "^5"
+	}
+}
