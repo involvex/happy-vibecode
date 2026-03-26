@@ -30,7 +30,7 @@ export function writeConfig(config: HappyConfig): void {
 export function requireConfig(): HappyConfig {
 	const config = readConfig()
 	if (!config?.apiToken) {
-		console.error('Not logged in. Run: happy login')
+		console.error('Not logged in. Run: happy-vibecode login')
 		process.exit(1)
 	}
 	return config

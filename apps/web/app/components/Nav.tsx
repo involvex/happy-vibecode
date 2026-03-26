@@ -6,6 +6,7 @@ import {
 	ClockIcon,
 	CloudIcon,
 	SignOutIcon,
+	UserIcon,
 } from '@phosphor-icons/react'
 import {usePathname} from 'next/navigation'
 import Link from 'next/link'
@@ -20,6 +21,7 @@ const NAV_ITEMS: NavItem[] = [
 	{href: '/dashboard', label: 'Dashboard', icon: <HouseIcon size={18} />},
 	{href: '/chat', label: 'Chat', icon: <ChatCircleDotsIcon size={18} />},
 	{href: '/history', label: 'History', icon: <ClockIcon size={18} />},
+	{href: '/profile', label: 'Profile', icon: <UserIcon size={18} />},
 	{href: '/settings', label: 'Settings', icon: <GearSixIcon size={18} />},
 ]
 
@@ -65,6 +67,7 @@ export function Nav({onLogout}: NavProps) {
 			{/* Logout */}
 			{onLogout && (
 				<button
+					type="button"
 					onClick={onLogout}
 					className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-kumo-secondary hover:text-kumo-danger hover:bg-kumo-hover transition-colors"
 				>

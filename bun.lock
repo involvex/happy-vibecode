@@ -67,12 +67,14 @@
         "@happy-vibecode/api": "workspace:*",
         "@happy-vibecode/db": "workspace:*",
         "@happy-vibecode/shared": "workspace:*",
+        "@hookform/resolvers": "^3.9.0",
         "@phosphor-icons/react": "^2.1.10",
         "@vitejs/plugin-rsc": "^0.5.21",
         "hono": "^4.7.11",
         "next": "16.2.1",
         "react": "19.2.4",
         "react-dom": "19.2.4",
+        "react-hook-form": "^7.54.0",
         "streamdown": "^2.3.0",
         "zod": "^4.3.6",
       },
@@ -550,6 +552,8 @@
     "@happy-vibecode/shared": ["@happy-vibecode/shared@workspace:packages/shared"],
 
     "@happy-vibecode/web": ["@happy-vibecode/web@workspace:apps/web"],
+
+    "@hookform/resolvers": ["@hookform/resolvers@3.10.0", "", { "peerDependencies": { "react-hook-form": "^7.0.0" } }, "sha512-79Dv+3mDF7i+2ajj7SkypSKHhl1cbln1OGavqrsF7p6mbUv11xpqpacPsGDCTRvCSjEEIez2ef1NveSVL3b0Ag=="],
 
     "@humanfs/core": ["@humanfs/core@0.19.1", "", {}, "sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA=="],
 
@@ -2474,6 +2478,8 @@
     "react-fast-compare": ["react-fast-compare@3.2.2", "", {}, "sha512-nsO+KSNgo1SbJqJEYRE9ERzo7YtYbou/OqjSQKxV7jcKox7+usiUVZOAC+XnDOABXggQTno0Y1CpVnuWEc1boQ=="],
 
     "react-freeze": ["react-freeze@1.0.4", "", { "peerDependencies": { "react": ">=17.0.0" } }, "sha512-r4F0Sec0BLxWicc7HEyo2x3/2icUTrRmDjaaRyzzn+7aDyFZliszMDOgLVwSnQnYENOlL1o569Ze2HZefk8clA=="],
+
+    "react-hook-form": ["react-hook-form@7.72.0", "", { "peerDependencies": { "react": "^16.8.0 || ^17 || ^18 || ^19" } }, "sha512-V4v6jubaf6JAurEaVnT9aUPKFbNtDgohj5CIgVGyPHvT9wRx5OZHVjz31GsxnPNI278XMu+ruFz+wGOscHaLKw=="],
 
     "react-is": ["react-is@18.3.1", "", {}, "sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg=="],
 

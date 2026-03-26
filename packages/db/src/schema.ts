@@ -1,11 +1,13 @@
 import {sqliteTable, text, integer} from 'drizzle-orm/sqlite-core'
 
 export const users = sqliteTable('users', {
-	id: text('id').primaryKey(), // UUID
-	email: text('email').notNull().unique(),
+	id: text('id').primaryKey(),
+	email: text('email').unique(),
 	passwordHash: text('password_hash'),
 	apiToken: text('api_token').unique(),
 	githubId: text('github_id').unique(),
+	nickname: text('nickname'),
+	preferences: text('preferences'),
 	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
 	updatedAt: integer('updated_at', {mode: 'timestamp_ms'}).notNull(),
 })

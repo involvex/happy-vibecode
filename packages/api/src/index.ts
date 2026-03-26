@@ -1,6 +1,7 @@
 import {sessionsRouter} from './routes/sessions.js'
 import {devicesRouter} from './routes/devices.js'
 import type {ApiEnv} from './middleware/auth.js'
+import {userRouter} from './routes/user.js'
 import {authRouter} from './routes/auth.js'
 import {logger} from 'hono/logger'
 import {cors} from 'hono/cors'
@@ -21,6 +22,7 @@ api.get('/health', c =>
 api.route('/auth', authRouter)
 api.route('/sessions', sessionsRouter)
 api.route('/devices', devicesRouter)
+api.route('/user', userRouter)
 
 api.notFound(c => c.json({error: 'Not found'}, 404))
 api.onError((err, c) => {

@@ -3,7 +3,9 @@
 	"version": "0.1.0",
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts"
+		".": "./src/index.ts",
+		"./crypto": "./src/crypto.ts",
+		"./schema/user": "./src/schema/user.ts"
 	},
 	"scripts": {
 		"lint": "oxlint src",
