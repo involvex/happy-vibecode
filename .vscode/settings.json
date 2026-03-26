@@ -1,0 +1,25 @@
+{
+	"react-native-tools.projectRoot": "apps/mobile",
+	"search.exclude": {
+		"**/node_modules": true,
+		"**/bower_components": true,
+		"**/*.code-search": true,
+		"**/.dart_tool": true,
+		"**/.claude/skills": true,
+		"**/.agent/skills": true
+	},
+	"files.exclude": {
+		"**/.git": true,
+		"**/.svn": true,
+		"**/.hg": true,
+		"**/.DS_Store": true,
+		"**/Thumbs.db": true,
+		"**/flutter/ephemeral": true,
+		"**/Flutter/ephemeral": true,
+		"**/.symlinks": true,
+		"**/.plugin_symlinks": true,
+		"**/.mcs": true,
+		"**/.claude/skills": true,
+		"**/.agent/skills": true
+	}
+}

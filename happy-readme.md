@@ -16,7 +16,6 @@ Use Claude Code or Codex from anywhere with end-to-end encryption.
 
 <img width="5178" height="2364" alt="github" src="/.github/header.png" />
 
-
 <h3 align="center">
 Step 1: Download App
 </h3>
@@ -60,7 +59,7 @@ On your computer, run `happy` instead of `claude` or `happy codex` instead of `c
 ## 🔥 Why Happy Coder?
 
 - 📱 **Mobile access to Claude Code and Codex** - Check what your AI is building while away from your desk
-- 🔔 **Push notifications** - Get alerted when Claude Code and Codex needs permission or encounters errors  
+- 🔔 **Push notifications** - Get alerted when Claude Code and Codex needs permission or encounters errors
 - ⚡ **Switch devices instantly** - Take control from phone or desktop with one keypress
 - 🔐 **End-to-end encrypted** - Your code never leaves your devices unencrypted
 - 🛠️ **Open source** - Audit the code yourself. No telemetry, no tracking

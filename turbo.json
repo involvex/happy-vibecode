@@ -4,12 +4,12 @@
 		"typecheck": {
 			"dependsOn": ["^build"]
 		},
-        "lint": {
-            "dependsOn": ["^lint"]
-        },
-        "lint:fix": {
-            "dependsOn": ["^lint:fix"]
-        },
+		"lint": {
+			"dependsOn": ["^lint"]
+		},
+		"lint:fix": {
+			"dependsOn": ["^lint:fix"]
+		},
 		"build": {
 			"dependsOn": ["^build"],
 			"outputs": ["dist/**"]

@@ -1,225 +1,230 @@
 {
-  "version": 1,
-  "skills": {
-    "Cli-Expert": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "1abf98cb1db8a782b23c71da81b1a5df894fac997e41638e09bdf900be77c729"
-    },
-    "agents-sdk": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "d78ce40950715633f6882f259cd5fa6037f2fd31ede4c7f326065696a8e0fdcc"
-    },
-    "artifacts-builder": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "d444feccbc15184a85f85fa9591602e3a99e77cda9d595a3af964e6675ad01ee"
-    },
-    "brainstorming": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "97b189c7f9f8f8259b064f5c2d47a2245a68daf677b84596af488c20f311b867"
-    },
-    "building-ai-agent-on-cloudflare": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "d04904a87147c417fc3a09d581b540e638c4d29fa3e64a0a6875727662adde30"
-    },
-    "building-mcp-server-on-cloudflare": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "eb658eefdaf3eb677ca0e9969ea8d904e7c044675de49aa99b2110f172a0aae1"
-    },
-    "building-native-ui": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "a0316d2ce842d2dd8067a144e339cf502329dc7701f9f5122268fdb3d4c980f7"
-    },
-    "bun-development": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "a1b524e584602d68a3c91eb0ff781217a8ba0a2235726a64696cae46bbe0c2d5"
-    },
-    "canvas-design": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "21e7c68d336893e4f2aa8d269854fd5e253c89cfc6dd0e74fa487fe7e96abdeb"
-    },
-    "capacitor-app-upgrades": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "15dbba2b8bce382e7f6c37e746a958ffeec74976e2ba77da8e0cd18a8a716435"
-    },
-    "capacitor-plugin-spm-support": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "8747d32963494b0022f3ffa6d4cd8ad797e4b5522aa751c45af4f4d07df0a883"
-    },
-    "capacitor-plugin-upgrades": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "44b0a627942f17d8e4f66a32bc56de5c5737cd776492ce431627d376a7955567"
-    },
-    "capacitor-plugins": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "6f27d184f442ccfaf159800fdf5b58d2313f6841243acc0334ea6a9468746659"
-    },
-    "capacitor-push-notifications": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "52b18de6987ace9dfb3d71b844eadefcd8e6c3f20eb43ce4456939de0914089f"
-    },
-    "cli-mastery": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "b5fae2a096d0305fffaa75a3b8950e8f3f3ef8f67159547ecee52dc4e11899d6"
-    },
-    "cloudflare": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "cf685a20f4849ed9429609789b77ff0f2f5bafe9bab39b2985fa3b1595dba2bb"
-    },
-    "cloudflare-workers-expert": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "66c6392601c8e34cfc17b786bc155ea3e073e4888ea83d885be85ae788ab4c6b"
-    },
-    "create-implementation-plan": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "90600bd6b844f71d57acf4d72c9361803e1e6b479306cda44062d9204477197a"
-    },
-    "durable-objects": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "1e701e744e84fd6f892cb4fb03ee0b0e21fc3b91551a4a1c8ff62126aaa6cd40"
-    },
-    "expo-api-routes": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "267bd3bfa27718103a74458df1e875ff6f6db31cba2ebe1d8a527cf25da39761"
-    },
-    "expo-cicd-workflows": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "6cd9fa605a8144d424daa02489633fa0b0fcb15d74e29d0d23e6d6d894fc51df"
-    },
-    "expo-deployment": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "2a26de7ec3faaf19333ec5660152e5e711ef000a29d75324dff51967bc382755"
-    },
-    "expo-dev-client": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "ea568acdc9036b82b969159757456e9a4cdfae7f645ac2fad5fdf0f734f53568"
-    },
-    "expo-tailwind-setup": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "16c53e80cacd65369acfd8a4f5cf06a60083cc6d980127b4b2e384b81ce0e547"
-    },
-    "frontend-mobile-development-component-scaffold": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "321c5996ecd869b0f15cd03281a643d62257fe8c3788a5aef932b9812fd43db3"
-    },
-    "frontend-ui-dark-ts": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "eaa40ac85abd577d2e6acc76671b36b0defb0a1f606f3275b05444166060c509"
-    },
-    "image-manipulation-image-magick": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "08850c49d84c758f95c00eb12542c2dc2e80f1c668e76b4fa901295b877b8a31"
-    },
-    "ionic-appflow-migration": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "9a6d139db8f2610966a010add465c72f9edcadbbc8d1170a22e69c4c84a38e13"
-    },
-    "mcp-configure": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "181d9db0c541b177a5f45d83d13be1f7fbcb4dc7721bdaf2cfb4f15417854ceb"
-    },
-    "migrate-nativewind-to-uniwind": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "50002395e60c340f22c8cdc798eae0c78af9aef1da1b1aed0cbfef99b0d2cef9"
-    },
-    "native-data-fetching": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "1127a1ab326935169ecf92ffda2d9fc04dc1450a7eecfbafd5157fa9c0126d31"
-    },
-    "react-native-architecture": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "361827f7f16b723c03a47b4faa7556498cc719e66c684553dc1e37387bb89a42"
-    },
-    "shadcn-ui": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "119a14a004bd30fa99d386df599bd0db8d057cca146f7ee08349daed48b2ea55"
-    },
-    "stitch-design": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "b86d4ca105eefef3e3c6222a976db4ac45e1b11ea36f577c2b3b354ea59e0c64"
-    },
-    "stitch-loop": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "cf47da05045ce0c11f1a8b21dc4ef9bbfed0122d68548a48786cb1608257d574"
-    },
-    "upgrading-expo": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "7ccc3de855963fcfd8fa25a81a0baa98e165be0ae46577b736367c104959c30a"
-    },
-    "use-dom": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "63a18bc2e07d18313aa9749bbb59c542c9b141424c56bd5514907be276c5bf80"
-    },
-    "web-artifacts-builder": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "8506451d6d3a3494ddca091b0f0ff7a9961ddd4301df2b6264dd3f98bed75b0a"
-    },
-    "web-coder": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "dc1beb1b81d4318414ec26f01709d736765befff7082fdd868aca27736a10d14"
-    },
-    "web-design-guidelines": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "d8e7d3afe37dcc8a97b99ffb5afdb4d0919ae0092ea8b68f44eb201f035e33ac"
-    },
-    "web-design-reviewer": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "e725fabe06496903e6e0c9b3ceb28aa586ecac0d8b423eebf2ddf26a5d69d141"
-    },
-    "workers-best-practices": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "c919a93c9db826a0ee2818f6f7977c40c1a43bb87abc848b22181fdbabe2ef80"
-    },
-    "wrangler": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "be23bb546012cb8206378b990e5b920503c9d368eeb8949c8a3522c35bafb8bb"
-    },
-    "writing-plans": {
-      "source": "involvex/skills",
-      "sourceType": "github",
-      "computedHash": "e39091cde79ede1a85e2b825d31a4d307a2313ea19993c8792872d2239d5a533"
-    }
-  }
+	"version": 1,
+	"skills": {
+		"Cli-Expert": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "1abf98cb1db8a782b23c71da81b1a5df894fac997e41638e09bdf900be77c729"
+		},
+		"agents-sdk": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "d78ce40950715633f6882f259cd5fa6037f2fd31ede4c7f326065696a8e0fdcc"
+		},
+		"artifacts-builder": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "d444feccbc15184a85f85fa9591602e3a99e77cda9d595a3af964e6675ad01ee"
+		},
+		"brainstorming": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "97b189c7f9f8f8259b064f5c2d47a2245a68daf677b84596af488c20f311b867"
+		},
+		"building-ai-agent-on-cloudflare": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "d04904a87147c417fc3a09d581b540e638c4d29fa3e64a0a6875727662adde30"
+		},
+		"building-mcp-server-on-cloudflare": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "eb658eefdaf3eb677ca0e9969ea8d904e7c044675de49aa99b2110f172a0aae1"
+		},
+		"building-native-ui": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "a0316d2ce842d2dd8067a144e339cf502329dc7701f9f5122268fdb3d4c980f7"
+		},
+		"bun-development": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "a1b524e584602d68a3c91eb0ff781217a8ba0a2235726a64696cae46bbe0c2d5"
+		},
+		"canvas-design": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "21e7c68d336893e4f2aa8d269854fd5e253c89cfc6dd0e74fa487fe7e96abdeb"
+		},
+		"capacitor-app-upgrades": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "15dbba2b8bce382e7f6c37e746a958ffeec74976e2ba77da8e0cd18a8a716435"
+		},
+		"capacitor-plugin-spm-support": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "8747d32963494b0022f3ffa6d4cd8ad797e4b5522aa751c45af4f4d07df0a883"
+		},
+		"capacitor-plugin-upgrades": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "44b0a627942f17d8e4f66a32bc56de5c5737cd776492ce431627d376a7955567"
+		},
+		"capacitor-plugins": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "6f27d184f442ccfaf159800fdf5b58d2313f6841243acc0334ea6a9468746659"
+		},
+		"capacitor-push-notifications": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "52b18de6987ace9dfb3d71b844eadefcd8e6c3f20eb43ce4456939de0914089f"
+		},
+		"cli-mastery": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "b5fae2a096d0305fffaa75a3b8950e8f3f3ef8f67159547ecee52dc4e11899d6"
+		},
+		"cloudflare": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "cf685a20f4849ed9429609789b77ff0f2f5bafe9bab39b2985fa3b1595dba2bb"
+		},
+		"cloudflare-workers-expert": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "66c6392601c8e34cfc17b786bc155ea3e073e4888ea83d885be85ae788ab4c6b"
+		},
+		"create-implementation-plan": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "90600bd6b844f71d57acf4d72c9361803e1e6b479306cda44062d9204477197a"
+		},
+		"durable-objects": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "1e701e744e84fd6f892cb4fb03ee0b0e21fc3b91551a4a1c8ff62126aaa6cd40"
+		},
+		"expo-api-routes": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "267bd3bfa27718103a74458df1e875ff6f6db31cba2ebe1d8a527cf25da39761"
+		},
+		"expo-cicd-workflows": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "6cd9fa605a8144d424daa02489633fa0b0fcb15d74e29d0d23e6d6d894fc51df"
+		},
+		"expo-deployment": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "2a26de7ec3faaf19333ec5660152e5e711ef000a29d75324dff51967bc382755"
+		},
+		"expo-dev-client": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "ea568acdc9036b82b969159757456e9a4cdfae7f645ac2fad5fdf0f734f53568"
+		},
+		"expo-tailwind-setup": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "16c53e80cacd65369acfd8a4f5cf06a60083cc6d980127b4b2e384b81ce0e547"
+		},
+		"frontend-mobile-development-component-scaffold": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "321c5996ecd869b0f15cd03281a643d62257fe8c3788a5aef932b9812fd43db3"
+		},
+		"frontend-ui-dark-ts": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "eaa40ac85abd577d2e6acc76671b36b0defb0a1f606f3275b05444166060c509"
+		},
+		"image-manipulation-image-magick": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "08850c49d84c758f95c00eb12542c2dc2e80f1c668e76b4fa901295b877b8a31"
+		},
+		"ionic-appflow-migration": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "9a6d139db8f2610966a010add465c72f9edcadbbc8d1170a22e69c4c84a38e13"
+		},
+		"mcp-configure": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "181d9db0c541b177a5f45d83d13be1f7fbcb4dc7721bdaf2cfb4f15417854ceb"
+		},
+		"migrate-nativewind-to-uniwind": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "50002395e60c340f22c8cdc798eae0c78af9aef1da1b1aed0cbfef99b0d2cef9"
+		},
+		"migrate-to-vinext": {
+			"source": "cloudflare/vinext",
+			"sourceType": "github",
+			"computedHash": "f5473c241d8e93325417e19e3fc0714f2d48ad35eba51a05208b4da6c1f6d0d6"
+		},
+		"native-data-fetching": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "1127a1ab326935169ecf92ffda2d9fc04dc1450a7eecfbafd5157fa9c0126d31"
+		},
+		"react-native-architecture": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "361827f7f16b723c03a47b4faa7556498cc719e66c684553dc1e37387bb89a42"
+		},
+		"shadcn-ui": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "119a14a004bd30fa99d386df599bd0db8d057cca146f7ee08349daed48b2ea55"
+		},
+		"stitch-design": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "b86d4ca105eefef3e3c6222a976db4ac45e1b11ea36f577c2b3b354ea59e0c64"
+		},
+		"stitch-loop": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "cf47da05045ce0c11f1a8b21dc4ef9bbfed0122d68548a48786cb1608257d574"
+		},
+		"upgrading-expo": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "7ccc3de855963fcfd8fa25a81a0baa98e165be0ae46577b736367c104959c30a"
+		},
+		"use-dom": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "63a18bc2e07d18313aa9749bbb59c542c9b141424c56bd5514907be276c5bf80"
+		},
+		"web-artifacts-builder": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "8506451d6d3a3494ddca091b0f0ff7a9961ddd4301df2b6264dd3f98bed75b0a"
+		},
+		"web-coder": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "dc1beb1b81d4318414ec26f01709d736765befff7082fdd868aca27736a10d14"
+		},
+		"web-design-guidelines": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "d8e7d3afe37dcc8a97b99ffb5afdb4d0919ae0092ea8b68f44eb201f035e33ac"
+		},
+		"web-design-reviewer": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "e725fabe06496903e6e0c9b3ceb28aa586ecac0d8b423eebf2ddf26a5d69d141"
+		},
+		"workers-best-practices": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "c919a93c9db826a0ee2818f6f7977c40c1a43bb87abc848b22181fdbabe2ef80"
+		},
+		"wrangler": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "be23bb546012cb8206378b990e5b920503c9d368eeb8949c8a3522c35bafb8bb"
+		},
+		"writing-plans": {
+			"source": "involvex/skills",
+			"sourceType": "github",
+			"computedHash": "e39091cde79ede1a85e2b825d31a4d307a2313ea19993c8792872d2239d5a533"
+		}
+	}
 }

@@ -36,6 +36,7 @@ Bun workspaces; `shared` consumed by cli, hub, web.
 ```
 
 **Data flow:**
+
 1. CLI spawns agent (claude/codex/gemini), connects to hub via Socket.IO
 2. Agent events → CLI → hub (socket `message` event) → DB + SSE broadcast
 3. Web subscribes to SSE `/api/events`, receives live updates
@@ -72,6 +73,7 @@ bun run build:single-exe # All-in-one binary
 ## Key source dirs
 
 ### CLI (`cli/src/`)
+
 - `api/` - Hub connection (Socket.IO client, auth)
 - `claude/` - Claude Code integration (wrapper, hooks)
 - `codex/` - Codex mode integration
@@ -82,6 +84,7 @@ bun run build:single-exe # All-in-one binary
 - `ui/` - Terminal UI (Ink components)
 
 ### Hub (`hub/src/`)
+
 - `web/routes/` - REST API endpoints
 - `socket/` - Socket.IO setup
 - `socket/handlers/cli/` - CLI event handlers (session, terminal, machine, RPC)
@@ -94,6 +97,7 @@ bun run build:single-exe # All-in-one binary
 - `visibility/` - Client visibility tracking
 
 ### Web (`web/src/`)
+
 - `routes/` - TanStack Router pages
 - `routes/sessions/` - Session views (chat, files, terminal)
 - `components/` - Reusable UI (SessionList, SessionChat, NewSession/)
@@ -103,6 +107,7 @@ bun run build:single-exe # All-in-one binary
 - `api/client.ts` - API client wrapper
 
 ### Shared (`shared/src/`)
+
 - `types.ts` - Core types (Session, Message, Machine)
 - `schemas.ts` - Zod schemas for validation
 - `socket.ts` - Socket.IO event types
@@ -120,17 +125,17 @@ bun run build:single-exe # All-in-one binary
 
 ## Common tasks
 
-| Task | Key files |
-|------|-----------|
-| Add CLI command | `cli/src/commands/`, `cli/src/index.ts` |
-| Add API endpoint | `hub/src/web/routes/`, register in `hub/src/web/index.ts` |
-| Add Socket.IO event | `hub/src/socket/handlers/cli/`, `shared/src/socket.ts` |
-| Add web route | `web/src/routes/`, `web/src/router.tsx` |
-| Add web component | `web/src/components/` |
-| Modify session logic | `hub/src/sync/sessionCache.ts`, `hub/src/sync/syncEngine.ts` |
-| Modify message handling | `hub/src/sync/messageService.ts` |
-| Add notification type | `hub/src/notifications/` |
-| Add shared type | `shared/src/types.ts`, `shared/src/schemas.ts` |
+| Task                    | Key files                                                    |
+| ----------------------- | ------------------------------------------------------------ |
+| Add CLI command         | `cli/src/commands/`, `cli/src/index.ts`                      |
+| Add API endpoint        | `hub/src/web/routes/`, register in `hub/src/web/index.ts`    |
+| Add Socket.IO event     | `hub/src/socket/handlers/cli/`, `shared/src/socket.ts`       |
+| Add web route           | `web/src/routes/`, `web/src/router.tsx`                      |
+| Add web component       | `web/src/components/`                                        |
+| Modify session logic    | `hub/src/sync/sessionCache.ts`, `hub/src/sync/syncEngine.ts` |
+| Modify message handling | `hub/src/sync/messageService.ts`                             |
+| Add notification type   | `hub/src/notifications/`                                     |
+| Add shared type         | `shared/src/types.ts`, `shared/src/schemas.ts`               |
 
 ## Important patterns
 

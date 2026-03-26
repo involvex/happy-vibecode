@@ -1,25 +1,35 @@
 {
-    "name": "happy-vibecode-repo",
-    "version": "0.0.0",
-    "description": "Monorepo for Happy Vibecode. Lets you vibe anytime anywhere",
-    "author": {"name": "involvex"},
-    "prettier": "@involvex/prettier-config",
-    "scripts": {
-        "build": "turbo run build",
-        "dev": "turbo run dev",
-        "lint": "turbo run lint",
-        "lint:fix": "turbo run lint --fix",
-        "typecheck": "turbo run typecheck",
-        "format": "prettier --write .",
-        "prebuild": "bun run format && bun run lint:fix && bun run typecheck",
-        "test": "turbo run test"
-    },
-    "devDependencies": {"@involvex/prettier-config": "^0.0.4"},
-    "dependencies": {"@types/bun": "^1.3.11","turbo": "^2.8.20","@tsconfig/bun": "^1.0.10"},
-    "peerDependencies": {"typescript": "5.9.3"},
-    "workspaces": [
-        "apps/*",
-        "packages/*"
-    ],
-    "packageManager": "bun@1.3.10"
+	"name": "happy-vibecode-repo",
+	"version": "0.0.0",
+	"description": "Monorepo for Happy Vibecode. Lets you vibe anytime anywhere",
+	"author": {
+		"name": "involvex"
+	},
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	],
+	"scripts": {
+		"prebuild": "bun run format && bun run lint:fix && bun run typecheck",
+		"build": "turbo run build",
+		"dev": "turbo run dev",
+		"format": "prettier --write .",
+		"lint": "turbo run lint",
+		"lint:fix": "turbo run lint --fix",
+		"test": "turbo run test",
+		"typecheck": "turbo run typecheck"
+	},
+	"prettier": "@involvex/prettier-config",
+	"dependencies": {
+		"@tsconfig/bun": "^1.0.10",
+		"@types/bun": "^1.3.11",
+		"turbo": "^2.8.20"
+	},
+	"devDependencies": {
+		"@involvex/prettier-config": "^0.0.4"
+	},
+	"peerDependencies": {
+		"typescript": "5.9.3"
+	},
+	"packageManager": "bun@1.3.10"
 }
