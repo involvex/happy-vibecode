@@ -34,7 +34,7 @@ export const DEFAULT_AGENTS: AgentsConfig = {
 			id: 'opencode-ai',
 			name: 'OpenCode AI',
 			command: 'opencode',
-			args: ['run'],
+			args: [],
 			promptFlag: '--prompt',
 			description: 'OpenCode AI CLI agent',
 		},

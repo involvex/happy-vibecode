@@ -1,3 +1,5 @@
+const isBun = typeof Bun !== 'undefined'
+
 const SALT_LENGTH = 16
 const ITERATIONS = 100000
 const HASH_LENGTH = 32
@@ -21,7 +23,7 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
 	return bytes.buffer
 }
 
-export async function hashPassword(password: string): Promise<string> {
+async function webCryptoHashPassword(password: string): Promise<string> {
 	const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH))
 	const encoder = new TextEncoder()
 	const passwordBuffer = encoder.encode(password)
@@ -51,7 +53,7 @@ export async function hashPassword(password: string): Promise<string> {
 	return `${saltBase64}:${hashBase64}`
 }
 
-export async function verifyPassword(
+async function webCryptoVerifyPassword(
 	password: string,
 	storedHash: string,
 ): Promise<boolean> {
@@ -87,4 +89,21 @@ export async function verifyPassword(
 	const computedHashBase64 = arrayBufferToBase64(derivedBits)
 
 	return computedHashBase64 === hashBase64
+}
+
+export async function hashPassword(password: string): Promise<string> {
+	if (isBun) {
+		return await Bun.password.hash(password)
+	}
+	return await webCryptoHashPassword(password)
+}
+
+export async function verifyPassword(
+	password: string,
+	storedHash: string,
+): Promise<boolean> {
+	if (isBun) {
+		return await Bun.password.verify(password, storedHash)
+	}
+	return await webCryptoVerifyPassword(password, storedHash)
 }
