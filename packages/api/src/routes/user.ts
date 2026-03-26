@@ -7,7 +7,7 @@ import {
 import {hashPassword, verifyPassword} from '@happy-vibecode/shared/crypto'
 import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
 import {createDb} from '@happy-vibecode/db'
-import {eq} from 'drizzle-orm'
+import {eq, sql} from 'drizzle-orm'
 import {Hono} from 'hono'
 
 export const userRouter = new Hono<{
@@ -209,4 +209,29 @@ userRouter.post('/link-email', async c => {
 		.where(eq(schema.users.id, userId))
 
 	return c.json({ok: true, message: 'Email linked successfully', email})
+})
+
+userRouter.get('/admin-status', async c => {
+	const userId = c.get('userId')
+	const db = createDb(c.env.DB)
+	const {schema} = await import('@happy-vibecode/db')
+
+	const user = await db.query.users.findFirst({
+		where: (u, {eq}) => eq(u.id, userId),
+	})
+
+	if (!user) {
+		return c.json({error: 'User not found'}, 404)
+	}
+
+	const isAdmin = user.role === 'admin'
+	if (!isAdmin) {
+		return c.json({isAdmin: false})
+	}
+
+	const role = await db.query.roles.findFirst({
+		where: sql`lower(${schema.roles.name}) = lower(${user.role})`,
+	})
+
+	return c.json({isAdmin: !!role})
 })

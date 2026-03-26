@@ -22,5 +22,12 @@
 		"**/.claude/skills": true,
 		"**/.agent/skills": true
 	},
-	"cSpell.words": ["happyvibecode"]
+	"cSpell.words": ["happyvibecode"],
+	"oxc.enable.oxlint": true,
+	"oxc.tsConfigPath": "apps/web",
+	"appmod.enableVerboseLogging": false,
+	"appmod.experimental.enableExperimentalTasks": false,
+	"kilo-code.new.autocomplete.enableAutoTrigger": false,
+	"prettier.configPath": "node_modules/@involvex/prettier-config/index.json",
+	"js/ts.preferences.organizeImports": {"locale": "true"}
 }

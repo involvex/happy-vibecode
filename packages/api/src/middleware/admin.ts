@@ -1,6 +1,7 @@
 import {authMiddleware, type ApiEnv} from './auth.js'
 import {createMiddleware} from 'hono/factory'
 import {createDb} from '@happy-vibecode/db'
+import {sql} from 'drizzle-orm'
 
 export const adminMiddleware = createMiddleware<{
 	Bindings: ApiEnv
@@ -12,6 +13,17 @@ export const adminMiddleware = createMiddleware<{
 	const userRole = c.get('userRole')
 	if (userRole !== 'admin') {
 		return c.json({error: 'Admin access required'}, 403)
+	}
+
+	const db = createDb(c.env.DB)
+	const {schema} = await import('@happy-vibecode/db')
+
+	const role = await db.query.roles.findFirst({
+		where: sql`lower(${schema.roles.name}) = lower(${userRole})`,
+	})
+
+	if (!role) {
+		return c.json({error: 'Role not found in system'}, 403)
 	}
 
 	await next()
@@ -52,7 +64,7 @@ export function requirePermission(
 		}
 
 		const role = await db.query.roles.findFirst({
-			where: (r, {eq}) => eq(r.name, user.role),
+			where: sql`lower(${schema.roles.name}) = lower(${user.role})`,
 		})
 
 		if (!role) {

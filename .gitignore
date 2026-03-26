@@ -160,3 +160,4 @@ node_modules
 .turbo/
 */*/.turbo
 packages/cli/.npmrc
+.kilo

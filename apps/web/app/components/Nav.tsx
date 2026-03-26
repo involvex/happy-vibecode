@@ -105,7 +105,7 @@ export function Nav({onLogout}: NavProps) {
 			<button
 				type="button"
 				onClick={() => setMenuOpen(!menuOpen)}
-				className="p-2 rounded-lg text-kumo-secondary hover:text-kumo-default hover:bg-kumo-hover transition-colors md:hidden"
+				className="p-2 transition-colors rounded-lg text-kumo-secondary hover:text-kumo-default hover:bg-kumo-hover md:hidden"
 				aria-label={menuOpen ? 'Close menu' : 'Open menu'}
 			>
 				{menuOpen ? <XIcon size={22} /> : <ListIcon size={22} />}
@@ -113,7 +113,7 @@ export function Nav({onLogout}: NavProps) {
 
 			{/* Mobile menu dropdown */}
 			{menuOpen && (
-				<div className="absolute left-0 right-0 top-full border-b bg-kumo-base border-kumo-line md:hidden">
+				<div className="absolute left-0 right-0 border-b top-full bg-kumo-base border-kumo-line md:hidden">
 					<div className="flex flex-col gap-1 px-4 py-3">
 						{navItems.map(item => {
 							const active = pathname === item.href
@@ -140,7 +140,7 @@ export function Nav({onLogout}: NavProps) {
 									setMenuOpen(false)
 									onLogout()
 								}}
-								className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-kumo-secondary hover:text-kumo-danger hover:bg-kumo-hover transition-colors"
+								className="flex items-center gap-2 px-3 py-2 text-sm transition-colors rounded-lg text-kumo-secondary hover:text-kumo-danger hover:bg-kumo-hover"
 							>
 								<SignOutIcon size={16} />
 								Logout

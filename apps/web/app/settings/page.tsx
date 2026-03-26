@@ -13,7 +13,7 @@ import {
 import {WorkspaceSelector} from '../components/WorkspaceSelector'
 import {useWorkspaces} from '../hooks/useWorkspaces'
 import {zodResolver} from '@hookform/resolvers/zod'
-import {Button, Text} from '@cloudflare/kumo'
+import {Button, Link, Text} from '@cloudflare/kumo'
 import {useRouter} from 'next/navigation'
 import {useEffect, useState} from 'react'
 import {useAuth} from '../hooks/useAuth'
@@ -265,6 +265,7 @@ export default function SettingsPage() {
 	const canSetPassword = userProfile?.githubId && !userProfile?.hasPassword
 	const canChangePassword = userProfile?.hasPassword
 	const Role = userProfile?.role
+	const isAdmin = Role === 'admin'
 	return (
 		<div className="min-h-screen bg-kumo-elevated">
 			<Nav onLogout={handleLogout} />
@@ -295,6 +296,13 @@ export default function SettingsPage() {
 						<p className="font-mono text-sm text-kumo-default">{userId}</p>
 						<p className="text-kumo-secondary">Role</p>
 						<p className="text-sm text-kumo-info">{Role}</p>
+						{isAdmin ? (
+							<Link href="/admin" className="text-sm text-kumo-info-tint">
+								Go to Admin Dashboard
+							</Link>
+						) : (
+							<br />
+						)}
 					</div>
 					{profileLoading ? (
 						<div className="flex items-center gap-2 text-sm text-kumo-inactive">

@@ -6,16 +6,40 @@ import {useEffect, useState} from 'react'
 import {useAuth} from '../hooks/useAuth'
 
 export default function AdminLayout({children}: {children: React.ReactNode}) {
-	const {isAuthed, isLoaded, role} = useAuth()
+	const {isAuthed, isLoaded, apiToken} = useAuth()
 	const router = useRouter()
 	const [collapsed, setCollapsed] = useState(false)
 	const [mobileOpen, setMobileOpen] = useState(false)
+	const [adminStatusChecked, setAdminStatusChecked] = useState(false)
+	const [isAdmin, setIsAdmin] = useState(false)
 
 	useEffect(() => {
 		if (isLoaded && !isAuthed) {
 			router.replace('/login')
 		}
 	}, [isLoaded, isAuthed, router])
+
+	useEffect(() => {
+		if (!apiToken || !isAuthed) return
+
+		const headers = {Authorization: `Bearer ${apiToken}`}
+
+		Promise.all([
+			fetch('/api/user/profile', {headers}).then(
+				res => res.json() as Promise<{role: string}>,
+			),
+			fetch('/api/user/admin-status', {headers}).then(
+				res => res.json() as Promise<{isAdmin: boolean}>,
+			),
+		])
+			.then(([profile, status]) => {
+				setIsAdmin(profile.role === 'admin' && status.isAdmin)
+			})
+			.catch(() => {
+				setIsAdmin(false)
+			})
+			.finally(() => setAdminStatusChecked(true))
+	}, [apiToken, isAuthed])
 
 	if (!isLoaded || !isAuthed) {
 		return (
@@ -29,9 +53,19 @@ export default function AdminLayout({children}: {children: React.ReactNode}) {
 		)
 	}
 
-	// Admin check - allow if role is admin
-	// Note: In production, this should also check against the roles table
-	if (role !== 'admin') {
+	if (!adminStatusChecked) {
+		return (
+			<div className="flex items-center justify-center h-screen bg-kumo-elevated">
+				<CircleIcon
+					size={32}
+					weight="duotone"
+					className="text-kumo-inactive animate-spin"
+				/>
+			</div>
+		)
+	}
+
+	if (!isAdmin) {
 		return (
 			<div className="flex flex-col items-center justify-center h-screen bg-kumo-elevated gap-4">
 				<p className="text-kumo-default text-lg font-semibold">Access Denied</p>
