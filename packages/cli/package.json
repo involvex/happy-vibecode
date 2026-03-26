@@ -2,11 +2,24 @@
 	"name": "@happy-vibecode/cli",
 	"version": "0.1.0",
 	"description": "Happy Vibecode CLI — remote control for local AI agents",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/involvex/happy-vibecode.git"
+	},
+	"author": {
+		"name": "involvex"
+	},
 	"type": "module",
 	"bin": {
 		"happy-vibecode": "./src/index.ts",
 		"vibe": "./src/index.ts"
 	},
+	"files": [
+		"dist/index.js",
+		"src/index.ts",
+		"../../Readme.md",
+		"../../CHANGELOG.md"
+	],
 	"scripts": {
 		"build": "bun build ./src/index.ts --outfile dist/index.js --target bun",
 		"start": "bun run ./src/index.ts",

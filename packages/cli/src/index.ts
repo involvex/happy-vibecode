@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import pkg from '../package.json' with {type: 'json'}
 import {connectCommand} from './commands/connect.js'
+import {whoamiCommand} from './commands/whoami.js'
 import {statusCommand} from './commands/status.js'
 import {loginCommand} from './commands/login.js'
 import {initCommand} from './commands/init.js'
@@ -15,5 +16,6 @@ program.addCommand(loginCommand)
 program.addCommand(connectCommand)
 program.addCommand(initCommand)
 program.addCommand(statusCommand)
+program.addCommand(whoamiCommand)
 
 program.parseAsync(process.argv)

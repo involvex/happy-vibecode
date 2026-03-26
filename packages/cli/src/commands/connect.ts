@@ -65,7 +65,8 @@ function runAgent(
 	const args = [...agent.args, prompt]
 	const proc = spawn(agent.command, args, {
 		stdio: ['ignore', 'pipe', 'pipe'],
-		shell: false,
+		// shell: true is required on Windows where npm CLIs are .cmd wrappers
+		shell: process.platform === 'win32',
 	})
 
 	proc.stdout.setEncoding('utf8')

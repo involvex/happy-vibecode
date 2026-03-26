@@ -1,6 +1,7 @@
 'use client'
 import {
 	ChatCircleDotsIcon,
+	CircleIcon,
 	ClockIcon,
 	ArrowSquareOutIcon,
 	MagnifyingGlassIcon,
@@ -85,17 +86,17 @@ function SessionCard({session}: {session: Session}) {
 }
 
 export default function HistoryPage() {
-	const {isAuthed, apiToken, serverUrl, logout} = useAuth()
+	const {isAuthed, isLoaded, apiToken, serverUrl, logout} = useAuth()
 	const router = useRouter()
 	const [sessions, setSessions] = useState<Session[]>([])
 	const [loading, setLoading] = useState(true)
 	const [query, setQuery] = useState('')
 
 	useEffect(() => {
-		if (!isAuthed) {
+		if (isLoaded && !isAuthed) {
 			router.replace('/login')
 		}
-	}, [isAuthed, router])
+	}, [isLoaded, isAuthed, router])
 
 	useEffect(() => {
 		if (!isAuthed || !apiToken) return
@@ -122,7 +123,17 @@ export default function HistoryPage() {
 		)
 	})
 
-	if (!isAuthed) return null
+	if (!isLoaded || !isAuthed) {
+		return (
+			<div className="flex items-center justify-center h-screen bg-kumo-elevated">
+				<CircleIcon
+					size={32}
+					weight="duotone"
+					className="text-kumo-inactive animate-spin"
+				/>
+			</div>
+		)
+	}
 
 	return (
 		<div className="min-h-screen bg-kumo-elevated flex flex-col">

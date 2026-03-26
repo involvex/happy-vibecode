@@ -18,6 +18,7 @@
 		"build": "turbo run build",
 		"build:cli": "bun run -F @happy-vibecode/cli build",
 		"build:web": "bun run -F @happy-vibecode/web build",
+		"changelog": "conventional-changelog -p conventionalcommits -i CHANGELOG.md -s -r 0",
 		"dev": "turbo run dev",
 		"dev:web": "bun run -F @happy-vibecode/web dev",
 		"format": "prettier --write .",
@@ -34,6 +35,7 @@
 	},
 	"devDependencies": {
 		"@involvex/prettier-config": "^0.0.4",
+		"conventional-changelog": "^7.2.0",
 		"prettier": "^3.8.1",
 		"prettier-plugin-organize-imports": "^4.3.0",
 		"prettier-plugin-packagejson": "^3.0.2",
