@@ -61,6 +61,7 @@ interface UserProfile {
 	nickname: string | null
 	githubId: string | null
 	hasPassword: boolean
+	role: 'user' | 'admin'
 }
 
 export default function SettingsPage() {
@@ -263,55 +264,57 @@ export default function SettingsPage() {
 	const isGitHubUser = userProfile?.githubId && !userProfile?.email
 	const canSetPassword = userProfile?.githubId && !userProfile?.hasPassword
 	const canChangePassword = userProfile?.hasPassword
-
+	const Role = userProfile?.role
 	return (
 		<div className="min-h-screen bg-kumo-elevated">
 			<Nav onLogout={handleLogout} />
 
-			<main className="max-w-2xl mx-auto px-6 py-10 space-y-6">
+			<main className="max-w-2xl px-6 py-10 mx-auto space-y-6">
 				<h1 className="text-2xl font-bold text-kumo-default">Settings</h1>
 
 				{passwordSuccess && (
-					<div className="text-sm text-kumo-success bg-kumo-success/10 border border-kumo-success/20 rounded-lg px-3 py-2">
+					<div className="px-3 py-2 text-sm border rounded-lg text-kumo-success bg-kumo-success/10 border-kumo-success/20">
 						{passwordSuccess}
 					</div>
 				)}
 
 				{passwordError && (
-					<div className="text-sm text-kumo-danger bg-kumo-danger/10 border border-kumo-danger/20 rounded-lg px-3 py-2">
+					<div className="px-3 py-2 text-sm border rounded-lg text-kumo-danger bg-kumo-danger/10 border-kumo-danger/20">
 						{passwordError}
 					</div>
 				)}
 
 				{/* Account */}
-				<section className="bg-kumo-base border border-kumo-line rounded-2xl p-6 space-y-4">
-					<div className="flex items-center gap-2 text-kumo-default font-semibold">
+				<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
+					<div className="flex items-center gap-2 font-semibold text-kumo-default">
 						<ShieldCheckIcon size={18} weight="duotone" />
 						Account
 					</div>
-					<div className="text-sm space-y-1">
+					<div className="space-y-1 text-sm">
 						<p className="text-kumo-secondary">User ID</p>
-						<p className="font-mono text-kumo-default text-sm">{userId}</p>
+						<p className="font-mono text-sm text-kumo-default">{userId}</p>
+						<p className="text-kumo-secondary">Role</p>
+						<p className="text-sm text-kumo-info">{Role}</p>
 					</div>
 					{profileLoading ? (
-						<div className="flex items-center gap-2 text-kumo-inactive text-sm">
+						<div className="flex items-center gap-2 text-sm text-kumo-inactive">
 							<CircleIcon size={14} weight="duotone" className="animate-spin" />
 							Loading...
 						</div>
 					) : (
 						<>
 							{userProfile?.email && (
-								<div className="text-sm space-y-1">
+								<div className="space-y-1 text-sm">
 									<p className="text-kumo-secondary">Email</p>
-									<p className="text-kumo-default text-sm">
+									<p className="text-sm text-kumo-default">
 										{userProfile.email}
 									</p>
 								</div>
 							)}
 							{userProfile?.githubId && (
-								<div className="text-sm space-y-1">
+								<div className="space-y-1 text-sm">
 									<p className="text-kumo-secondary">Sign-in method</p>
-									<p className="text-kumo-default text-sm flex items-center gap-2">
+									<p className="flex items-center gap-2 text-sm text-kumo-default">
 										<svg
 											width="16"
 											height="16"
@@ -333,8 +336,8 @@ export default function SettingsPage() {
 
 				{/* Email Assignment - For GitHub users without email */}
 				{isGitHubUser && (
-					<section className="bg-kumo-base border border-kumo-line rounded-2xl p-6 space-y-4">
-						<div className="flex items-center gap-2 text-kumo-default font-semibold">
+					<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
+						<div className="flex items-center gap-2 font-semibold text-kumo-default">
 							<EnvelopeSimpleIcon size={18} weight="duotone" />
 							Link Email Address
 						</div>
@@ -354,10 +357,10 @@ export default function SettingsPage() {
 									type="email"
 									placeholder="you@example.com"
 									{...linkEmailForm.register('email')}
-									className="w-full px-3 py-2 rounded-lg border border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
+									className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
 								/>
 								{linkEmailForm.formState.errors.email && (
-									<p className="text-xs text-kumo-danger mt-1">
+									<p className="mt-1 text-xs text-kumo-danger">
 										{linkEmailForm.formState.errors.email.message}
 									</p>
 								)}
@@ -378,8 +381,8 @@ export default function SettingsPage() {
 
 				{/* Password Management */}
 				{(canSetPassword || canChangePassword) && (
-					<section className="bg-kumo-base border border-kumo-line rounded-2xl p-6 space-y-4">
-						<div className="flex items-center gap-2 text-kumo-default font-semibold">
+					<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
+						<div className="flex items-center gap-2 font-semibold text-kumo-default">
 							<LockIcon size={18} weight="duotone" />
 							Password
 						</div>
@@ -390,7 +393,7 @@ export default function SettingsPage() {
 						</Text>
 
 						{passwordSuccess && (
-							<div className="text-sm text-kumo-success bg-kumo-success/10 border border-kumo-success/20 rounded-lg px-3 py-2">
+							<div className="px-3 py-2 text-sm border rounded-lg text-kumo-success bg-kumo-success/10 border-kumo-success/20">
 								{passwordSuccess}
 							</div>
 						)}
@@ -424,10 +427,10 @@ export default function SettingsPage() {
 											type="password"
 											placeholder="Current password"
 											{...changePasswordForm.register('currentPassword')}
-											className="w-full px-3 py-2 rounded-lg border border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
+											className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
 										/>
 										{changePasswordForm.formState.errors.currentPassword && (
-											<p className="text-xs text-kumo-danger mt-1">
+											<p className="mt-1 text-xs text-kumo-danger">
 												{
 													changePasswordForm.formState.errors.currentPassword
 														.message
@@ -456,12 +459,12 @@ export default function SettingsPage() {
 										{...(showPasswordForm === 'set'
 											? setPasswordForm.register('password')
 											: changePasswordForm.register('newPassword'))}
-										className="w-full px-3 py-2 rounded-lg border border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
+										className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
 									/>
 									{(showPasswordForm === 'set'
 										? setPasswordForm.formState.errors.password
 										: changePasswordForm.formState.errors.newPassword) && (
-										<p className="text-xs text-kumo-danger mt-1">
+										<p className="mt-1 text-xs text-kumo-danger">
 											{showPasswordForm === 'set'
 												? setPasswordForm.formState.errors.password?.message
 												: changePasswordForm.formState.errors.newPassword
@@ -478,12 +481,12 @@ export default function SettingsPage() {
 										type="password"
 										placeholder="Confirm password"
 										{...setPasswordForm.register('confirmPassword')}
-										className="w-full px-3 py-2 rounded-lg border border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
+										className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
 									/>
 									{(showPasswordForm === 'set'
 										? setPasswordForm.formState.errors.confirmPassword
 										: changePasswordForm.formState.errors.confirmPassword) && (
-										<p className="text-xs text-kumo-danger mt-1">
+										<p className="mt-1 text-xs text-kumo-danger">
 											{showPasswordForm === 'set'
 												? setPasswordForm.formState.errors.confirmPassword
 														?.message
@@ -531,20 +534,20 @@ export default function SettingsPage() {
 				)}
 
 				{/* API Token */}
-				<section className="bg-kumo-base border border-kumo-line rounded-2xl p-6 space-y-4">
-					<div className="flex items-center gap-2 text-kumo-default font-semibold">
+				<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
+					<div className="flex items-center gap-2 font-semibold text-kumo-default">
 						<KeyIcon size={18} weight="duotone" />
 						API Token
 					</div>
 
 					<div className="flex items-center gap-2">
-						<div className="flex-1 font-mono text-sm bg-kumo-control rounded-lg px-3 py-2 text-kumo-default overflow-hidden text-ellipsis whitespace-nowrap">
+						<div className="flex-1 px-3 py-2 overflow-hidden font-mono text-sm rounded-lg bg-kumo-control text-kumo-default text-ellipsis whitespace-nowrap">
 							{showToken ? apiToken : maskedToken}
 						</div>
 						<button
 							type="button"
 							onClick={() => setShowToken(v => !v)}
-							className="p-2 rounded-lg hover:bg-kumo-hover text-kumo-secondary transition-colors"
+							className="p-2 transition-colors rounded-lg hover:bg-kumo-hover text-kumo-secondary"
 							title={showToken ? 'Hide' : 'Show'}
 						>
 							{showToken ? <EyeSlashIcon size={16} /> : <EyeIcon size={16} />}
@@ -552,7 +555,7 @@ export default function SettingsPage() {
 						<button
 							type="button"
 							onClick={handleCopy}
-							className="p-2 rounded-lg hover:bg-kumo-hover text-kumo-secondary transition-colors"
+							className="p-2 transition-colors rounded-lg hover:bg-kumo-hover text-kumo-secondary"
 							title="Copy"
 						>
 							<CopyIcon size={16} />
@@ -569,7 +572,7 @@ export default function SettingsPage() {
 						<p className="text-xs text-kumo-success">{rotateSuccess}</p>
 					)}
 
-					<div className="pt-2 flex items-center gap-3">
+					<div className="flex items-center gap-3 pt-2">
 						<Button
 							variant="secondary"
 							size="sm"
@@ -580,7 +583,7 @@ export default function SettingsPage() {
 						</Button>
 					</div>
 
-					<div className="text-xs text-kumo-inactive bg-kumo-control rounded-lg px-3 py-2">
+					<div className="px-3 py-2 text-xs rounded-lg text-kumo-inactive bg-kumo-control">
 						Use this token in the CLI:{' '}
 						<code className="text-kumo-accent">happy-vibecode login</code>, or
 						set it in your HTTP requests as{' '}
@@ -592,8 +595,8 @@ export default function SettingsPage() {
 
 				{/* Server */}
 				{serverUrl && (
-					<section className="bg-kumo-base border border-kumo-line rounded-2xl p-6 space-y-4">
-						<div className="flex items-center gap-2 text-kumo-default font-semibold">
+					<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
+						<div className="flex items-center gap-2 font-semibold text-kumo-default">
 							Server URL
 						</div>
 						<p className="font-mono text-sm text-kumo-default">
@@ -603,7 +606,7 @@ export default function SettingsPage() {
 				)}
 
 				{/* Workspaces */}
-				<section className="bg-kumo-base border border-kumo-line rounded-2xl p-6">
+				<section className="p-6 border bg-kumo-base border-kumo-line rounded-2xl">
 					<WorkspaceSelector
 						workspaces={workspaces}
 						activeWorkspaceId={activeWorkspaceId}
@@ -614,8 +617,8 @@ export default function SettingsPage() {
 				</section>
 
 				{/* Danger zone */}
-				<section className="bg-kumo-base border border-kumo-danger/30 rounded-2xl p-6 space-y-4">
-					<div className="flex items-center gap-2 text-kumo-danger font-semibold">
+				<section className="p-6 space-y-4 border bg-kumo-base border-kumo-danger/30 rounded-2xl">
+					<div className="flex items-center gap-2 font-semibold text-kumo-danger">
 						<TrashIcon size={18} weight="duotone" />
 						Danger Zone
 					</div>

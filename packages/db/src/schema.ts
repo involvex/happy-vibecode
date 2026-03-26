@@ -49,6 +49,8 @@ export const agentSessions = sqliteTable('agent_sessions', {
 			'opencode',
 			'opencode-ai',
 			'copilot',
+			'kilo',
+			'cline',
 			'custom',
 		],
 	}).notNull(),

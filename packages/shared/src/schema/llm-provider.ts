@@ -6,6 +6,8 @@ export const llmProviderSchema = z.enum([
 	'codex',
 	'opencode-ai',
 	'copilot',
+	'kilo',
+	'cline',
 	'custom',
 ])
 
