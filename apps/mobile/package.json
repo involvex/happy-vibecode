@@ -6,11 +6,12 @@
 	"main": "expo-router/entry",
 	"scripts": {
 		"android": "expo run:android",
-		"check": "bun run expo:check && bun run doctor",
+		"check": "bun run lint:fix && bun run typecheck && bun run expo:check && bun run doctor",
 		"doctor": "bunx expo-doctor --verbose",
 		"expo:check": "bunx expo install --check",
 		"ios": "expo run:ios",
 		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
 		"start": "expo start",
 		"typecheck": "tsc --noEmit"
 	},
