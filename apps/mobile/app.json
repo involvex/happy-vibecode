@@ -2,7 +2,7 @@
 	"expo": {
 		"name": "Happy Vibecode",
 		"slug": "happy-vibecode",
-		"version": "0.0.1",
+		"version": "0.0.2",
 		"orientation": "portrait",
 		"icon": "assets/icon.png",
 		"userInterfaceStyle": "automatic",
@@ -16,7 +16,8 @@
 		},
 		"ios": {
 			"supportsTablet": true,
-			"bundleIdentifier": "com.happyvibecode.app"
+			"bundleIdentifier": "com.happyvibecode.app",
+			"buildNumber": "NaN"
 		},
 		"android": {
 			"adaptiveIcon": {
@@ -24,7 +25,7 @@
 				"backgroundColor": "#0f0f0f"
 			},
 			"icon": "assets/icon512x512.png",
-			"versionCode": 1,
+			"versionCode": 2,
 			"userInterfaceStyle": "automatic",
 			"package": "com.happyvibecode.app"
 		},
