@@ -12,7 +12,11 @@
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"start": "expo start",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"version:build": "expo-version-bump",
+		"version:major": "expo-version-bump --major",
+		"version:minor": "expo-version-bump --minor",
+		"version:patch": "expo-version-bump --patch"
 	},
 	"dependencies": {
 		"@babel/plugin-transform-react-jsx": "^7.28.6",
@@ -28,6 +32,7 @@
 		"expo-secure-store": "~55.0.9",
 		"expo-status-bar": "~55.0.4",
 		"expo-system-ui": "~55.0.10",
+		"expo-version-bump": "^1.0.2",
 		"nativewind": "^4.0.36",
 		"react": "19.2.0",
 		"react-native": "0.83.2",

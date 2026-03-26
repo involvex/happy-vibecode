@@ -14,6 +14,7 @@
 		"packages/*"
 	],
 	"scripts": {
+		"app:version:patch": "bun run -F @happy-vibecode/mobile version:patch",
 		"prebuild": "bun run format && bun run lint:fix && bun run typecheck",
 		"build": "turbo run build",
 		"build:cli": "bun run -F @happy-vibecode/cli build",
@@ -25,6 +26,7 @@
 		"format": "prettier --write .",
 		"lint": "turbo run lint",
 		"lint:fix": "turbo run lint:fix",
+		"release": "powershell -F scripts/release.ps1",
 		"test": "turbo run test",
 		"typecheck": "turbo run typecheck"
 	},
