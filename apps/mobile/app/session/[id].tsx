@@ -35,10 +35,9 @@ export default function SessionScreen() {
 	const roomId = id ?? userId ?? 'default'
 
 	useEffect(() => {
-		const host = (serverUrl ?? 'https://happy-vibecode.workers.dev').replace(
-			'http',
-			'ws',
-		)
+		const host = (
+			serverUrl ?? 'https://happy-vibecode.involvex.workers.dev'
+		).replace('http', 'ws')
 		const ws = new WebSocket(
 			`${host}/agents/BridgeAgent/${roomId}?type=mobile&userId=${userId ?? 'anon'}`,
 		)

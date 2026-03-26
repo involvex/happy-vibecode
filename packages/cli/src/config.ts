@@ -36,4 +36,4 @@ export function requireConfig(): HappyConfig {
 	return config
 }
 
-export const DEFAULT_SERVER_URL = 'https://happy-vibecode.workers.dev'
+export const DEFAULT_SERVER_URL = 'https://happy-vibecode.involvex.workers.dev'

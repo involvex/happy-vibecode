@@ -40,7 +40,7 @@ export default function HistoryScreen() {
 			setLoading(false)
 			return
 		}
-		const base = serverUrl ?? 'https://happy-vibecode.workers.dev'
+		const base = serverUrl ?? 'https://happy-vibecode.involvex.workers.dev'
 		fetch(`${base}/api/sessions?status=closed`, {
 			headers: {Authorization: `Bearer ${apiToken}`},
 		})

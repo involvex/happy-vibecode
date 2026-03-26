@@ -19,7 +19,9 @@
 		"**/*.tsx",
 		".expo/types/**/*.d.ts",
 		"expo-env.d.ts",
-		"nativewind-env.d.ts"
+		"nativewind-env.d.ts",
+		".expo/types/**/*.ts"
 	],
-	"exclude": ["node_modules"]
+	"exclude": ["node_modules"],
+	"extends": "expo/tsconfig.base"
 }

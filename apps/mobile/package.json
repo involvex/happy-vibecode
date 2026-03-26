@@ -5,14 +5,19 @@
 	"main": "expo-router/entry",
 	"scripts": {
 		"android": "expo run:android",
+		"check": "bun run expo:check && bun run doctor",
+		"doctor": "bunx expo-doctor --verbose",
+		"expo:check": "bunx expo install --check",
 		"ios": "expo run:ios",
 		"lint": "eslint .",
 		"start": "expo start",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@babel/plugin-transform-react-jsx": "^7.28.6",
 		"@expo/vector-icons": "^15.0.2",
 		"@react-native-async-storage/async-storage": "^2.1.2",
+		"babel-preset-expo": "~55.0.8",
 		"expo": "^55.0.8",
 		"expo-constants": "~55.0.9",
 		"expo-font": "~55.0.4",
@@ -23,6 +28,7 @@
 		"nativewind": "^4.0.36",
 		"react": "19.2.0",
 		"react-native": "0.83.2",
+		"react-native-css-interop": "^0.2.3",
 		"react-native-gesture-handler": "~2.30.0",
 		"react-native-reanimated": "4.2.1",
 		"react-native-safe-area-context": "~5.6.2",
