@@ -37,6 +37,8 @@
 	"devDependencies": {
 		"@involvex/prettier-config": "^0.0.4",
 		"conventional-changelog": "^7.2.0",
+		"conventional-changelog-conventionalcommits": "^9.3.0",
+		"conventional-changelog-preset-loader": "^5.0.0",
 		"prettier": "^3.8.1",
 		"prettier-plugin-organize-imports": "^4.3.0",
 		"prettier-plugin-packagejson": "^3.0.2",

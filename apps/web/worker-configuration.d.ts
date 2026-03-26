@@ -3,29 +3,41 @@
 // Runtime types generated with workerd@1.20260317.1 2026-02-12 nodejs_compat
 declare namespace Cloudflare {
 	interface GlobalProps {
-		mainModule: typeof import("./worker/index");
-		durableNamespaces: "BridgeAgent";
+		mainModule: typeof import('./worker/index')
+		durableNamespaces: 'BridgeAgent'
 	}
 	interface Env {
-		KV: KVNamespace;
-		DB: D1Database;
-		IMAGES: ImagesBinding;
-		ASSETS: Fetcher;
-		TURNSTILE_SITE_KEY: string;
-		TURNSTILE_SECRET_KEY: string;
-		CLOUDFLARE_API_TOKEN: string;
-		CLOUDFLARE_ACCOUNT_ID: string;
-		GITHUB_CLIENT_ID: string;
-		GITHUB_CLIENT_SECRET: string;
-		BridgeAgent: DurableObjectNamespace<import("./worker/index").BridgeAgent>;
+		KV: KVNamespace
+		DB: D1Database
+		IMAGES: ImagesBinding
+		ASSETS: Fetcher
+		TURNSTILE_SITE_KEY: string
+		TURNSTILE_SECRET_KEY: string
+		CLOUDFLARE_API_TOKEN: string
+		CLOUDFLARE_ACCOUNT_ID: string
+		GITHUB_CLIENT_ID: string
+		GITHUB_CLIENT_SECRET: string
+		BridgeAgent: DurableObjectNamespace<import('./worker/index').BridgeAgent>
 	}
 }
 interface Env extends Cloudflare.Env {}
 type StringifyValues<EnvType extends Record<string, unknown>> = {
-	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
-};
+	[Binding in keyof EnvType]: EnvType[Binding] extends string
+		? EnvType[Binding]
+		: string
+}
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "TURNSTILE_SITE_KEY" | "TURNSTILE_SECRET_KEY" | "CLOUDFLARE_API_TOKEN" | "CLOUDFLARE_ACCOUNT_ID" | "GITHUB_CLIENT_ID" | "GITHUB_CLIENT_SECRET">> {}
+	interface ProcessEnv extends StringifyValues<
+		Pick<
+			Cloudflare.Env,
+			| 'TURNSTILE_SITE_KEY'
+			| 'TURNSTILE_SECRET_KEY'
+			| 'CLOUDFLARE_API_TOKEN'
+			| 'CLOUDFLARE_ACCOUNT_ID'
+			| 'GITHUB_CLIENT_ID'
+			| 'GITHUB_CLIENT_SECRET'
+		>
+	> {}
 }
 
 // Begin runtime types
