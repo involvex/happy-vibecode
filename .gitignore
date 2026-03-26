@@ -156,3 +156,4 @@ node_modules
 */*/.deta
 */*/.heroku
 */*/wrangler.toml
+.vscode/mcp.json
