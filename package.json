@@ -1,6 +1,6 @@
 {
 	"name": "happy-vibecode-repo",
-	"version": "0.0.0",
+	"version": "0.0.1",
 	"description": "Monorepo for Happy Vibecode. Lets you vibe anytime anywhere",
 	"repository": {
 		"type": "git",
