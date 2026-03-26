@@ -19,6 +19,7 @@
 		"build:cli": "bun run -F @happy-vibecode/cli build",
 		"build:web": "bun run -F @happy-vibecode/web build",
 		"changelog": "conventional-changelog -p conventionalcommits -i CHANGELOG.md -s -r 0",
+		"deploy:web": "bun run -F @happy-vibecode/web deploy",
 		"dev": "turbo run dev",
 		"dev:web": "bun run -F @happy-vibecode/web dev",
 		"format": "prettier --write .",

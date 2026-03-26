@@ -20,7 +20,7 @@ interface Message {
 }
 
 export default function ChatTab() {
-	const {isAuthed, userId, serverUrl, apiToken} = useAuth()
+	const {isAuthed, userId, serverUrl} = useAuth()
 	const router = useRouter()
 	const [messages, setMessages] = useState<Message[]>([])
 	const [input, setInput] = useState('')

@@ -14,8 +14,7 @@ import {useState} from 'react'
 const DEFAULT_URL = 'https://happy-vibecode.involvex.workers.dev'
 
 export default function SettingsScreen() {
-	const {isAuthed, apiToken, userId, serverUrl, login, logout, setServerUrl} =
-		useAuth()
+	const {isAuthed, userId, serverUrl, login, logout, setServerUrl} = useAuth()
 
 	const [tokenInput, setTokenInput] = useState('')
 	const [userIdInput, setUserIdInput] = useState('')
