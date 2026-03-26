@@ -157,3 +157,5 @@ node_modules
 */*/.heroku
 */*/wrangler.toml
 .vscode/mcp.json
+.turbo/
+*/*/.turbo

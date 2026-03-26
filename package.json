@@ -21,7 +21,7 @@
 		"dev:web": "bun run -F @happy-vibecode/web dev",
 		"format": "prettier --write .",
 		"lint": "turbo run lint",
-		"lint:fix": "turbo run lint --fix",
+		"lint:fix": "turbo run lint:fix",
 		"test": "turbo run test",
 		"typecheck": "turbo run typecheck"
 	},

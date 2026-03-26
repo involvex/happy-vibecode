@@ -14,6 +14,9 @@ export default defineConfig({
 		}),
 		devtoolsJson(),
 	],
+	server: {
+		host: true,
+	},
 	environments: {
 		rsc: {
 			optimizeDeps: {

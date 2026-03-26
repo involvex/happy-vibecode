@@ -4,13 +4,12 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"prebuild": "bun run format && bun run lint:fix && bun run typecheck",
+		"prebuild": "bun run lint:fix && bun run typecheck",
 		"build": "vite build",
 		"deploy": "bun run types && vite build && wrangler deploy",
 		"dev": "vite dev",
-		"format": "prettier --write .",
-		"lint": "oxlint",
-		"lint:fix": "oxlint --fix",
+		"lint": "oxlint --ignore-path dist",
+		"lint:fix": "oxlint --fix --ignore-path dist",
 		"typecheck": "tsc --noEmit",
 		"types": "wrangler types"
 	},
@@ -30,7 +29,6 @@
 	},
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "^1.25.5",
-		"@cloudflare/workers-types": "^4.20260305.0",
 		"@tailwindcss/postcss": "^4",
 		"@types/node": "^25",
 		"@types/react": "^19",
@@ -40,7 +38,7 @@
 		"tailwindcss": "^4",
 		"typescript": "^5",
 		"vinext": "^0.0.35",
-		"vite": "^8.0.2",
+		"vite": "^8.0.3",
 		"vite-plugin-devtools-json": "^1.0.0",
 		"wrangler": "^4.68.1"
 	},
