@@ -1,19 +1,14 @@
-/**
- * Cloudflare Worker entry point with image optimization and agent chat.
- *
- * For apps without image optimization, use vinext/server/app-router-entry
- * directly in wrangler.jsonc: "main": "vinext/server/app-router-entry"
- */
 import {handleImageOptimization} from 'vinext/server/image-optimization'
 import handler from 'vinext/server/app-router-entry'
-import {routeAgentRequest} from 'agents'
+import {api} from '@happy-vibecode/api'
 
-export {ChatAgent} from './chat-agent'
+export {BridgeAgent} from './bridge-agent'
 
 interface Env {
 	ASSETS: Fetcher
-	AI: unknown
-	ChatAgent: DurableObjectNamespace
+	DB: D1Database
+	KV: KVNamespace
+	BridgeAgent: DurableObjectNamespace
 	IMAGES: {
 		input(stream: ReadableStream): {
 			transform(options: Record<string, unknown>): {
@@ -44,11 +39,19 @@ export default {
 			})
 		}
 
-		console.log('Request:', request.url)
+		// Mount Hono API at /api/*
+		if (url.pathname.startsWith('/api/')) {
+			return api.fetch(request, env)
+		}
 
-		// Route agent WebSocket/API requests (e.g. /agents/*)
-		const agentResponse = await routeAgentRequest(request, env)
-		if (agentResponse) return agentResponse
+		// Route BridgeAgent WebSocket connections: /agents/BridgeAgent/<roomId>
+		if (url.pathname.startsWith('/agents/BridgeAgent/')) {
+			const roomId =
+				url.pathname.slice('/agents/BridgeAgent/'.length) || 'default'
+			const id = env.BridgeAgent.idFromName(roomId)
+			const stub = env.BridgeAgent.get(id)
+			return stub.fetch(request)
+		}
 
 		// Delegate everything else to vinext
 		return handler.fetch(request)

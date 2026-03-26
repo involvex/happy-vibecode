@@ -2,26 +2,16 @@ import {
 	PaperPlaneRightIcon,
 	StopIcon,
 	TrashIcon,
-	GearIcon,
 	ChatCircleDotsIcon,
 	CircleIcon,
 	MoonIcon,
 	SunIcon,
-	CheckCircleIcon,
-	XCircleIcon,
-	BrainIcon,
-	CaretDownIcon,
 	BugIcon,
 } from '@phosphor-icons/react'
-import {Button, Badge, InputArea, Empty, Surface, Text} from '@cloudflare/kumo'
-import {Toasty, useKumoToastManager} from '@cloudflare/kumo/components/toast'
 import {Suspense, useCallback, useState, useEffect, useRef} from 'react'
-import {useAgentChat} from '@cloudflare/ai-chat/react'
-import {isToolUIPart, getToolName} from 'ai'
+import {Button, Badge, InputArea, Empty, Text} from '@cloudflare/kumo'
 import {Switch} from '@cloudflare/kumo'
-import {useAgent} from 'agents/react'
 import {Streamdown} from 'streamdown'
-import type {UIMessage} from 'ai'
 
 // ── Small components ──────────────────────────────────────────────────
 
@@ -78,132 +68,24 @@ function ThemeToggle() {
 	)
 }
 
-// ── Tool rendering ────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────
 
-function ToolPartView({
-	part,
-	addToolApprovalResponse,
-}: {
-	part: UIMessage['parts'][number]
-	addToolApprovalResponse: (response: {id: string; approved: boolean}) => void
-}) {
-	if (!isToolUIPart(part)) return null
-	const toolName = getToolName(part)
-
-	// Completed
-	if (part.state === 'output-available') {
-		return (
-			<div className="flex justify-start">
-				<Surface className="max-w-[85%] px-4 py-2.5 rounded-xl ring ring-kumo-line">
-					<div className="flex items-center gap-2 mb-1">
-						<GearIcon size={14} className="text-kumo-inactive" />
-						<Text size="xs" variant="secondary" bold>
-							{toolName}
-						</Text>
-						<Badge variant="secondary">Done</Badge>
-					</div>
-					<div className="font-mono">
-						<Text size="xs" variant="secondary">
-							{JSON.stringify(part.output, null, 2)}
-						</Text>
-					</div>
-				</Surface>
-			</div>
-		)
-	}
-
-	// Needs approval
-	if ('approval' in part && part.state === 'approval-requested') {
-		const approvalId = (part.approval as {id?: string})?.id
-		return (
-			<div className="flex justify-start">
-				<Surface className="max-w-[85%] px-4 py-3 rounded-xl ring-2 ring-kumo-warning">
-					<div className="flex items-center gap-2 mb-2">
-						<GearIcon size={14} className="text-kumo-warning" />
-						<Text size="sm" bold>
-							Approval needed: {toolName}
-						</Text>
-					</div>
-					<div className="font-mono mb-3">
-						<Text size="xs" variant="secondary">
-							{JSON.stringify(part.input, null, 2)}
-						</Text>
-					</div>
-					<div className="flex gap-2">
-						<Button
-							variant="primary"
-							size="sm"
-							icon={<CheckCircleIcon size={14} />}
-							onClick={() => {
-								if (approvalId) {
-									addToolApprovalResponse({id: approvalId, approved: true})
-								}
-							}}
-						>
-							Approve
-						</Button>
-						<Button
-							variant="secondary"
-							size="sm"
-							icon={<XCircleIcon size={14} />}
-							onClick={() => {
-								if (approvalId) {
-									addToolApprovalResponse({id: approvalId, approved: false})
-								}
-							}}
-						>
-							Reject
-						</Button>
-					</div>
-				</Surface>
-			</div>
-		)
-	}
-
-	// Rejected / denied
-	if (
-		part.state === 'output-denied' ||
-		('approval' in part &&
-			(part.approval as {approved?: boolean})?.approved === false)
-	) {
-		return (
-			<div className="flex justify-start">
-				<Surface className="max-w-[85%] px-4 py-2.5 rounded-xl ring ring-kumo-line">
-					<div className="flex items-center gap-2">
-						<XCircleIcon size={14} className="text-kumo-danger" />
-						<Text size="xs" variant="secondary" bold>
-							{toolName}
-						</Text>
-						<Badge variant="secondary">Rejected</Badge>
-					</div>
-				</Surface>
-			</div>
-		)
-	}
-
-	// Executing
-	if (part.state === 'input-available' || part.state === 'input-streaming') {
-		return (
-			<div className="flex justify-start">
-				<Surface className="max-w-[85%] px-4 py-2.5 rounded-xl ring ring-kumo-line">
-					<div className="flex items-center gap-2">
-						<GearIcon size={14} className="text-kumo-inactive animate-spin" />
-						<Text size="xs" variant="secondary">
-							Running {toolName}...
-						</Text>
-					</div>
-				</Surface>
-			</div>
-		)
-	}
-
-	return null
+interface ChatMessage {
+	id: string
+	role: 'user' | 'assistant'
+	content: string
 }
 
-// ── Main chat ─────────────────────────────────────────────────────────
+type BridgeStatus =
+	| 'disconnected'
+	| 'connected'
+	| 'cli_connected'
+	| 'cli_disconnected'
+
+// ── WebSocket bridge hook ─────────────────────────────────────────────
 
 function getOrCreateRoomId(): string {
-	const key = 'chat-room-id'
+	const key = 'bridge-room-id'
 	let id = localStorage.getItem(key)
 	if (!id) {
 		id = crypto.randomUUID()
@@ -212,81 +94,120 @@ function getOrCreateRoomId(): string {
 	return id
 }
 
-function ChatInner() {
-	const [connected, setConnected] = useState(false)
-	const [input, setInput] = useState('')
-	const [showDebug, setShowDebug] = useState(false)
-	const [manualStopped, setManualStopped] = useState(false)
-	const messagesEndRef = useRef<HTMLDivElement>(null)
-	const textareaRef = useRef<HTMLTextAreaElement>(null)
-	const toasts = useKumoToastManager()
-	const [roomId] = useState(getOrCreateRoomId)
-
-	const agent = useAgent({
-		agent: 'ChatAgent',
-		name: roomId,
-		onOpen: useCallback(() => setConnected(true), []),
-		onClose: useCallback(() => setConnected(false), []),
-		onError: useCallback(
-			(error: Event) => console.error('WebSocket error:', error),
-			[],
-		),
-		onMessage: useCallback(
-			(message: MessageEvent) => {
-				try {
-					const data = JSON.parse(String(message.data))
-					if (data.type === 'scheduled-task') {
-						toasts.add({
-							title: 'Scheduled task completed',
-							description: data.description,
-							timeout: 0,
-						})
-					}
-				} catch {
-					// Not JSON or not our event
-				}
-			},
-			[toasts],
-		),
-	})
-
-	const {
-		messages,
-		sendMessage,
-		clearHistory,
-		addToolApprovalResponse,
-		stop,
-		status,
-	} = useAgentChat({
-		agent,
-		onToolCall: async event => {
-			if (
-				'addToolOutput' in event &&
-				event.toolCall.toolName === 'getUserTimezone'
-			) {
-				event.addToolOutput({
-					toolCallId: event.toolCall.toolCallId,
-					output: {
-						timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-						localTime: new Date().toLocaleTimeString(),
-					},
-				})
-			}
-		},
-	})
-
-	const isStreaming =
-		!manualStopped && (status === 'streaming' || status === 'submitted')
+function useBridgeAgent(roomId: string) {
+	const [messages, setMessages] = useState<ChatMessage[]>([])
+	const [wsStatus, setWsStatus] = useState<BridgeStatus>('disconnected')
+	const [isStreaming, setIsStreaming] = useState(false)
+	const wsRef = useRef<WebSocket | null>(null)
+	const streamingIdRef = useRef<string | null>(null)
 
 	useEffect(() => {
-		if (status === 'streaming' || status === 'submitted') {
-			setManualStopped(false)
+		const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
+		const url = `${proto}://${window.location.host}/agents/BridgeAgent/${roomId}?type=web`
+		const ws = new WebSocket(url)
+		wsRef.current = ws
+
+		ws.onopen = () => setWsStatus('connected')
+		ws.onclose = () => {
+			setWsStatus('disconnected')
+			setIsStreaming(false)
 		}
-	}, [status])
+		ws.onerror = e => console.error('BridgeAgent WS error:', e)
+
+		ws.onmessage = (ev: MessageEvent) => {
+			try {
+				const msg = JSON.parse(String(ev.data)) as {
+					type: string
+					content?: string
+					done?: boolean
+					message?: string
+					connected?: boolean
+				}
+
+				if (msg.type === 'response') {
+					const chunk = msg.content ?? ''
+					if (!streamingIdRef.current) {
+						const id = crypto.randomUUID()
+						streamingIdRef.current = id
+						setIsStreaming(true)
+						setMessages(prev => [
+							...prev,
+							{id, role: 'assistant', content: chunk},
+						])
+					} else {
+						const id = streamingIdRef.current
+						setMessages(prev =>
+							prev.map(m =>
+								m.id === id ? {...m, content: m.content + chunk} : m,
+							),
+						)
+					}
+					if (msg.done) {
+						streamingIdRef.current = null
+						setIsStreaming(false)
+					}
+				} else if (msg.type === 'status') {
+					setWsStatus(msg.connected ? 'cli_connected' : 'cli_disconnected')
+				} else if (msg.type === 'error') {
+					const id = crypto.randomUUID()
+					setMessages(prev => [
+						...prev,
+						{id, role: 'assistant', content: `⚠️ ${msg.message ?? 'Error'}`},
+					])
+					setIsStreaming(false)
+					streamingIdRef.current = null
+				}
+			} catch {
+				// ignore non-JSON
+			}
+		}
+
+		return () => ws.close()
+	}, [roomId])
+
+	const sendMessage = useCallback((content: string) => {
+		if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return
+		// Optimistically add user message
+		setMessages(prev => [
+			...prev,
+			{id: crypto.randomUUID(), role: 'user' as const, content},
+		])
+		wsRef.current.send(JSON.stringify({type: 'prompt', content}))
+	}, [])
+
+	const stop = useCallback(() => {
+		if (wsRef.current?.readyState === WebSocket.OPEN) {
+			wsRef.current.send(JSON.stringify({type: 'stop'}))
+		}
+		setIsStreaming(false)
+		streamingIdRef.current = null
+	}, [])
+
+	const clearHistory = useCallback(() => {
+		setMessages([])
+		streamingIdRef.current = null
+		setIsStreaming(false)
+	}, [])
+
+	return {messages, wsStatus, isStreaming, sendMessage, stop, clearHistory}
+}
+
+// ── Main chat ─────────────────────────────────────────────────────────
+
+function ChatInner() {
+	const [input, setInput] = useState('')
+	const [showDebug, setShowDebug] = useState(false)
+	const messagesEndRef = useRef<HTMLDivElement>(null)
+	const textareaRef = useRef<HTMLTextAreaElement>(null)
+	const [roomId] = useState(getOrCreateRoomId)
+
+	const {messages, wsStatus, isStreaming, sendMessage, stop, clearHistory} =
+		useBridgeAgent(roomId)
+
+	const connected = wsStatus !== 'disconnected'
 
 	const handleStop = useCallback(() => {
 		stop()
-		setManualStopped(true)
 	}, [stop])
 
 	useEffect(() => {
@@ -303,7 +224,7 @@ function ChatInner() {
 		const text = input.trim()
 		if (!text || isStreaming) return
 		setInput('')
-		sendMessage({role: 'user', parts: [{type: 'text', text}]})
+		sendMessage(text)
 		if (textareaRef.current) {
 			textareaRef.current.style.height = 'auto'
 		}
@@ -320,7 +241,7 @@ function ChatInner() {
 						</h1>
 						<Badge variant="secondary">
 							<ChatCircleDotsIcon size={12} weight="bold" className="mr-1" />
-							AI Chat
+							{wsStatus === 'cli_connected' ? 'CLI Connected' : 'Bridge'}
 						</Badge>
 					</div>
 					<div className="flex items-center gap-3">
@@ -328,10 +249,23 @@ function ChatInner() {
 							<CircleIcon
 								size={8}
 								weight="fill"
-								className={connected ? 'text-kumo-success' : 'text-kumo-danger'}
+								className={
+									wsStatus === 'cli_connected'
+										? 'text-kumo-success'
+										: wsStatus === 'connected' ||
+											  wsStatus === 'cli_disconnected'
+											? 'text-yellow-400'
+											: 'text-kumo-danger'
+								}
 							/>
 							<Text size="xs" variant="secondary">
-								{connected ? 'Connected' : 'Disconnected'}
+								{wsStatus === 'cli_connected'
+									? 'CLI ready'
+									: wsStatus === 'cli_disconnected'
+										? 'Waiting for CLI'
+										: wsStatus === 'connected'
+											? 'Bridge connected'
+											: 'Disconnected'}
 							</Text>
 						</div>
 						<div className="flex items-center gap-1.5">
@@ -365,22 +299,17 @@ function ChatInner() {
 							contents={
 								<div className="flex flex-wrap justify-center gap-2">
 									{[
-										"What's the weather in Paris?",
-										'What timezone am I in?',
-										'Calculate 5000 * 3',
-										'Remind me in 5 minutes to take a break',
+										'Hello, what can you do?',
+										'What is 42 * 7?',
+										'Write a haiku about Cloudflare',
+										'Explain Durable Objects in one sentence',
 									].map(prompt => (
 										<Button
 											key={prompt}
 											variant="outline"
 											size="sm"
-											disabled={isStreaming}
-											onClick={() => {
-												sendMessage({
-													role: 'user',
-													parts: [{type: 'text', text: prompt}],
-												})
-											}}
+											disabled={isStreaming || !connected}
+											onClick={() => sendMessage(prompt)}
 										>
 											{prompt}
 										</Button>
@@ -390,7 +319,7 @@ function ChatInner() {
 						/>
 					)}
 
-					{messages.map((message: UIMessage, index: number) => {
+					{messages.map((message: ChatMessage, index: number) => {
 						const isUser = message.role === 'user'
 						const isLastAssistant =
 							message.role === 'assistant' && index === messages.length - 1
@@ -403,90 +332,25 @@ function ChatInner() {
 									</pre>
 								)}
 
-								{/* Tool parts */}
-								{message.parts.filter(isToolUIPart).map(part => (
-									<ToolPartView
-										key={part.toolCallId}
-										part={part}
-										addToolApprovalResponse={addToolApprovalResponse}
-									/>
-								))}
-
-								{/* Reasoning parts */}
-								{message.parts
-									.filter(
-										part =>
-											part.type === 'reasoning' &&
-											(part as {text?: string}).text?.trim(),
-									)
-									.map((part, i) => {
-										const reasoning = part as {
-											type: 'reasoning'
-											text: string
-											state?: 'streaming' | 'done'
-										}
-										const isDone = reasoning.state === 'done' || !isStreaming
-										return (
-											<div key={i} className="flex justify-start">
-												<details className="max-w-[85%] w-full" open={!isDone}>
-													<summary className="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-sm select-none">
-														<BrainIcon size={14} className="text-purple-400" />
-														<span className="font-medium text-kumo-default">
-															Reasoning
-														</span>
-														{isDone ? (
-															<span className="text-xs text-kumo-success">
-																Complete
-															</span>
-														) : (
-															<span className="text-xs text-kumo-brand">
-																Thinking...
-															</span>
-														)}
-														<CaretDownIcon
-															size={14}
-															className="ml-auto text-kumo-inactive"
-														/>
-													</summary>
-													<pre className="mt-2 px-3 py-2 rounded-lg bg-kumo-control text-xs text-kumo-default whitespace-pre-wrap overflow-auto max-h-64">
-														{reasoning.text}
-													</pre>
-												</details>
-											</div>
-										)
-									})}
-
-								{/* Text parts */}
-								{message.parts
-									.filter(part => part.type === 'text')
-									.map((part, i) => {
-										const text = (part as {type: 'text'; text: string}).text
-										if (!text) return null
-
-										if (isUser) {
-											return (
-												<div key={i} className="flex justify-end">
-													<div className="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-br-md bg-kumo-contrast text-kumo-inverse leading-relaxed">
-														{text}
-													</div>
-												</div>
-											)
-										}
-
-										return (
-											<div key={i} className="flex justify-start">
-												<div className="max-w-[85%] rounded-2xl rounded-bl-md bg-kumo-base text-kumo-default leading-relaxed">
-													<Streamdown
-														className="sd-theme rounded-2xl rounded-bl-md p-3"
-														controls={false}
-														isAnimating={isLastAssistant && isStreaming}
-													>
-														{text}
-													</Streamdown>
-												</div>
-											</div>
-										)
-									})}
+								{isUser ? (
+									<div className="flex justify-end">
+										<div className="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-br-md bg-kumo-contrast text-kumo-inverse leading-relaxed">
+											{message.content}
+										</div>
+									</div>
+								) : (
+									<div className="flex justify-start">
+										<div className="max-w-[85%] rounded-2xl rounded-bl-md bg-kumo-base text-kumo-default leading-relaxed">
+											<Streamdown
+												className="sd-theme rounded-2xl rounded-bl-md p-3"
+												controls={false}
+												isAnimating={isLastAssistant && isStreaming}
+											>
+												{message.content}
+											</Streamdown>
+										</div>
+									</div>
+								)}
 							</div>
 						)
 					})}
@@ -555,16 +419,14 @@ function ChatInner() {
 
 export default function Chat() {
 	return (
-		<Toasty>
-			<Suspense
-				fallback={
-					<div className="flex items-center justify-center h-screen text-kumo-inactive">
-						Loading...
-					</div>
-				}
-			>
-				<ChatInner />
-			</Suspense>
-		</Toasty>
+		<Suspense
+			fallback={
+				<div className="flex items-center justify-center h-screen text-kumo-inactive">
+					Loading...
+				</div>
+			}
+		>
+			<ChatInner />
+		</Suspense>
 	)
 }

@@ -6,25 +6,26 @@
 	"scripts": {
 		"prebuild": "bun run format && bun run lint:fix && bun run typecheck",
 		"build": "vite build",
-		"deploy": "vite build && wrangler deploy",
+		"deploy": "bun run types && vite build && wrangler deploy",
 		"dev": "vite dev",
 		"format": "prettier --write .",
 		"lint": "oxlint",
 		"lint:fix": "oxlint --fix",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"types": "wrangler types"
 	},
 	"dependencies": {
-		"@cloudflare/ai-chat": "^0.2.5",
 		"@cloudflare/kumo": "^1.9.0",
+		"@happy-vibecode/api": "workspace:*",
+		"@happy-vibecode/db": "workspace:*",
+		"@happy-vibecode/shared": "workspace:*",
 		"@phosphor-icons/react": "^2.1.10",
 		"@vitejs/plugin-rsc": "^0.5.21",
-		"agents": "^0.8.5",
-		"ai": "^6.0.101",
+		"hono": "^4.7.11",
 		"next": "16.2.1",
 		"react": "19.2.4",
 		"react-dom": "19.2.4",
 		"streamdown": "^2.3.0",
-		"workers-ai-provider": "^3.1.2",
 		"zod": "^4.3.6"
 	},
 	"devDependencies": {

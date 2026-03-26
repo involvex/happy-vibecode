@@ -1,11 +1,11 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "happy-vibecode",
+	"account_id": "d4e0f1c1c830642168db2f4ea3aece58",
 	"compatibility_date": "2026-02-12",
 	"compatibility_flags": ["nodejs_compat"],
 	"main": "./worker/index.ts",
 	"preview_urls": true,
-	"ai": {"binding": "AI", "remote": true},
 	"assets": {
 		"directory": "./public",
 		"not_found_handling": "none",
@@ -20,17 +20,31 @@
 	"images": {
 		"binding": "IMAGES",
 	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "happy-vibecode",
+			"database_id": "local", // replace with real D1 database ID after `wrangler d1 create happy-vibecode`
+			"migrations_dir": "../../packages/db/drizzle",
+		},
+	],
+	"kv_namespaces": [
+		{
+			"binding": "KV",
+			"id": "local", // replace with real KV namespace ID after `wrangler kv namespace create happy-vibecode-kv`
+		},
+	],
 	"durable_objects": {
 		"bindings": [
 			{
-				"class_name": "ChatAgent",
-				"name": "ChatAgent",
+				"class_name": "BridgeAgent",
+				"name": "BridgeAgent",
 			},
 		],
 	},
 	"migrations": [
 		{
-			"new_sqlite_classes": ["ChatAgent"],
+			"new_classes": ["BridgeAgent"],
 			"tag": "v1",
 		},
 	],

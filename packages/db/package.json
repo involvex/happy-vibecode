@@ -1,0 +1,21 @@
+{
+	"name": "@happy-vibecode/db",
+	"version": "0.1.0",
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"generate": "drizzle-kit generate",
+		"migrate": "drizzle-kit migrate",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"drizzle-orm": "^0.44.2"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250712.0",
+		"drizzle-kit": "^0.31.4",
+		"typescript": "^5"
+	}
+}

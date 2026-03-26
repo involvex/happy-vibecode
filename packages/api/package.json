@@ -1,0 +1,21 @@
+{
+	"name": "@happy-vibecode/api",
+	"version": "0.1.0",
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@happy-vibecode/db": "workspace:*",
+		"@happy-vibecode/shared": "workspace:*",
+		"drizzle-orm": "^0.44.2",
+		"hono": "^4.7.11"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250712.0",
+		"typescript": "^5"
+	}
+}

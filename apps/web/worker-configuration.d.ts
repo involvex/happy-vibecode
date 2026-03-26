@@ -4,13 +4,15 @@
 declare namespace Cloudflare {
 	interface GlobalProps {
 		mainModule: typeof import('./worker/index')
-		durableNamespaces: 'ChatAgent'
+		durableNamespaces: 'BridgeAgent'
 	}
 	interface Env {
 		AI: Ai
+		DB: D1Database
+		KV: KVNamespace
 		IMAGES: ImagesBinding
 		ASSETS: Fetcher
-		ChatAgent: DurableObjectNamespace<import('./worker/index').ChatAgent>
+		BridgeAgent: DurableObjectNamespace<import('./worker/index').BridgeAgent>
 	}
 }
 interface Env extends Cloudflare.Env {}
