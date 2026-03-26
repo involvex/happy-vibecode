@@ -2,6 +2,10 @@
 	"name": "happy-vibecode-repo",
 	"version": "0.0.0",
 	"description": "Monorepo for Happy Vibecode. Lets you vibe anytime anywhere",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/involvex/happy-vibecode.git"
+	},
 	"author": {
 		"name": "involvex"
 	},

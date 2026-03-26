@@ -18082,8 +18082,8 @@ import {useArtifact} from '@/sync/storage'
 import {storage} from '@/sync/storage'
 import {sync} from '@/sync/sync'
 import {Modal} from '@/modal'
-import {t} from '@/text'
 import React from 'react'
+import {t} from '@/text'
 ```
 
 ## File: packages/happy-app/sources/app/(app)/artifacts/edit/[id].tsx
@@ -18127,8 +18127,8 @@ import {layout} from '@/components/layout'
 import {useRouter} from 'expo-router'
 import {FAB} from '@/components/FAB'
 import {sync} from '@/sync/sync'
-import {t} from '@/text'
 import React from 'react'
+import {t} from '@/text'
 ```
 
 ## File: packages/happy-app/sources/app/(app)/artifacts/new.tsx
@@ -19269,8 +19269,8 @@ import {useRouter} from 'expo-router'
 import {View} from 'react-native'
 import {sync} from '@/sync/sync'
 import {Modal} from '@/modal'
-import {t} from '@/text'
 import React from 'react'
+import {t} from '@/text'
 export default function ClaudeOAuth()
 ```
 
@@ -153830,11 +153830,11 @@ import {
 	getSessionSubtitle,
 	getSessionAvatarId,
 } from '@/utils/sessionUtils'
-import {useVisibleSessionListViewData} from '@/hooks/useVisibleSessionListViewData'
 import {
 	SessionActionsAnchor,
 	SessionActionsPopover,
 } from './SessionActionsPopover'
+import {useVisibleSessionListViewData} from '@/hooks/useVisibleSessionListViewData'
 import {ActiveSessionsGroupCompact} from './ActiveSessionsGroupCompact'
 import {useNavigateToSession} from '@/hooks/useNavigateToSession'
 import {useSafeAreaInsets} from 'react-native-safe-area-context'
@@ -154787,8 +154787,8 @@ import {UserProfile, getDisplayName} from '@/sync/friendTypes'
 import {StyleSheet} from 'react-native-unistyles'
 import {Avatar} from '@/components/Avatar'
 import {useRouter} from 'expo-router'
-import {t} from '@/text'
 import React from 'react'
+import {t} from '@/text'
 interface UserSearchResultProps {
 	user: UserProfile
 	onAddFriend: () => void
