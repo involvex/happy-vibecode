@@ -34,7 +34,8 @@ export const loginCommand = new Command('login')
 		console.log('Happy Vibecode — Login')
 		console.log(`Server: ${serverUrl}\n`)
 
-		let email = await prompt('Email (for new accounts) or leave blank: ')
+		const email = await prompt('Email (for new accounts) or leave blank: ')
+		// eslint-disable-next-line no-useless-assignment
 		let token = ''
 
 		if (email) {

@@ -22,6 +22,8 @@
 	],
 	"scripts": {
 		"build": "bun build ./src/index.ts --outfile dist/index.js --target bun",
+		"lint": "eslint src",
+		"lint:fix": "eslint src --fix",
 		"start": "bun run ./src/index.ts",
 		"typecheck": "tsc --noEmit"
 	},
@@ -31,7 +33,12 @@
 		"ws": "^8.18.2"
 	},
 	"devDependencies": {
+		"@eslint/js": "^10.0.1",
 		"@types/ws": "^8.5.14",
-		"typescript": "^5"
+		"eslint": "^10.1.0",
+		"globals": "^17.4.0",
+		"jiti": "latest",
+		"typescript": "^5",
+		"typescript-eslint": "^8.57.2"
 	}
 }
