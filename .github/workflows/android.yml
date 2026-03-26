@@ -1,4 +1,4 @@
-name: Build Debug APK
+name: Build Release APK
 permissions:
   contents: write
   id-token: write
@@ -33,14 +33,14 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
         working-directory: apps/mobile/android
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug
+      - name: Build Release APK
+        run: ./gradlew assembleRelease
         working-directory: apps/mobile/android
       - name: Release to GitHub
         uses: softprops/action-gh-release@v2
         if: github.ref_type == 'tag'
         with:
-          files: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          files: apps/mobile/android/app/build/outputs/apk/release/app-release.apk
           body_path: latest-release.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
