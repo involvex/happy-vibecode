@@ -4,7 +4,8 @@
 	"description": "Happy Vibecode CLI — remote control for local AI agents",
 	"type": "module",
 	"bin": {
-		"happy": "./src/index.ts"
+		"happy-vibecode": "./src/index.ts",
+		"vibe": "./src/index.ts"
 	},
 	"scripts": {
 		"build": "bun build ./src/index.ts --outfile dist/index.js --target bun",
