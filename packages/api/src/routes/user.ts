@@ -38,6 +38,8 @@ userRouter.get('/profile', async c => {
 		githubId: user.githubId,
 		hasPassword: !!user.passwordHash,
 		role: user.role,
+		status: user.status,
+		lastLogin: user.lastLogin ? user.lastLogin.toISOString() : null,
 		createdAt: user.createdAt.toISOString(),
 		updatedAt: user.updatedAt.toISOString(),
 	})
@@ -83,6 +85,8 @@ userRouter.put('/profile', async c => {
 		githubId: user.githubId,
 		hasPassword: !!user.passwordHash,
 		role: user.role,
+		status: user.status,
+		lastLogin: user.lastLogin ? user.lastLogin.toISOString() : null,
 		createdAt: user.createdAt.toISOString(),
 		updatedAt: user.updatedAt.toISOString(),
 	})

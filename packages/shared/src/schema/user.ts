@@ -14,6 +14,8 @@ export const userSchema = z.object({
 	githubId: z.string().nullable(),
 	hasPassword: z.boolean(),
 	role: z.enum(['user', 'admin']).default('user'),
+	status: z.enum(['active', 'suspended', 'pending']).default('active'),
+	lastLogin: z.string().datetime().nullable(),
 	createdAt: z.string().datetime(),
 	updatedAt: z.string().datetime(),
 })

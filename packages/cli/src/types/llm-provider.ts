@@ -4,6 +4,8 @@ export type LLMProvider =
 	| 'codex'
 	| 'opencode-ai'
 	| 'copilot'
+	| 'kilo'
+	| 'cline'
 	| 'custom'
 
 export interface LLMProviderConfig {
@@ -94,6 +96,25 @@ export const PROVIDER_CONFIGS: Record<LLMProvider, LLMProviderConfig> = {
 		promptFlag: '--description',
 		description: 'GitHub Copilot CLI agent',
 		supportsStreaming: false,
+	},
+	kilo: {
+		id: 'kilo',
+		name: 'Kilocode Cli',
+		command: 'kilo',
+		args: [],
+		promptFlag: '--prompt',
+		description: 'Kilocode CLI agent',
+		supportsStreaming: true,
+		workspaceFlag: '',
+	},
+	cline: {
+		id: 'cline',
+		name: 'Cline CLI',
+		command: 'cline',
+		args: [],
+		promptFlag: '',
+		description: 'Cline CLI agent',
+		supportsStreaming: true,
 	},
 	custom: {
 		id: 'custom',

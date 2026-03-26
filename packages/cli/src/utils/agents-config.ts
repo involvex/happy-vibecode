@@ -46,6 +46,22 @@ export const DEFAULT_AGENTS: AgentsConfig = {
 			promptFlag: '-p',
 			description: 'GitHub Copilot CLI agent',
 		},
+		{
+			id: 'kilo',
+			name: 'Kilocode Cli',
+			command: 'kilo',
+			args: [],
+			promptFlag: '--prompt',
+			description: 'Kilocode CLI agent',
+		},
+		{
+			id: 'cline',
+			name: 'Cline CLI',
+			command: 'cline',
+			args: [],
+			promptFlag: '',
+			description: 'Cline CLI agent',
+		},
 	],
 	workspaces: [],
 }

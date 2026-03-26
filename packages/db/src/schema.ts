@@ -9,9 +9,11 @@ export const users = sqliteTable('users', {
 	githubId: text('github_id').unique(),
 	nickname: text('nickname'),
 	preferences: text('preferences'),
-	role: text('role', {enum: ['user', 'admin']})
+	role: text('role').notNull().default('user'),
+	status: text('status', {enum: ['active', 'suspended', 'pending']})
 		.notNull()
-		.default('user'),
+		.default('active'),
+	lastLogin: integer('last_login', {mode: 'timestamp_ms'}),
 	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
 	updatedAt: integer('updated_at', {mode: 'timestamp_ms'}).notNull(),
 })
@@ -112,5 +114,27 @@ export const ticketResponses = sqliteTable('ticket_responses', {
 		.notNull()
 		.references(() => users.id),
 	message: text('message').notNull(),
+	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
+})
+
+export const roles = sqliteTable('roles', {
+	id: text('id').primaryKey(),
+	name: text('name').notNull().unique(),
+	description: text('description'),
+	permissions: text('permissions').notNull(), // JSON: { users: 'read|write', sessions: 'read', ... }
+	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
+	updatedAt: integer('updated_at', {mode: 'timestamp_ms'}).notNull(),
+})
+
+export const auditLogs = sqliteTable('audit_logs', {
+	id: text('id').primaryKey(),
+	actorId: text('actor_id')
+		.notNull()
+		.references(() => users.id),
+	actorName: text('actor_name'),
+	targetId: text('target_id'),
+	targetName: text('target_name'),
+	action: text('action').notNull(),
+	details: text('details'), // JSON
 	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
 })

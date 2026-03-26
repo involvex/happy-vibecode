@@ -9,8 +9,10 @@ import {
 	UserIcon,
 	ListIcon,
 	XIcon,
+	ShieldCheckIcon,
 } from '@phosphor-icons/react'
 import {usePathname} from 'next/navigation'
+import {useAuth} from '../hooks/useAuth'
 import Image from 'next/image'
 import {useState} from 'react'
 import Link from 'next/link'
@@ -19,6 +21,7 @@ interface NavItem {
 	href: string
 	label: string
 	icon: React.ReactNode
+	adminOnly?: boolean
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -28,6 +31,12 @@ const NAV_ITEMS: NavItem[] = [
 	{href: '/contact', label: 'Contact', icon: <EnvelopeSimpleIcon size={18} />},
 	{href: '/profile', label: 'Profile', icon: <UserIcon size={18} />},
 	{href: '/settings', label: 'Settings', icon: <GearSixIcon size={18} />},
+	{
+		href: '/admin',
+		label: 'Admin',
+		icon: <ShieldCheckIcon size={18} />,
+		adminOnly: true,
+	},
 ]
 
 interface NavProps {
@@ -37,6 +46,10 @@ interface NavProps {
 export function Nav({onLogout}: NavProps) {
 	const pathname = usePathname()
 	const [menuOpen, setMenuOpen] = useState(false)
+	const {role} = useAuth()
+
+	const isAdmin = role === 'admin'
+	const navItems = NAV_ITEMS.filter(item => !item.adminOnly || isAdmin)
 
 	return (
 		<nav
@@ -54,7 +67,7 @@ export function Nav({onLogout}: NavProps) {
 
 			{/* Desktop nav links */}
 			<div className="items-center flex-1 hidden gap-1 md:flex">
-				{NAV_ITEMS.map(item => {
+				{navItems.map(item => {
 					const active = pathname === item.href
 					return (
 						<Link
@@ -102,7 +115,7 @@ export function Nav({onLogout}: NavProps) {
 			{menuOpen && (
 				<div className="absolute left-0 right-0 top-full border-b bg-kumo-base border-kumo-line md:hidden">
 					<div className="flex flex-col gap-1 px-4 py-3">
-						{NAV_ITEMS.map(item => {
+						{navItems.map(item => {
 							const active = pathname === item.href
 							return (
 								<Link
