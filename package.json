@@ -16,7 +16,9 @@
 	"scripts": {
 		"prebuild": "bun run format && bun run lint:fix && bun run typecheck",
 		"build": "turbo run build",
+		"build:web": "bun run -F @happy-vibecode/web build",
 		"dev": "turbo run dev",
+		"dev:web": "bun run -F @happy-vibecode/web dev",
 		"format": "prettier --write .",
 		"lint": "turbo run lint",
 		"lint:fix": "turbo run lint --fix",
@@ -30,7 +32,11 @@
 		"turbo": "^2.8.20"
 	},
 	"devDependencies": {
-		"@involvex/prettier-config": "^0.0.4"
+		"@involvex/prettier-config": "^0.0.4",
+		"prettier": "^3.8.1",
+		"prettier-plugin-organize-imports": "^4.3.0",
+		"prettier-plugin-packagejson": "^3.0.2",
+		"prettier-plugin-sort-imports": "^1.8.11"
 	},
 	"peerDependencies": {
 		"typescript": "5.9.3"

@@ -1,0 +1,49 @@
+{
+	"name": "@happy-vibecode/web",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"prebuild": "bun run format && bun run lint:fix && bun run typecheck",
+		"build": "vite build",
+		"deploy": "vite build && wrangler deploy",
+		"dev": "vite dev",
+		"format": "prettier --write .",
+		"lint": "oxlint",
+		"lint:fix": "oxlint --fix",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@cloudflare/ai-chat": "^0.2.5",
+		"@cloudflare/kumo": "^1.9.0",
+		"@phosphor-icons/react": "^2.1.10",
+		"@vitejs/plugin-rsc": "^0.5.21",
+		"agents": "^0.8.5",
+		"ai": "^6.0.101",
+		"next": "16.2.1",
+		"react": "19.2.4",
+		"react-dom": "19.2.4",
+		"streamdown": "^2.3.0",
+		"workers-ai-provider": "^3.1.2",
+		"zod": "^4.3.6"
+	},
+	"devDependencies": {
+		"@cloudflare/vite-plugin": "^1.25.5",
+		"@cloudflare/workers-types": "^4.20260305.0",
+		"@tailwindcss/postcss": "^4",
+		"@types/node": "^25",
+		"@types/react": "^19",
+		"@types/react-dom": "^19",
+		"oxlint": "latest",
+		"react-server-dom-webpack": "^19.2.4",
+		"tailwindcss": "^4",
+		"typescript": "^5",
+		"vinext": "^0.0.35",
+		"vite": "^8.0.2",
+		"vite-plugin-devtools-json": "^1.0.0",
+		"wrangler": "^4.68.1"
+	},
+	"trustedDependencies": [
+		"core-js-pure"
+	]
+}
