@@ -20,6 +20,10 @@
 	"images": {
 		"binding": "IMAGES",
 	},
+	// GitHub OAuth — set GITHUB_CLIENT_SECRET via: wrangler secret put GITHUB_CLIENT_SECRET
+	"vars": {
+		"GITHUB_CLIENT_ID": "REPLACE_WITH_YOUR_GITHUB_CLIENT_ID",
+	},
 	"d1_databases": [
 		{
 			"binding": "DB",

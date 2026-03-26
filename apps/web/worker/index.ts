@@ -1,4 +1,5 @@
 import {handleImageOptimization} from 'vinext/server/image-optimization'
+import {handleGithubCallback, handleGithubLogin} from './github-oauth'
 import handler from 'vinext/server/app-router-entry'
 import {api} from '@happy-vibecode/api'
 
@@ -9,6 +10,8 @@ interface Env {
 	DB: D1Database
 	KV: KVNamespace
 	BridgeAgent: DurableObjectNamespace
+	GITHUB_CLIENT_ID: string
+	GITHUB_CLIENT_SECRET: string
 	IMAGES: {
 		input(stream: ReadableStream): {
 			transform(options: Record<string, unknown>): {
@@ -37,6 +40,14 @@ export default {
 					return result.response()
 				},
 			})
+		}
+
+		// GitHub OAuth
+		if (url.pathname === '/oauth/github') {
+			return handleGithubLogin(env)
+		}
+		if (url.pathname === '/oauth/callback') {
+			return handleGithubCallback(request, env)
 		}
 
 		// Mount Hono API at /api/*

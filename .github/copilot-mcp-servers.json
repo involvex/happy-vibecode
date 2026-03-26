@@ -1,0 +1,7 @@
+[
+	{
+		"name": "cloudflare-observability",
+		"url": "https://observability.mcp.cloudflare.com/mcp",
+		"description": "Cloudflare Observability MCP — used for worker build/observability integration with agent tooling"
+	}
+]
