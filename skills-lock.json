@@ -16,6 +16,16 @@
 			"sourceType": "github",
 			"computedHash": "d444feccbc15184a85f85fa9591602e3a99e77cda9d595a3af964e6675ad01ee"
 		},
+		"better-auth-best-practices": {
+			"source": "better-auth/skills",
+			"sourceType": "github",
+			"computedHash": "9ab075b5061be2a5f299c10505667345cc1ec76e8de4120901cfd586643e776f"
+		},
+		"better-auth-security-best-practices": {
+			"source": "better-auth/skills",
+			"sourceType": "github",
+			"computedHash": "ed38caef4b297cc399d717258d6ea4e6ecb8894c453c83450064c7e7c6e5cc02"
+		},
 		"brainstorming": {
 			"source": "involvex/skills",
 			"sourceType": "github",
@@ -86,6 +96,11 @@
 			"sourceType": "github",
 			"computedHash": "66c6392601c8e34cfc17b786bc155ea3e073e4888ea83d885be85ae788ab4c6b"
 		},
+		"create-auth-skill": {
+			"source": "better-auth/skills",
+			"sourceType": "github",
+			"computedHash": "393e8d2d795fa5797c9a4e0665f29183ea2e140233db59746d510340a10456e6"
+		},
 		"create-implementation-plan": {
 			"source": "involvex/skills",
 			"sourceType": "github",
@@ -95,6 +110,11 @@
 			"source": "involvex/skills",
 			"sourceType": "github",
 			"computedHash": "1e701e744e84fd6f892cb4fb03ee0b0e21fc3b91551a4a1c8ff62126aaa6cd40"
+		},
+		"email-and-password-best-practices": {
+			"source": "better-auth/skills",
+			"sourceType": "github",
+			"computedHash": "7786d722fa682b3d6a99793e73a9d51b59becefa595676134a993020633e068f"
 		},
 		"expo-api-routes": {
 			"source": "involvex/skills",
@@ -161,6 +181,11 @@
 			"sourceType": "github",
 			"computedHash": "1127a1ab326935169ecf92ffda2d9fc04dc1450a7eecfbafd5157fa9c0126d31"
 		},
+		"organization-best-practices": {
+			"source": "better-auth/skills",
+			"sourceType": "github",
+			"computedHash": "fa7a76e45a1f9632e6d63e92b476cf566e64f6e93a2c8ee00bc77b4a74008fbd"
+		},
 		"react-native-architecture": {
 			"source": "involvex/skills",
 			"sourceType": "github",
@@ -180,6 +205,11 @@
 			"source": "involvex/skills",
 			"sourceType": "github",
 			"computedHash": "cf47da05045ce0c11f1a8b21dc4ef9bbfed0122d68548a48786cb1608257d574"
+		},
+		"two-factor-authentication-best-practices": {
+			"source": "better-auth/skills",
+			"sourceType": "github",
+			"computedHash": "c4f3a299c62c1985b774b7c28e53b7e55c565dbf973fd52b08899e4bcfffa3f9"
 		},
 		"upgrading-expo": {
 			"source": "involvex/skills",

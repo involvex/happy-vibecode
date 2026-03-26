@@ -14,7 +14,7 @@ export const createTicketSchema = z.object({
 	title: z.string().min(1, 'Title is required').max(200),
 	topic: ticketTopicSchema,
 	message: z.string().min(1, 'Message is required').max(5000),
-	turnstileToken: z.string().min(1, 'Turnstile verification required'),
+	turnstileToken: z.string().optional(),
 })
 
 export const ticketResponseSchema = z.object({

@@ -7,6 +7,7 @@ import {Suspense, useState} from 'react'
 import Image from 'next/image'
 
 type Mode = 'login' | 'register'
+type LoginMethod = 'token' | 'password'
 
 const OAUTH_ERRORS: Record<string, string> = {
 	oauth_denied: 'GitHub sign-in was cancelled.',
@@ -16,7 +17,9 @@ const OAUTH_ERRORS: Record<string, string> = {
 
 function LoginForm() {
 	const [mode, setMode] = useState<Mode>('login')
+	const [loginMethod, setLoginMethod] = useState<LoginMethod>('password')
 	const [email, setEmail] = useState('')
+	const [password, setPassword] = useState('')
 	const [token, setToken] = useState('')
 	const [error, setError] = useState('')
 	const [loading, setLoading] = useState(false)
@@ -35,7 +38,10 @@ function LoginForm() {
 				const res = await fetch('/api/auth/register', {
 					method: 'POST',
 					headers: {'Content-Type': 'application/json'},
-					body: JSON.stringify({email}),
+					body: JSON.stringify({
+						email,
+						password: password || undefined,
+					}),
 				})
 				if (!res.ok) {
 					const data = (await res.json()) as {error?: string}
@@ -45,6 +51,23 @@ function LoginForm() {
 					id: string
 					apiToken: string
 					email: string
+				}
+				login(data.apiToken, data.id)
+				router.push('/dashboard')
+			} else if (loginMethod === 'password') {
+				// Login with email + password
+				const res = await fetch('/api/auth/login', {
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({email, password}),
+				})
+				if (!res.ok) {
+					const data = (await res.json()) as {error?: string}
+					throw new Error(data.error ?? 'Login failed')
+				}
+				const data = (await res.json()) as {
+					id: string
+					apiToken: string
 				}
 				login(data.apiToken, data.id)
 				router.push('/dashboard')
@@ -136,28 +159,94 @@ function LoginForm() {
 
 					<form onSubmit={handleSubmit} className="space-y-4">
 						{mode === 'register' ? (
-							<div>
-								<label className="block text-sm font-medium text-kumo-secondary mb-1.5">
-									Email
-								</label>
-								<input
-									type="email"
-									value={email}
-									onChange={e => setEmail(e.target.value)}
-									placeholder="you@example.com"
-									required
-									className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
-								/>
-								<p className="mt-1 text-xs text-kumo-inactive">
-									We'll generate a secure API token for you.
-								</p>
-							</div>
+							<>
+								<div>
+									<label
+										htmlFor="register-email"
+										className="block text-sm font-medium text-kumo-secondary mb-1.5"
+									>
+										Email
+									</label>
+									<input
+										id="register-email"
+										type="email"
+										value={email}
+										onChange={e => setEmail(e.target.value)}
+										placeholder="you@example.com"
+										required
+										className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
+									/>
+								</div>
+								<div>
+									<label
+										htmlFor="register-password"
+										className="block text-sm font-medium text-kumo-secondary mb-1.5"
+									>
+										Password{' '}
+										<span className="text-kumo-inactive">(optional)</span>
+									</label>
+									<input
+										id="register-password"
+										type="password"
+										value={password}
+										onChange={e => setPassword(e.target.value)}
+										placeholder="Choose a password..."
+										className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
+									/>
+									<p className="mt-1 text-xs text-kumo-inactive">
+										{password
+											? 'You can log in with email + password later.'
+											: 'Leave empty for token-only login.'}
+									</p>
+								</div>
+							</>
+						) : loginMethod === 'password' ? (
+							<>
+								<div>
+									<label
+										htmlFor="login-email"
+										className="block text-sm font-medium text-kumo-secondary mb-1.5"
+									>
+										Email
+									</label>
+									<input
+										id="login-email"
+										type="email"
+										value={email}
+										onChange={e => setEmail(e.target.value)}
+										placeholder="you@example.com"
+										required
+										className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
+									/>
+								</div>
+								<div>
+									<label
+										htmlFor="login-password"
+										className="block text-sm font-medium text-kumo-secondary mb-1.5"
+									>
+										Password
+									</label>
+									<input
+										id="login-password"
+										type="password"
+										value={password}
+										onChange={e => setPassword(e.target.value)}
+										placeholder="Your password..."
+										required
+										className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
+									/>
+								</div>
+							</>
 						) : (
 							<div>
-								<label className="block text-sm font-medium text-kumo-secondary mb-1.5">
+								<label
+									htmlFor="login-token"
+									className="block text-sm font-medium text-kumo-secondary mb-1.5"
+								>
 									API Token
 								</label>
 								<input
+									id="login-token"
 									type="password"
 									value={token}
 									onChange={e => setToken(e.target.value)}
@@ -171,6 +260,21 @@ function LoginForm() {
 									in the CLI.
 								</p>
 							</div>
+						)}
+
+						{mode === 'login' && (
+							<button
+								type="button"
+								onClick={() => {
+									setLoginMethod(m => (m === 'password' ? 'token' : 'password'))
+									setError('')
+								}}
+								className="text-xs text-kumo-accent hover:underline"
+							>
+								{loginMethod === 'password'
+									? 'Login with API token instead'
+									: 'Login with email + password instead'}
+							</button>
 						)}
 
 						{error && (

@@ -20,6 +20,8 @@ const PROVIDERS = [
 	{label: 'OpenAI Codex', value: 'codex'},
 	{label: 'OpenCode AI', value: 'opencode-ai'},
 	{label: 'GitHub Copilot', value: 'copilot'},
+	{label: 'Kilocode CLI', value: 'kilo'},
+	{label: 'Cline CLI', value: 'cline'},
 ]
 
 export default function SettingsScreen() {
@@ -37,6 +39,11 @@ export default function SettingsScreen() {
 	const [urlInput, setUrlInput] = useState(serverUrl ?? DEFAULT_URL)
 	const [tokenVisible, setTokenVisible] = useState(false)
 	const [saving, setSaving] = useState(false)
+
+	const [emailInput, setEmailInput] = useState('')
+	const [passwordInput, setPasswordInput] = useState('')
+	const [loginMode, setLoginMode] = useState<'token' | 'password'>('token')
+	const [loginLoading, setLoginLoading] = useState(false)
 
 	const [showAddWorkspace, setShowAddWorkspace] = useState(false)
 	const [newWsName, setNewWsName] = useState('')
@@ -69,6 +76,37 @@ export default function SettingsScreen() {
 		const url = urlInput.trim() || DEFAULT_URL
 		await setServerUrl(url)
 		Alert.alert('Saved', 'Server URL updated.')
+	}
+
+	const handlePasswordLogin = async () => {
+		const email = emailInput.trim()
+		const password = passwordInput.trim()
+		const url = urlInput.trim() || DEFAULT_URL
+		if (!email || !password) {
+			Alert.alert('Required', 'Please enter both email and password.')
+			return
+		}
+		setLoginLoading(true)
+		try {
+			const res = await fetch(`${url}/api/auth/login`, {
+				method: 'POST',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify({email, password}),
+			})
+			if (!res.ok) {
+				const data = (await res.json()) as {error?: string}
+				throw new Error(data.error ?? 'Login failed')
+			}
+			const data = (await res.json()) as {id: string; apiToken: string}
+			await login(data.apiToken, data.id, url)
+			setEmailInput('')
+			setPasswordInput('')
+			Alert.alert('Success', 'Signed in.')
+		} catch (err) {
+			Alert.alert('Error', (err as Error).message)
+		} finally {
+			setLoginLoading(false)
+		}
 	}
 
 	const handleLogout = () => {
@@ -144,58 +182,123 @@ export default function SettingsScreen() {
 
 				{/* Credentials */}
 				<View className="gap-3">
-					<Text className="text-text font-semibold text-sm uppercase tracking-wide">
-						Credentials
-					</Text>
-
-					<View>
-						<Text className="text-muted text-xs mb-1">User ID</Text>
-						<TextInput
-							className="bg-card border border-border rounded-xl px-4 py-3 text-text text-sm"
-							placeholder={userId ?? 'your-user-id'}
-							placeholderTextColor="#64748b"
-							value={userIdInput}
-							onChangeText={setUserIdInput}
-							autoCapitalize="none"
-							autoCorrect={false}
-						/>
-					</View>
-
-					<View>
-						<Text className="text-muted text-xs mb-1">API Token</Text>
-						<View className="flex-row items-center bg-card border border-border rounded-xl">
-							<TextInput
-								className="flex-1 px-4 py-3 text-text text-sm"
-								placeholder="sk-…"
-								placeholderTextColor="#64748b"
-								value={tokenInput}
-								onChangeText={setTokenInput}
-								secureTextEntry={!tokenVisible}
-								autoCapitalize="none"
-								autoCorrect={false}
-							/>
-							<TouchableOpacity
-								className="pr-4"
-								onPress={() => setTokenVisible(v => !v)}
-							>
-								<Ionicons
-									name={tokenVisible ? 'eye-off-outline' : 'eye-outline'}
-									size={18}
-									color="#94a3b8"
-								/>
-							</TouchableOpacity>
-						</View>
-					</View>
-
-					<TouchableOpacity
-						className={`rounded-xl py-3 items-center ${saving ? 'bg-border' : 'bg-primary'}`}
-						onPress={handleSave}
-						disabled={saving}
-					>
-						<Text className="text-white font-semibold">
-							{saving ? 'Saving…' : 'Save Credentials'}
+					<View className="flex-row items-center justify-between">
+						<Text className="text-text font-semibold text-sm uppercase tracking-wide">
+							Credentials
 						</Text>
-					</TouchableOpacity>
+						<TouchableOpacity
+							onPress={() =>
+								setLoginMode(m => (m === 'token' ? 'password' : 'token'))
+							}
+						>
+							<Text className="text-primary text-xs font-medium">
+								{loginMode === 'token' ? 'Use Email+Password' : 'Use Token'}
+							</Text>
+						</TouchableOpacity>
+					</View>
+
+					{loginMode === 'password' ? (
+						<>
+							<View>
+								<Text className="text-muted text-xs mb-1">Email</Text>
+								<TextInput
+									className="bg-card border border-border rounded-xl px-4 py-3 text-text text-sm"
+									placeholder="you@example.com"
+									placeholderTextColor="#64748b"
+									value={emailInput}
+									onChangeText={setEmailInput}
+									autoCapitalize="none"
+									autoCorrect={false}
+									keyboardType="email-address"
+								/>
+							</View>
+							<View>
+								<Text className="text-muted text-xs mb-1">Password</Text>
+								<View className="flex-row items-center bg-card border border-border rounded-xl">
+									<TextInput
+										className="flex-1 px-4 py-3 text-text text-sm"
+										placeholder="Your password"
+										placeholderTextColor="#64748b"
+										value={passwordInput}
+										onChangeText={setPasswordInput}
+										secureTextEntry={!tokenVisible}
+										autoCapitalize="none"
+										autoCorrect={false}
+									/>
+									<TouchableOpacity
+										className="pr-4"
+										onPress={() => setTokenVisible(v => !v)}
+									>
+										<Ionicons
+											name={tokenVisible ? 'eye-off-outline' : 'eye-outline'}
+											size={18}
+											color="#94a3b8"
+										/>
+									</TouchableOpacity>
+								</View>
+							</View>
+							<TouchableOpacity
+								className={`rounded-xl py-3 items-center ${loginLoading ? 'bg-border' : 'bg-primary'}`}
+								onPress={handlePasswordLogin}
+								disabled={loginLoading}
+							>
+								<Text className="text-white font-semibold">
+									{loginLoading ? 'Signing in...' : 'Sign In'}
+								</Text>
+							</TouchableOpacity>
+						</>
+					) : (
+						<>
+							<View>
+								<Text className="text-muted text-xs mb-1">User ID</Text>
+								<TextInput
+									className="bg-card border border-border rounded-xl px-4 py-3 text-text text-sm"
+									placeholder={userId ?? 'your-user-id'}
+									placeholderTextColor="#64748b"
+									value={userIdInput}
+									onChangeText={setUserIdInput}
+									autoCapitalize="none"
+									autoCorrect={false}
+								/>
+							</View>
+
+							<View>
+								<Text className="text-muted text-xs mb-1">API Token</Text>
+								<View className="flex-row items-center bg-card border border-border rounded-xl">
+									<TextInput
+										className="flex-1 px-4 py-3 text-text text-sm"
+										placeholder="sk-..."
+										placeholderTextColor="#64748b"
+										value={tokenInput}
+										onChangeText={setTokenInput}
+										secureTextEntry={!tokenVisible}
+										autoCapitalize="none"
+										autoCorrect={false}
+									/>
+									<TouchableOpacity
+										className="pr-4"
+										onPress={() => setTokenVisible(v => !v)}
+									>
+										<Ionicons
+											name={tokenVisible ? 'eye-off-outline' : 'eye-outline'}
+											size={18}
+											color="#94a3b8"
+										/>
+									</TouchableOpacity>
+								</View>
+							</View>
+
+							<TouchableOpacity
+								className={`rounded-xl py-3 items-center ${saving ? 'bg-border' : 'bg-primary'}`}
+								onPress={handleSave}
+								disabled={saving}
+							>
+								<Text className="text-white font-semibold">
+									{saving ? 'Saving...' : 'Save Credentials'}
+								</Text>
+							</TouchableOpacity>
+						</>
+					)}
 				</View>
 
 				{/* Server URL */}

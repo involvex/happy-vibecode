@@ -114,7 +114,7 @@ export default function ProfilePage() {
 				const err = (await res.json()) as {error?: string}
 				throw new Error(err.error ?? 'Failed to update profile')
 			}
-			const updated = (await res.json()) as UserProfile
+			const _updated = (await res.json()) as UserProfile
 			setSaveSuccess('Profile updated successfully!')
 			setTimeout(() => setSaveSuccess(''), 3000)
 		} catch (err) {

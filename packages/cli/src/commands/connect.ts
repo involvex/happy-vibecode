@@ -3,6 +3,7 @@ import type {
 	AgentsConfig,
 	WorkspaceConfig,
 } from '../types/llm-provider.js'
+import {DEFAULT_AGENTS} from '../utils/agents-config.js'
 import {existsSync, readFileSync} from 'fs'
 import {requireConfig} from '../config.js'
 import {spawn} from 'child_process'
@@ -44,7 +45,7 @@ type IncomingMsg = WsPrompt | WsPing | WsWorkspace | WsModel | {type: string}
 
 const AGENTS_FILE = join(homedir(), '.happy', 'agents.json')
 
-function loadAgentsConfig(): AgentsConfig {
+function loadLocalConfig(): AgentsConfig {
 	if (!existsSync(AGENTS_FILE)) {
 		return {agents: [], workspaces: []}
 	}
@@ -56,22 +57,67 @@ function loadAgentsConfig(): AgentsConfig {
 	}
 }
 
-function loadAgents(): AgentDefinition[] {
-	return loadAgentsConfig().agents
+async function fetchAgentsFromApi(
+	serverUrl: string,
+	apiToken: string,
+): Promise<AgentDefinition[]> {
+	try {
+		const url = `${serverUrl}/api/agents`
+		const res = await fetch(url, {
+			headers: {Authorization: `Bearer ${apiToken}`},
+		})
+		if (!res.ok) return []
+		const data = (await res.json()) as {
+			agents: Array<{
+				id: string
+				name: string
+				command: string
+				args: string[]
+				promptFlag: string | null
+				modelFlag: string | null
+				description: string | null
+			}>
+		}
+		return data.agents.map(a => ({
+			id: a.id,
+			name: a.name,
+			command: a.command,
+			args: a.args,
+			promptFlag: a.promptFlag ?? undefined,
+			modelFlag: a.modelFlag ?? undefined,
+			description: a.description ?? '',
+		}))
+	} catch {
+		return []
+	}
+}
+
+async function loadAgents(
+	serverUrl?: string,
+	apiToken?: string,
+): Promise<AgentDefinition[]> {
+	if (serverUrl && apiToken) {
+		const apiAgents = await fetchAgentsFromApi(serverUrl, apiToken)
+		if (apiAgents.length > 0) return apiAgents
+	}
+	const local = loadLocalConfig()
+	if (local.agents.length > 0) return local.agents
+	return DEFAULT_AGENTS.agents
 }
 
 function loadWorkspaces(): WorkspaceConfig[] {
-	return loadAgentsConfig().workspaces ?? []
-}
-
-function findAgent(id: string): AgentDefinition | undefined {
-	const agents = loadAgents()
-	return agents.find(a => a.id === id || a.command === id)
+	return loadLocalConfig().workspaces ?? []
 }
 
 function findWorkspace(id: string): WorkspaceConfig | undefined {
-	const workspaces = loadWorkspaces()
-	return workspaces.find(w => w.id === id)
+	return loadWorkspaces().find(w => w.id === id)
+}
+
+function findAgent(
+	agents: AgentDefinition[],
+	id: string,
+): AgentDefinition | undefined {
+	return agents.find(a => a.id === id || a.command === id)
 }
 
 async function checkCommandExists(command: string): Promise<boolean> {
@@ -110,10 +156,6 @@ async function runAgent(
 ): Promise<void> {
 	const args: string[] = []
 
-	if (workspace && agent.workspaceFlag) {
-		args.push(agent.workspaceFlag, workspace)
-	}
-
 	if (model && agent.modelFlag) {
 		args.push(agent.modelFlag, model)
 	}
@@ -123,15 +165,15 @@ async function runAgent(
 	args.push(promptFlag, `"${quotedPrompt}"`)
 
 	const fullArgs = [...agent.args, ...args]
+	const agentCmd = [agent.command, ...fullArgs].join(' ')
+
+	const cmdStr = workspace ? `cd "${workspace}" && ${agentCmd}` : agentCmd
 
 	const spinner = ora(`Running ${agent.name}...`).start()
-
-	const cmdStr = [agent.command, ...fullArgs].join(' ')
 
 	const proc = spawn(cmdStr, {
 		stdio: ['ignore', 'pipe', 'pipe'],
 		shell: true,
-		cwd: workspace || undefined,
 	})
 
 	proc.stdout.setEncoding('utf8')
@@ -189,7 +231,8 @@ export const connectCommand = new Command('connect')
 		const roomId: string = opts.room ?? userId ?? apiToken.slice(0, 8)
 		const verbose: boolean = opts.verbose ?? false
 
-		let agent: AgentDefinition | undefined = findAgent(agentId)
+		const agents = await loadAgents(serverUrl, apiToken)
+		let agent: AgentDefinition | undefined = findAgent(agents, agentId)
 		if (!agent) {
 			agent = {
 				id: agentId,

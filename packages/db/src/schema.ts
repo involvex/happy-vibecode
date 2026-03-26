@@ -41,19 +41,7 @@ export const agentSessions = sqliteTable('agent_sessions', {
 	userId: text('user_id')
 		.notNull()
 		.references(() => users.id),
-	agentType: text('agent_type', {
-		enum: [
-			'claude',
-			'gemini',
-			'codex',
-			'opencode',
-			'opencode-ai',
-			'copilot',
-			'kilo',
-			'cline',
-			'custom',
-		],
-	}).notNull(),
+	agentType: text('agent_type').notNull(),
 	connectionStatus: text('connection_status', {
 		enum: ['connecting', 'connected', 'disconnected', 'error'],
 	})
@@ -139,4 +127,17 @@ export const auditLogs = sqliteTable('audit_logs', {
 	action: text('action').notNull(),
 	details: text('details'), // JSON
 	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
+})
+
+export const agents = sqliteTable('agents', {
+	id: text('id').primaryKey(), // UUID
+	name: text('name').notNull(),
+	command: text('command').notNull(),
+	args: text('args').notNull(), // JSON array
+	promptFlag: text('prompt_flag'),
+	modelFlag: text('model_flag'),
+	description: text('description'),
+	isActive: integer('is_active', {mode: 'boolean'}).default(true),
+	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
+	updatedAt: integer('updated_at', {mode: 'timestamp_ms'}).notNull(),
 })

@@ -1,3 +1,4 @@
+import {hashPassword, verifyPassword} from '../utils/password.js'
 import {type ApiEnv} from '../middleware/auth.js'
 import {createDb} from '@happy-vibecode/db'
 import {eq} from 'drizzle-orm'
@@ -20,16 +21,47 @@ authRouter.post('/register', async c => {
 		crypto.randomUUID().replace(/-/g, '') +
 		crypto.randomUUID().replace(/-/g, '')
 	const now = new Date()
+	const passwordHash = body.password ? await hashPassword(body.password) : null
 
 	await db.insert(schema.users).values({
 		id,
 		email: body.email,
+		passwordHash,
 		apiToken,
 		createdAt: now,
 		updatedAt: now,
 	})
 
 	return c.json({id, email: body.email, apiToken}, 201)
+})
+
+authRouter.post('/login', async c => {
+	const body = await c.req.json<{email: string; password: string}>()
+	if (!body.email || !body.password) {
+		return c.json({error: 'Email and password required'}, 400)
+	}
+
+	const db = createDb(c.env.DB)
+	const user = await db.query.users.findFirst({
+		where: (u, {eq}) => eq(u.email, body.email),
+	})
+
+	if (!user || !user.passwordHash) {
+		return c.json({error: 'Invalid email or password'}, 401)
+	}
+
+	const valid = await verifyPassword(body.password, user.passwordHash)
+	if (!valid) {
+		return c.json({error: 'Invalid email or password'}, 401)
+	}
+
+	const {schema} = await import('@happy-vibecode/db')
+	await db
+		.update(schema.users)
+		.set({lastLogin: new Date(), updatedAt: new Date()})
+		.where(eq(schema.users.id, user.id))
+
+	return c.json({id: user.id, email: user.email, apiToken: user.apiToken})
 })
 
 authRouter.post('/verify', async c => {

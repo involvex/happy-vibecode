@@ -7,6 +7,7 @@ import {sessionsRouter} from './routes/sessions.js'
 import {ticketsRouter} from './routes/tickets.js'
 import {devicesRouter} from './routes/devices.js'
 import type {ApiEnv} from './middleware/auth.js'
+import {agentsRouter} from './routes/agents.js'
 import {userRouter} from './routes/user.js'
 import {authRouter} from './routes/auth.js'
 import {logger} from 'hono/logger'
@@ -30,6 +31,7 @@ api.route('/sessions', sessionsRouter)
 api.route('/devices', devicesRouter)
 api.route('/user', userRouter)
 api.route('/workspaces', workspacesRouter)
+api.route('/agents', agentsRouter)
 api.route('/tickets', ticketsRouter)
 api.route('/admin/users', adminUsersRouter)
 api.route('/admin/roles', adminRolesRouter)

@@ -50,12 +50,14 @@ ticketsRouter.post('/', async c => {
 
 	const {title, topic, message, turnstileToken} = result.data
 
-	const isValid = await verifyTurnstile(
-		turnstileToken,
-		c.env.TURNSTILE_SECRET_KEY,
-	)
-	if (!isValid) {
-		return c.json({error: 'Turnstile verification failed'}, 400)
+	if (turnstileToken) {
+		const isValid = await verifyTurnstile(
+			turnstileToken,
+			c.env.TURNSTILE_SECRET_KEY,
+		)
+		if (!isValid) {
+			return c.json({error: 'Turnstile verification failed'}, 400)
+		}
 	}
 
 	const db = createDb(c.env.DB)

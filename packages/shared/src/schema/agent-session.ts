@@ -7,13 +7,7 @@ export const connectionStatusSchema = z.enum([
 	'error',
 ])
 
-export const agentTypeSchema = z.enum([
-	'claude',
-	'gemini',
-	'codex',
-	'opencode',
-	'custom',
-])
+export const agentTypeSchema = z.string().min(1)
 
 export const agentSessionSchema = z.object({
 	id: z.string().uuid(),

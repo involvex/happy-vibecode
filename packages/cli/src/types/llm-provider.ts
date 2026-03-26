@@ -15,7 +15,6 @@ export interface LLMProviderConfig {
 	args: string[]
 	promptFlag: string
 	interactiveFlag?: string
-	workspaceFlag?: string
 	description: string
 	supportsStreaming: boolean
 	modelFlag?: string
@@ -43,7 +42,6 @@ export interface AgentDefinition {
 	description: string
 	promptFlag?: string
 	interactiveFlag?: string
-	workspaceFlag?: string
 	modelFlag?: string
 }
 
@@ -54,7 +52,6 @@ export const PROVIDER_CONFIGS: Record<LLMProvider, LLMProviderConfig> = {
 		command: 'gemini',
 		args: [],
 		promptFlag: '-p',
-		workspaceFlag: '--dir',
 		description: 'Google Gemini CLI agent',
 		supportsStreaming: true,
 	},
@@ -64,7 +61,6 @@ export const PROVIDER_CONFIGS: Record<LLMProvider, LLMProviderConfig> = {
 		command: 'claude',
 		args: [],
 		promptFlag: '--instructions',
-		workspaceFlag: '--dir',
 		description: 'Anthropic Claude CLI agent',
 		supportsStreaming: true,
 		modelFlag: '-m',
@@ -84,7 +80,6 @@ export const PROVIDER_CONFIGS: Record<LLMProvider, LLMProviderConfig> = {
 		command: 'opencode',
 		args: [],
 		promptFlag: '-p',
-		workspaceFlag: '-d',
 		description: 'OpenCode AI CLI agent',
 		supportsStreaming: true,
 	},
@@ -105,7 +100,6 @@ export const PROVIDER_CONFIGS: Record<LLMProvider, LLMProviderConfig> = {
 		promptFlag: '--prompt',
 		description: 'Kilocode CLI agent',
 		supportsStreaming: true,
-		workspaceFlag: '',
 	},
 	cline: {
 		id: 'cline',

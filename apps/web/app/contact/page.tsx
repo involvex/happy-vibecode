@@ -130,6 +130,8 @@ export default function ContactPage() {
 
 	useEffect(() => {
 		if (!showCreateForm || !turnstileSiteKey) return
+
+		let timeoutId: ReturnType<typeof setTimeout> | null = null
 		const script = document.createElement('script')
 		script.src = 'https://challenges.cloudflare.com/turnstile/v0.js'
 		script.async = true
@@ -138,17 +140,29 @@ export default function ContactPage() {
 			if (turnstileRef.current && window.turnstile) {
 				widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
 					sitekey: turnstileSiteKey,
-					callback: (token: string) => setTurnstileToken(token),
-				})
+					callback: (token: string) => {
+						if (timeoutId) clearTimeout(timeoutId)
+						setTurnstileToken(token)
+					},
+				} as Parameters<typeof window.turnstile.render>[1])
 			}
+			timeoutId = setTimeout(() => {
+				if (!turnstileToken) {
+					setTurnstileToken('turnstile-timeout')
+				}
+			}, 10000)
+		}
+		script.onerror = () => {
+			setTurnstileToken('turnstile-error')
 		}
 		document.head.appendChild(script)
 		return () => {
+			if (timeoutId) clearTimeout(timeoutId)
 			if (widgetIdRef.current !== null && window.turnstile) {
 				window.turnstile.reset(widgetIdRef.current)
 			}
 		}
-	}, [showCreateForm, turnstileSiteKey])
+	}, [showCreateForm, turnstileSiteKey, turnstileToken])
 
 	async function fetchTicketDetail(id: string) {
 		if (!apiToken) return
@@ -170,13 +184,22 @@ export default function ContactPage() {
 		setCreateError('')
 		setCreateSuccess('')
 		try {
+			const validToken =
+				turnstileToken &&
+				turnstileToken !== 'turnstile-error' &&
+				turnstileToken !== 'turnstile-timeout'
+					? turnstileToken
+					: undefined
 			const res = await fetch('/api/tickets', {
 				method: 'POST',
 				headers: {
 					Authorization: `Bearer ${apiToken}`,
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({...data, turnstileToken}),
+				body: JSON.stringify({
+					...data,
+					turnstileToken: validToken,
+				}),
 			})
 			if (!res.ok) {
 				const err = (await res.json()) as {error?: string}
@@ -516,9 +539,7 @@ export default function ContactPage() {
 								<Button
 									type="submit"
 									variant="primary"
-									disabled={
-										ticketForm.formState.isSubmitting || !turnstileToken
-									}
+									disabled={ticketForm.formState.isSubmitting}
 								>
 									{ticketForm.formState.isSubmitting
 										? 'Submitting...'

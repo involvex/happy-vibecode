@@ -24,7 +24,7 @@
 	// Turnstile — set TURNSTILE_SECRET_KEY via: wrangler secret put TURNSTILE_SECRET_KEY
 	"vars": {
 		"GITHUB_CLIENT_ID": "Ov23liOufGcx2MYgoM0v",
-		"TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
+		"TURNSTILE_SITE_KEY": "0x4AAAAAACkURlXHUh-8pW1d",
 	},
 	"d1_databases": [
 		{

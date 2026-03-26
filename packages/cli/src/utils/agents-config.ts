@@ -9,7 +9,6 @@ export const DEFAULT_AGENTS: AgentsConfig = {
 			command: 'gemini',
 			args: [],
 			promptFlag: '-p',
-			workspaceFlag: '--dir',
 			description: 'Google Gemini CLI agent',
 		},
 		{
@@ -18,7 +17,6 @@ export const DEFAULT_AGENTS: AgentsConfig = {
 			command: 'claude',
 			args: [],
 			promptFlag: '-p',
-			workspaceFlag: '--dir',
 			modelFlag: '-m',
 			description: 'Anthropic Claude CLI agent',
 		},
