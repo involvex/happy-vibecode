@@ -159,3 +159,4 @@ node_modules
 .vscode/mcp.json
 .turbo/
 */*/.turbo
+packages/cli/.npmrc
