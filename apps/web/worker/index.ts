@@ -12,6 +12,8 @@ interface Env {
 	BridgeAgent: DurableObjectNamespace
 	GITHUB_CLIENT_ID: string
 	GITHUB_CLIENT_SECRET: string
+	TURNSTILE_SITE_KEY: string
+	TURNSTILE_SECRET_KEY: string
 	IMAGES: {
 		input(stream: ReadableStream): {
 			transform(options: Record<string, unknown>): {
@@ -48,6 +50,11 @@ export default {
 		}
 		if (url.pathname === '/oauth/callback') {
 			return handleGithubCallback(request, env)
+		}
+
+		// Turnstile config endpoint (public)
+		if (url.pathname === '/api/config/turnstile') {
+			return Response.json({siteKey: env.TURNSTILE_SITE_KEY})
 		}
 
 		// Mount Hono API at /api/*

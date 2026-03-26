@@ -12,7 +12,7 @@ import {Hono} from 'hono'
 
 export const userRouter = new Hono<{
 	Bindings: ApiEnv
-	Variables: {userId: string}
+	Variables: {userId: string; userRole: string}
 }>()
 
 userRouter.use('*', authMiddleware)
@@ -37,6 +37,7 @@ userRouter.get('/profile', async c => {
 		preferences: user.preferences ? JSON.parse(user.preferences) : null,
 		githubId: user.githubId,
 		hasPassword: !!user.passwordHash,
+		role: user.role,
 		createdAt: user.createdAt.toISOString(),
 		updatedAt: user.updatedAt.toISOString(),
 	})
@@ -81,6 +82,7 @@ userRouter.put('/profile', async c => {
 		preferences: user.preferences ? JSON.parse(user.preferences) : null,
 		githubId: user.githubId,
 		hasPassword: !!user.passwordHash,
+		role: user.role,
 		createdAt: user.createdAt.toISOString(),
 		updatedAt: user.updatedAt.toISOString(),
 	})

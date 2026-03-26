@@ -5,11 +5,13 @@ export interface ApiEnv {
 	DB: D1Database
 	KV: KVNamespace
 	ASSETS: Fetcher
+	TURNSTILE_SITE_KEY: string
+	TURNSTILE_SECRET_KEY: string
 }
 
 export const authMiddleware = createMiddleware<{
 	Bindings: ApiEnv
-	Variables: {userId: string}
+	Variables: {userId: string; userRole: string}
 }>(async (c, next) => {
 	const authHeader = c.req.header('Authorization')
 	if (!authHeader?.startsWith('Bearer ')) {
@@ -30,5 +32,6 @@ export const authMiddleware = createMiddleware<{
 	}
 
 	c.set('userId', user.id)
+	c.set('userRole', user.role)
 	await next()
 })

@@ -5,7 +5,8 @@
 	"exports": {
 		".": "./src/index.ts",
 		"./crypto": "./src/crypto.ts",
-		"./schema/user": "./src/schema/user.ts"
+		"./schema/user": "./src/schema/user.ts",
+		"./schema/ticket": "./src/schema/ticket.ts"
 	},
 	"scripts": {
 		"lint": "oxlint src",

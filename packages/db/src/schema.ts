@@ -9,6 +9,9 @@ export const users = sqliteTable('users', {
 	githubId: text('github_id').unique(),
 	nickname: text('nickname'),
 	preferences: text('preferences'),
+	role: text('role', {enum: ['user', 'admin']})
+		.notNull()
+		.default('user'),
 	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
 	updatedAt: integer('updated_at', {mode: 'timestamp_ms'}).notNull(),
 })
@@ -80,4 +83,34 @@ export const deviceTokens = sqliteTable('device_tokens', {
 	platform: text('platform', {enum: ['ios', 'android', 'web']}).notNull(),
 	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
 	updatedAt: integer('updated_at', {mode: 'timestamp_ms'}).notNull(),
+})
+
+export const tickets = sqliteTable('tickets', {
+	id: text('id').primaryKey(), // UUID
+	userId: text('user_id')
+		.notNull()
+		.references(() => users.id),
+	title: text('title').notNull(),
+	topic: text('topic', {
+		enum: ['bug', 'feature', 'billing', 'general', 'other'],
+	}).notNull(),
+	status: text('status', {
+		enum: ['open', 'closed'],
+	})
+		.notNull()
+		.default('open'),
+	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
+	updatedAt: integer('updated_at', {mode: 'timestamp_ms'}).notNull(),
+})
+
+export const ticketResponses = sqliteTable('ticket_responses', {
+	id: text('id').primaryKey(), // UUID
+	ticketId: text('ticket_id')
+		.notNull()
+		.references(() => tickets.id),
+	userId: text('user_id')
+		.notNull()
+		.references(() => users.id),
+	message: text('message').notNull(),
+	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
 })

@@ -15,6 +15,7 @@ interface AuthState {
 	preferences: UserPreferences | null
 	githubId: string | null
 	hasPassword: boolean
+	role: 'user' | 'admin'
 	serverUrl: string
 	isLoaded: boolean
 }
@@ -36,6 +37,7 @@ export function useAuth() {
 		preferences: null,
 		githubId: null,
 		hasPassword: false,
+		role: 'user',
 		serverUrl: DEFAULT_SERVER_URL,
 		isLoaded: false,
 	})
@@ -49,6 +51,7 @@ export function useAuth() {
 			preferences: null,
 			githubId: null,
 			hasPassword: false,
+			role: 'user',
 			serverUrl:
 				localStorage.getItem(AUTH_KEYS.serverUrl) || DEFAULT_SERVER_URL,
 			isLoaded: true,
@@ -77,6 +80,7 @@ export function useAuth() {
 				preferences: preferences ?? null,
 				githubId: githubId ?? null,
 				hasPassword: hasPassword ?? false,
+				role: 'user',
 				serverUrl: serverUrl || DEFAULT_SERVER_URL,
 				isLoaded: true,
 			})
@@ -95,6 +99,7 @@ export function useAuth() {
 			preferences: null,
 			githubId: null,
 			hasPassword: false,
+			role: 'user',
 			serverUrl: DEFAULT_SERVER_URL,
 			isLoaded: true,
 		})
@@ -113,6 +118,7 @@ export function useAuth() {
 				preferences: UserPreferences | null
 				githubId: string | null
 				hasPassword: boolean
+				role: 'user' | 'admin'
 			}
 			setAuth(prev => ({
 				...prev,
@@ -121,6 +127,7 @@ export function useAuth() {
 				preferences: data.preferences,
 				githubId: data.githubId,
 				hasPassword: data.hasPassword,
+				role: data.role,
 			}))
 			return data
 		} catch {

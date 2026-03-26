@@ -13,6 +13,7 @@ export const userSchema = z.object({
 	preferences: userPreferencesSchema.nullable(),
 	githubId: z.string().nullable(),
 	hasPassword: z.boolean(),
+	role: z.enum(['user', 'admin']).default('user'),
 	createdAt: z.string().datetime(),
 	updatedAt: z.string().datetime(),
 })
