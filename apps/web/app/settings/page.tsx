@@ -10,6 +10,8 @@ import {
 	TrashIcon,
 	EnvelopeSimpleIcon,
 } from '@phosphor-icons/react'
+import {WorkspaceSelector} from '../components/WorkspaceSelector'
+import {useWorkspaces} from '../hooks/useWorkspaces'
 import {zodResolver} from '@hookform/resolvers/zod'
 import {Button, Text} from '@cloudflare/kumo'
 import {useRouter} from 'next/navigation'
@@ -63,6 +65,13 @@ interface UserProfile {
 
 export default function SettingsPage() {
 	const {isAuthed, isLoaded, apiToken, userId, serverUrl, logout} = useAuth()
+	const {
+		workspaces,
+		activeWorkspaceId,
+		addWorkspace,
+		removeWorkspace,
+		setActiveWorkspace,
+	} = useWorkspaces()
 	const router = useRouter()
 
 	const [showToken, setShowToken] = useState(false)
@@ -592,6 +601,17 @@ export default function SettingsPage() {
 						</p>
 					</section>
 				)}
+
+				{/* Workspaces */}
+				<section className="bg-kumo-base border border-kumo-line rounded-2xl p-6">
+					<WorkspaceSelector
+						workspaces={workspaces}
+						activeWorkspaceId={activeWorkspaceId}
+						onSelect={setActiveWorkspace}
+						onAdd={addWorkspace}
+						onRemove={removeWorkspace}
+					/>
+				</section>
 
 				{/* Danger zone */}
 				<section className="bg-kumo-base border border-kumo-danger/30 rounded-2xl p-6 space-y-4">

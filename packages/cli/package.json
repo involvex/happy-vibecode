@@ -22,6 +22,7 @@
 	],
 	"scripts": {
 		"build": "bun build ./src/index.ts --outfile dist/index.js --target bun",
+		"dev": "bun run --watch src/index.ts",
 		"lint": "eslint src",
 		"lint:fix": "eslint src --fix",
 		"start": "bun run ./src/index.ts",
@@ -30,6 +31,8 @@
 	"dependencies": {
 		"@happy-vibecode/shared": "workspace:*",
 		"commander": "^14.0.0",
+		"execa": "latest",
+		"ora": "^6.3.1",
 		"ws": "^8.18.2"
 	},
 	"devDependencies": {

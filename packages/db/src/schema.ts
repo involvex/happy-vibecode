@@ -1,4 +1,5 @@
 import {sqliteTable, text, integer} from 'drizzle-orm/sqlite-core'
+import {sql} from 'drizzle-orm'
 
 export const users = sqliteTable('users', {
 	id: text('id').primaryKey(),
@@ -12,13 +13,39 @@ export const users = sqliteTable('users', {
 	updatedAt: integer('updated_at', {mode: 'timestamp_ms'}).notNull(),
 })
 
+export const workspaces = sqliteTable('workspaces', {
+	id: text('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => users.id),
+	name: text('name').notNull(),
+	path: text('path').notNull(),
+	defaultProvider: text('default_provider'),
+	defaultModel: text('default_model'),
+	isActive: integer('is_active', {mode: 'boolean'}).default(false),
+	createdAt: integer('created_at', {mode: 'timestamp_ms'}).default(
+		sql`CURRENT_TIMESTAMP`,
+	),
+	updatedAt: integer('updated_at', {mode: 'timestamp_ms'}).default(
+		sql`CURRENT_TIMESTAMP`,
+	),
+})
+
 export const agentSessions = sqliteTable('agent_sessions', {
 	id: text('id').primaryKey(), // UUID
 	userId: text('user_id')
 		.notNull()
 		.references(() => users.id),
 	agentType: text('agent_type', {
-		enum: ['claude', 'gemini', 'codex', 'opencode', 'custom'],
+		enum: [
+			'claude',
+			'gemini',
+			'codex',
+			'opencode',
+			'opencode-ai',
+			'copilot',
+			'custom',
+		],
 	}).notNull(),
 	connectionStatus: text('connection_status', {
 		enum: ['connecting', 'connected', 'disconnected', 'error'],
@@ -26,6 +53,8 @@ export const agentSessions = sqliteTable('agent_sessions', {
 		.notNull()
 		.default('connecting'),
 	roomId: text('room_id').notNull(),
+	workspaceId: text('workspace_id').references(() => workspaces.id),
+	model: text('model'),
 	startedAt: integer('started_at', {mode: 'timestamp_ms'}).notNull(),
 	endedAt: integer('ended_at', {mode: 'timestamp_ms'}),
 	metadata: text('metadata'), // JSON string

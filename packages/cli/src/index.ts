@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+import {workspaceCommand} from './commands/workspace.js'
 import pkg from '../package.json' with {type: 'json'}
 import {connectCommand} from './commands/connect.js'
 import {whoamiCommand} from './commands/whoami.js'
@@ -15,6 +16,7 @@ program
 program.addCommand(loginCommand)
 program.addCommand(connectCommand)
 program.addCommand(initCommand)
+program.addCommand(workspaceCommand)
 program.addCommand(statusCommand)
 program.addCommand(whoamiCommand)
 

@@ -1,3 +1,4 @@
+import type {AgentsConfig} from '../types/llm-provider.js'
 import {existsSync, mkdirSync, writeFileSync} from 'fs'
 import {readConfig} from '../config.js'
 import {Command} from 'commander'
@@ -7,18 +8,6 @@ import {join} from 'path'
 const HAPPY_DIR = join(homedir(), '.happy')
 const AGENTS_FILE = join(HAPPY_DIR, 'agents.json')
 
-interface AgentsConfig {
-	agents: AgentDefinition[]
-}
-
-interface AgentDefinition {
-	id: string
-	name: string
-	command: string
-	args: string[]
-	description: string
-}
-
 const DEFAULT_AGENTS: AgentsConfig = {
 	agents: [
 		{
@@ -26,13 +15,18 @@ const DEFAULT_AGENTS: AgentsConfig = {
 			name: 'Gemini CLI',
 			command: 'gemini',
 			args: [],
+			promptFlag: '-p',
+			workspaceFlag: '--dir',
 			description: 'Google Gemini CLI agent',
 		},
 		{
 			id: 'claude',
-			name: 'Claude',
+			name: 'Claude Code',
 			command: 'claude',
 			args: [],
+			promptFlag: '-p',
+			workspaceFlag: '--dir',
+			modelFlag: '-m',
 			description: 'Anthropic Claude CLI agent',
 		},
 		{
@@ -40,9 +34,28 @@ const DEFAULT_AGENTS: AgentsConfig = {
 			name: 'OpenAI Codex',
 			command: 'codex',
 			args: [],
+			promptFlag: '-p',
 			description: 'OpenAI Codex CLI agent',
 		},
+		{
+			id: 'opencode-ai',
+			name: 'OpenCode AI',
+			command: 'opencode',
+			args: [],
+			promptFlag: '-p',
+			workspaceFlag: '-d',
+			description: 'OpenCode AI CLI agent',
+		},
+		{
+			id: 'copilot',
+			name: 'GitHub Copilot',
+			command: 'copilot',
+			args: [],
+			promptFlag: '-p',
+			description: 'GitHub Copilot CLI agent',
+		},
 	],
+	workspaces: [],
 }
 
 export const initCommand = new Command('init')

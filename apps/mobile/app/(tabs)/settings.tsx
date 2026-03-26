@@ -7,20 +7,42 @@ import {
 	View,
 } from 'react-native'
 import {SafeAreaView} from 'react-native-safe-area-context'
+import {useWorkspaces} from '../../hooks/useWorkspaces'
 import {useAuth} from '../../hooks/useAuth'
 import {Ionicons} from '@expo/vector-icons'
 import {useState} from 'react'
 
 const DEFAULT_URL = 'https://happy-vibecode.involvex.workers.dev'
 
+const PROVIDERS = [
+	{label: 'Gemini CLI', value: 'gemini'},
+	{label: 'Claude Code', value: 'claude'},
+	{label: 'OpenAI Codex', value: 'codex'},
+	{label: 'OpenCode AI', value: 'opencode-ai'},
+	{label: 'GitHub Copilot', value: 'copilot'},
+]
+
 export default function SettingsScreen() {
 	const {isAuthed, userId, serverUrl, login, logout, setServerUrl} = useAuth()
+	const {
+		workspaces,
+		activeWorkspaceId,
+		addWorkspace,
+		removeWorkspace,
+		setActiveWorkspace,
+	} = useWorkspaces()
 
 	const [tokenInput, setTokenInput] = useState('')
 	const [userIdInput, setUserIdInput] = useState('')
 	const [urlInput, setUrlInput] = useState(serverUrl ?? DEFAULT_URL)
 	const [tokenVisible, setTokenVisible] = useState(false)
 	const [saving, setSaving] = useState(false)
+
+	const [showAddWorkspace, setShowAddWorkspace] = useState(false)
+	const [newWsName, setNewWsName] = useState('')
+	const [newWsPath, setNewWsPath] = useState('')
+	const [newWsProvider, setNewWsProvider] = useState('')
+	const [newWsModel, setNewWsModel] = useState('')
 
 	const handleSave = async () => {
 		const token = tokenInput.trim()
@@ -56,6 +78,36 @@ export default function SettingsScreen() {
 				text: 'Sign Out',
 				style: 'destructive',
 				onPress: logout,
+			},
+		])
+	}
+
+	const handleAddWorkspace = async () => {
+		if (!newWsName.trim() || !newWsPath.trim()) {
+			Alert.alert('Required', 'Please enter workspace name and path.')
+			return
+		}
+		await addWorkspace({
+			name: newWsName.trim(),
+			path: newWsPath.trim(),
+			defaultProvider: newWsProvider || undefined,
+			defaultModel: newWsModel || undefined,
+		})
+		setNewWsName('')
+		setNewWsPath('')
+		setNewWsProvider('')
+		setNewWsModel('')
+		setShowAddWorkspace(false)
+		Alert.alert('Saved', 'Workspace added.')
+	}
+
+	const handleRemoveWorkspace = (id: string, name: string) => {
+		Alert.alert('Remove Workspace', `Remove "${name}"?`, [
+			{text: 'Cancel', style: 'cancel'},
+			{
+				text: 'Remove',
+				style: 'destructive',
+				onPress: () => removeWorkspace(id),
 			},
 		])
 	}
@@ -170,6 +222,161 @@ export default function SettingsScreen() {
 					>
 						<Text className="text-primary font-semibold">Update URL</Text>
 					</TouchableOpacity>
+				</View>
+
+				{/* Workspaces */}
+				<View className="gap-3">
+					<View className="flex-row items-center justify-between">
+						<Text className="text-text font-semibold text-sm uppercase tracking-wide">
+							Workspaces
+						</Text>
+						<TouchableOpacity onPress={() => setShowAddWorkspace(v => !v)}>
+							<Text className="text-primary text-sm font-medium">
+								{showAddWorkspace ? 'Cancel' : '+ Add'}
+							</Text>
+						</TouchableOpacity>
+					</View>
+
+					{showAddWorkspace && (
+						<View className="bg-card border border-border rounded-xl p-4 gap-3">
+							<TextInput
+								className="bg-surface border border-border rounded-xl px-4 py-3 text-text text-sm"
+								placeholder="Workspace name"
+								placeholderTextColor="#64748b"
+								value={newWsName}
+								onChangeText={setNewWsName}
+							/>
+							<TextInput
+								className="bg-surface border border-border rounded-xl px-4 py-3 text-text text-sm"
+								placeholder="Directory path (e.g., /path/to/project)"
+								placeholderTextColor="#64748b"
+								value={newWsPath}
+								onChangeText={setNewWsPath}
+							/>
+							<View className="flex-row gap-2">
+								<View className="flex-1">
+									<Text className="text-muted text-xs mb-1">Provider</Text>
+									<View className="bg-surface border border-border rounded-xl">
+										{/* Native picker would be better but TextInput for simplicity */}
+										<TextInput
+											className="px-4 py-3 text-text text-sm"
+											placeholder="Select..."
+											placeholderTextColor="#64748b"
+											value={newWsProvider}
+											onChangeText={setNewWsProvider}
+										/>
+									</View>
+								</View>
+								<View className="flex-1">
+									<Text className="text-muted text-xs mb-1">Model</Text>
+									<TextInput
+										className="bg-surface border border-border rounded-xl px-4 py-3 text-text text-sm"
+										placeholder="Optional"
+										placeholderTextColor="#64748b"
+										value={newWsModel}
+										onChangeText={setNewWsModel}
+									/>
+								</View>
+							</View>
+							<TouchableOpacity
+								className="bg-primary rounded-xl py-3 items-center"
+								onPress={handleAddWorkspace}
+							>
+								<Text className="text-white font-semibold">Add Workspace</Text>
+							</TouchableOpacity>
+						</View>
+					)}
+
+					{workspaces.length === 0 ? (
+						<Text className="text-muted text-sm">
+							No workspaces configured.
+						</Text>
+					) : (
+						<View className="gap-2">
+							{workspaces.map(ws => (
+								<View
+									key={ws.id}
+									className={`bg-card border rounded-xl p-4 flex-row items-center justify-between ${
+										ws.id === activeWorkspaceId || ws.isActive
+											? 'border-primary'
+											: 'border-border'
+									}`}
+								>
+									<View className="flex-1">
+										<View className="flex-row items-center gap-2">
+											<Text className="text-text font-medium">{ws.name}</Text>
+											{(ws.id === activeWorkspaceId || ws.isActive) && (
+												<Ionicons
+													name="checkmark-circle"
+													size={14}
+													color="#3b82f6"
+												/>
+											)}
+										</View>
+										<Text className="text-muted text-xs font-mono">
+											{ws.path}
+										</Text>
+										<View className="flex-row gap-1 mt-1">
+											{ws.defaultProvider && (
+												<View className="bg-surface px-2 py-0.5 rounded">
+													<Text className="text-muted text-xs">
+														{ws.defaultProvider}
+													</Text>
+												</View>
+											)}
+											{ws.defaultModel && (
+												<View className="bg-surface px-2 py-0.5 rounded">
+													<Text className="text-muted text-xs">
+														{ws.defaultModel}
+													</Text>
+												</View>
+											)}
+										</View>
+									</View>
+									<View className="flex-row gap-1">
+										<TouchableOpacity
+											className="p-2"
+											onPress={() =>
+												setActiveWorkspace(
+													ws.id === activeWorkspaceId || ws.isActive
+														? null
+														: ws.id,
+												)
+											}
+										>
+											<Ionicons
+												name={
+													ws.id === activeWorkspaceId || ws.isActive
+														? 'checkmark-circle'
+														: 'checkmark-circle-outline'
+												}
+												size={20}
+												color={
+													ws.id === activeWorkspaceId || ws.isActive
+														? '#3b82f6'
+														: '#94a3b8'
+												}
+											/>
+										</TouchableOpacity>
+										<TouchableOpacity
+											className="p-2"
+											onPress={() => handleRemoveWorkspace(ws.id, ws.name)}
+										>
+											<Ionicons
+												name="trash-outline"
+												size={20}
+												color="#ef4444"
+											/>
+										</TouchableOpacity>
+									</View>
+								</View>
+							))}
+						</View>
+					)}
+
+					<Text className="text-muted text-xs">
+						Workspaces are stored locally on this device.
+					</Text>
 				</View>
 
 				{/* Sign out */}

@@ -1,3 +1,4 @@
+import {workspacesRouter} from './routes/workspaces.js'
 import {sessionsRouter} from './routes/sessions.js'
 import {devicesRouter} from './routes/devices.js'
 import type {ApiEnv} from './middleware/auth.js'
@@ -23,6 +24,7 @@ api.route('/auth', authRouter)
 api.route('/sessions', sessionsRouter)
 api.route('/devices', devicesRouter)
 api.route('/user', userRouter)
+api.route('/workspaces', workspacesRouter)
 
 api.notFound(c => c.json({error: 'Not found'}, 404))
 api.onError((err, c) => {
