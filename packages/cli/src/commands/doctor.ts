@@ -240,7 +240,6 @@ export const doctorCommand = new Command('doctor')
 
 		if (hasErrors) {
 			console.log('❌ Configuration has errors that need attention.')
-			process.exit(1)
 		} else if (hasWarnings) {
 			console.log('⚠️  Configuration has warnings.')
 			if (!fix) {
@@ -249,4 +248,5 @@ export const doctorCommand = new Command('doctor')
 		} else {
 			console.log('✅ Configuration looks good!')
 		}
+		process.exit(1)
 	})

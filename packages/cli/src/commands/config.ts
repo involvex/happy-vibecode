@@ -37,6 +37,7 @@ configCommand
 			`API Token:   ${config.apiToken ? config.apiToken.slice(0, 8) + '••••••••' + config.apiToken.slice(-4) : '(not set)'}`,
 		)
 		console.log('')
+		process.exit(1)
 	})
 
 configCommand
@@ -55,6 +56,7 @@ configCommand
 		config[key as keyof typeof config] = value
 		writeConfig(config)
 		console.log(`✓ Set ${key} = ${value}`)
+		process.exit(1)
 	})
 
 configCommand
@@ -77,6 +79,7 @@ configCommand
 		delete config[key as unknown as keyof HappyConfig]
 		writeConfig(config)
 		console.log(`✓ Removed ${key}`)
+		process.exit(1)
 	})
 
 configCommand
@@ -104,6 +107,7 @@ configCommand
 		} else {
 			doReset()
 		}
+		process.exit(1)
 	})
 
 export {configCommand}
