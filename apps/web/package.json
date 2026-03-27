@@ -14,6 +14,7 @@
 		"types": "wrangler types"
 	},
 	"dependencies": {
+		"@better-auth/expo": "^1.2.7",
 		"@cloudflare/kumo": "^1.9.0",
 		"@happy-vibecode/api": "workspace:*",
 		"@happy-vibecode/db": "workspace:*",
@@ -21,6 +22,7 @@
 		"@hookform/resolvers": "^3.9.0",
 		"@phosphor-icons/react": "^2.1.10",
 		"@vitejs/plugin-rsc": "^0.5.21",
+		"better-auth": "^1.2.7",
 		"hono": "^4.7.11",
 		"next": "16.2.1",
 		"react": "19.2.4",

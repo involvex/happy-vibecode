@@ -1,6 +1,7 @@
 'use client'
 import {
 	ChartBarIcon,
+	RobotIcon,
 	ShieldCheckIcon,
 	UsersIcon,
 	ClockCounterClockwiseIcon,
@@ -25,6 +26,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
 	{href: '/admin', label: 'Overview', icon: <HouseIcon size={18} />},
 	{href: '/admin/users', label: 'Users', icon: <UsersIcon size={18} />},
 	{href: '/admin/roles', label: 'Roles', icon: <ShieldCheckIcon size={18} />},
+	{href: '/admin/agents', label: 'Agents', icon: <RobotIcon size={18} />},
 	{
 		href: '/admin/analytics',
 		label: 'Analytics',

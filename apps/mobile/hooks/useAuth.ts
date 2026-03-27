@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useState} from 'react'
 import * as SecureStore from 'expo-secure-store'
+import {authClient} from '../lib/auth-client'
 
 const KEYS = {
 	token: 'happy-api-token',
@@ -17,11 +18,20 @@ export interface AuthState {
 	setServerUrl: (url: string) => Promise<void>
 }
 
+type BetterAuthUser = {
+	id: string
+	name: string
+	email: string
+	apiToken?: string
+}
+
 export function useAuth(): AuthState {
-	const [apiToken, setApiToken] = useState<string | null>(null)
-	const [userId, setUserId] = useState<string | null>(null)
+	const {data: session, isPending} = authClient.useSession()
+
+	const [legacyToken, setLegacyToken] = useState<string | null>(null)
+	const [legacyUserId, setLegacyUserId] = useState<string | null>(null)
 	const [serverUrl, setServerUrlState] = useState<string | null>(null)
-	const [loaded, setLoaded] = useState(false)
+	const [legacyLoaded, setLegacyLoaded] = useState(false)
 
 	useEffect(() => {
 		Promise.all([
@@ -29,12 +39,20 @@ export function useAuth(): AuthState {
 			SecureStore.getItemAsync(KEYS.userId),
 			SecureStore.getItemAsync(KEYS.serverUrl),
 		]).then(([token, uid, url]) => {
-			setApiToken(token)
-			setUserId(uid)
+			setLegacyToken(token)
+			setLegacyUserId(uid)
 			setServerUrlState(url)
-			setLoaded(true)
+			setLegacyLoaded(true)
 		})
 	}, [])
+
+	const betterAuthUser = session?.user as BetterAuthUser | undefined
+	const isLoaded = !isPending && legacyLoaded
+
+	// Better Auth session takes priority; fall back to SecureStore for CLI tokens
+	const apiToken = betterAuthUser?.apiToken ?? legacyToken
+	const userId = betterAuthUser?.id ?? legacyUserId
+	const isAuthed = isLoaded && !!apiToken
 
 	const login = useCallback(
 		async (token: string, uid: string, url?: string) => {
@@ -43,20 +61,21 @@ export function useAuth(): AuthState {
 				SecureStore.setItemAsync(KEYS.userId, uid),
 				url ? SecureStore.setItemAsync(KEYS.serverUrl, url) : Promise.resolve(),
 			])
-			setApiToken(token)
-			setUserId(uid)
+			setLegacyToken(token)
+			setLegacyUserId(uid)
 			if (url) setServerUrlState(url)
 		},
 		[],
 	)
 
 	const logout = useCallback(async () => {
+		await authClient.signOut()
 		await Promise.all([
 			SecureStore.deleteItemAsync(KEYS.token),
 			SecureStore.deleteItemAsync(KEYS.userId),
 		])
-		setApiToken(null)
-		setUserId(null)
+		setLegacyToken(null)
+		setLegacyUserId(null)
 	}, [])
 
 	const setServerUrl = useCallback(async (url: string) => {
@@ -65,7 +84,7 @@ export function useAuth(): AuthState {
 	}, [])
 
 	return {
-		isAuthed: loaded && !!apiToken,
+		isAuthed,
 		apiToken,
 		userId,
 		serverUrl,

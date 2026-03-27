@@ -8,21 +8,12 @@ import {
 } from 'react-native'
 import {SafeAreaView} from 'react-native-safe-area-context'
 import {useWorkspaces} from '../../hooks/useWorkspaces'
+import {authClient} from '../../lib/auth-client'
 import {useAuth} from '../../hooks/useAuth'
 import {Ionicons} from '@expo/vector-icons'
 import {useState} from 'react'
 
 const DEFAULT_URL = 'https://happy-vibecode.involvex.workers.dev'
-
-const PROVIDERS = [
-	{label: 'Gemini CLI', value: 'gemini'},
-	{label: 'Claude Code', value: 'claude'},
-	{label: 'OpenAI Codex', value: 'codex'},
-	{label: 'OpenCode AI', value: 'opencode-ai'},
-	{label: 'GitHub Copilot', value: 'copilot'},
-	{label: 'Kilocode CLI', value: 'kilo'},
-	{label: 'Cline CLI', value: 'cline'},
-]
 
 export default function SettingsScreen() {
 	const {isAuthed, userId, serverUrl, login, logout, setServerUrl} = useAuth()
@@ -33,6 +24,22 @@ export default function SettingsScreen() {
 		removeWorkspace,
 		setActiveWorkspace,
 	} = useWorkspaces()
+
+	const [githubLoading, setGithubLoading] = useState(false)
+
+	const handleGithubSignIn = async () => {
+		setGithubLoading(true)
+		try {
+			await authClient.signIn.social({
+				provider: 'github',
+				callbackURL: 'happy-vibecode://',
+			})
+		} catch (err) {
+			Alert.alert('Error', (err as Error).message)
+		} finally {
+			setGithubLoading(false)
+		}
+	}
 
 	const [tokenInput, setTokenInput] = useState('')
 	const [userIdInput, setUserIdInput] = useState('')
@@ -179,6 +186,28 @@ export default function SettingsScreen() {
 						</>
 					)}
 				</View>
+
+				{/* GitHub Sign In */}
+				{!isAuthed && (
+					<View className="gap-3">
+						<Text className="text-text font-semibold text-sm uppercase tracking-wide">
+							Quick Sign In
+						</Text>
+						<TouchableOpacity
+							className={`flex-row items-center justify-center gap-3 rounded-xl py-3 border border-border bg-card ${githubLoading ? 'opacity-60' : ''}`}
+							onPress={handleGithubSignIn}
+							disabled={githubLoading}
+						>
+							<Ionicons name="logo-github" size={20} color="#e2e8f0" />
+							<Text className="text-text font-semibold">
+								{githubLoading ? 'Opening browser...' : 'Sign in with GitHub'}
+							</Text>
+						</TouchableOpacity>
+						<Text className="text-muted text-xs text-center">
+							Opens a browser window for GitHub OAuth
+						</Text>
+					</View>
+				)}
 
 				{/* Credentials */}
 				<View className="gap-3">

@@ -1,4 +1,5 @@
 import {adminAnalyticsRouter} from './routes/admin-analytics.js'
+import {adminAgentsRouter} from './routes/admin-agents.js'
 import {adminUsersRouter} from './routes/admin-users.js'
 import {adminRolesRouter} from './routes/admin-roles.js'
 import {adminAuditRouter} from './routes/admin-audit.js'
@@ -37,6 +38,7 @@ api.route('/admin/users', adminUsersRouter)
 api.route('/admin/roles', adminRolesRouter)
 api.route('/admin/analytics', adminAnalyticsRouter)
 api.route('/admin/audit', adminAuditRouter)
+api.route('/admin/agents', adminAgentsRouter)
 
 api.notFound(c => c.json({error: 'Not found'}, 404))
 api.onError((err, c) => {

@@ -1,5 +1,6 @@
+import {createDb, authUser} from '@happy-vibecode/db'
 import {createMiddleware} from 'hono/factory'
-import {createDb} from '@happy-vibecode/db'
+import {eq} from 'drizzle-orm'
 
 export interface ApiEnv {
 	DB: D1Database
@@ -7,6 +8,9 @@ export interface ApiEnv {
 	ASSETS: Fetcher
 	TURNSTILE_SITE_KEY: string
 	TURNSTILE_SECRET_KEY: string
+	AUTH_GITHUB_ID?: string
+	AUTH_GITHUB_SECRET?: string
+	BETTER_AUTH_SECRET?: string
 }
 
 export const authMiddleware = createMiddleware<{
@@ -23,15 +27,31 @@ export const authMiddleware = createMiddleware<{
 	}
 
 	const db = createDb(c.env.DB)
+
+	// Check legacy users table first (CLI users, email/password users)
 	const user = await db.query.users.findFirst({
 		where: (users, {eq}) => eq(users.apiToken, token),
 	})
 
-	if (!user) {
+	if (user) {
+		c.set('userId', user.id)
+		c.set('userRole', user.role)
+		await next()
+		return
+	}
+
+	// Fallback: check Better Auth users (GitHub OAuth users whose email had a conflict)
+	const authUserRecord = await db
+		.select()
+		.from(authUser)
+		.where(eq(authUser.apiToken, token))
+		.get()
+
+	if (!authUserRecord) {
 		return c.json({error: 'Invalid API token'}, 401)
 	}
 
-	c.set('userId', user.id)
-	c.set('userRole', user.role)
+	c.set('userId', authUserRecord.id)
+	c.set('userRole', authUserRecord.role)
 	await next()
 })

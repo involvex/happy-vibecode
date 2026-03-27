@@ -1,5 +1,6 @@
 'use client'
 import {useCallback, useEffect, useState} from 'react'
+import {authClient} from '../../lib/auth-client'
 
 interface UserPreferences {
 	theme: 'light' | 'dark' | 'system'
@@ -28,7 +29,17 @@ const AUTH_KEYS = {
 	serverUrl: 'happy-server-url',
 }
 
+type BetterAuthUser = {
+	apiToken?: string
+	role?: string
+	id: string
+	email?: string | null
+	name?: string | null
+}
+
 export function useAuth() {
+	const {data: session, isPending} = authClient.useSession()
+
 	const [auth, setAuth] = useState<AuthState>({
 		apiToken: null,
 		userId: null,
@@ -43,6 +54,30 @@ export function useAuth() {
 	})
 
 	useEffect(() => {
+		if (isPending) return
+
+		if (session?.user) {
+			const u = session.user as BetterAuthUser
+			const apiToken = u.apiToken ?? localStorage.getItem(AUTH_KEYS.token)
+			const userId = u.id
+			setAuth(prev => ({
+				...prev,
+				apiToken: apiToken ?? null,
+				userId,
+				email: u.email ?? null,
+				nickname: u.name ?? null,
+				role: (u.role as 'user' | 'admin') ?? 'user',
+				serverUrl:
+					localStorage.getItem(AUTH_KEYS.serverUrl) ?? DEFAULT_SERVER_URL,
+				isLoaded: true,
+			}))
+			// Keep localStorage in sync for legacy paths
+			if (apiToken) localStorage.setItem(AUTH_KEYS.token, apiToken)
+			localStorage.setItem(AUTH_KEYS.userId, userId)
+			return
+		}
+
+		// No Better Auth session — fall back to localStorage (CLI/email users)
 		setAuth({
 			apiToken: localStorage.getItem(AUTH_KEYS.token),
 			userId: localStorage.getItem(AUTH_KEYS.userId),
@@ -56,7 +91,7 @@ export function useAuth() {
 				localStorage.getItem(AUTH_KEYS.serverUrl) || DEFAULT_SERVER_URL,
 			isLoaded: true,
 		})
-	}, [])
+	}, [session, isPending])
 
 	const login = useCallback(
 		(
@@ -88,7 +123,8 @@ export function useAuth() {
 		[],
 	)
 
-	const logout = useCallback(() => {
+	const logout = useCallback(async () => {
+		await authClient.signOut()
 		localStorage.removeItem(AUTH_KEYS.token)
 		localStorage.removeItem(AUTH_KEYS.userId)
 		setAuth({

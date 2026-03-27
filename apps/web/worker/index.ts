@@ -1,7 +1,7 @@
 import {handleImageOptimization} from 'vinext/server/image-optimization'
-import {handleGithubCallback, handleGithubLogin} from './github-oauth'
 import handler from 'vinext/server/app-router-entry'
 import {api} from '@happy-vibecode/api'
+import {createAuth} from './auth'
 
 export {BridgeAgent} from './bridge-agent'
 
@@ -10,8 +10,9 @@ interface Env {
 	DB: D1Database
 	KV: KVNamespace
 	BridgeAgent: DurableObjectNamespace
-	GITHUB_CLIENT_ID: string
-	GITHUB_CLIENT_SECRET: string
+	AUTH_GITHUB_ID: string
+	AUTH_GITHUB_SECRET: string
+	BETTER_AUTH_SECRET: string
 	TURNSTILE_SITE_KEY: string
 	TURNSTILE_SECRET_KEY: string
 	IMAGES: {
@@ -44,12 +45,12 @@ export default {
 			})
 		}
 
-		// GitHub OAuth
-		if (url.pathname === '/oauth/github') {
-			return handleGithubLogin(env)
-		}
-		if (url.pathname === '/oauth/callback') {
-			return handleGithubCallback(request, env)
+		// Better Auth handles all /api/auth/* routes (OAuth, sessions, sign-out, etc.)
+		// Falls through to Hono for unrecognised paths (e.g. /api/auth/login, /api/auth/register)
+		if (url.pathname.startsWith('/api/auth')) {
+			const auth = createAuth(env, request.url)
+			const authResponse = await auth.handler(request)
+			if (authResponse.status !== 404) return authResponse
 		}
 
 		// Turnstile config endpoint (public)

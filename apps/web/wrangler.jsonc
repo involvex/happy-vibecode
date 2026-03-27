@@ -20,10 +20,11 @@
 	"images": {
 		"binding": "IMAGES",
 	},
-	// GitHub OAuth — set GITHUB_CLIENT_SECRET via: wrangler secret put GITHUB_CLIENT_SECRET
+	// GitHub OAuth — set AUTH_GITHUB_SECRET via: wrangler secret put AUTH_GITHUB_SECRET
+	// Better Auth — set BETTER_AUTH_SECRET via: wrangler secret put BETTER_AUTH_SECRET
 	// Turnstile — set TURNSTILE_SECRET_KEY via: wrangler secret put TURNSTILE_SECRET_KEY
 	"vars": {
-		"GITHUB_CLIENT_ID": "Ov23liOufGcx2MYgoM0v",
+		"AUTH_GITHUB_ID": "Ov23liOufGcx2MYgoM0v",
 		"TURNSTILE_SITE_KEY": "0x4AAAAAACkURlXHUh-8pW1d",
 	},
 	"d1_databases": [

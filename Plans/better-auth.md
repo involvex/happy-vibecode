@@ -313,18 +313,18 @@ import {Button} from 'react-native'
 import {router} from 'expo-router'
 
 export default function SocialSignIn() {
-	const handleLogin = async () => {
-		const {error} = await authClient.signIn.social({
-			provider: 'google',
-			callbackURL: '/dashboard', // [!code highlight]
-		})
-		if (error) {
-			// handle error
-			return
-		}
-		router.replace('/dashboard') // [!code highlight]
-	}
-	return <Button title="Login with Google" onPress={handleLogin} />
+ const handleLogin = async () => {
+  const {error} = await authClient.signIn.social({
+   provider: 'google',
+   callbackURL: '/dashboard', // [!code highlight]
+  })
+  if (error) {
+   // handle error
+   return
+  }
+  router.replace('/dashboard') // [!code highlight]
+ }
+ return <Button title="Login with Google" onPress={handleLogin} />
 }
 ````
 
@@ -591,7 +591,7 @@ description: GitHub provider setup and usage.
 ---
 
 <Steps>
-    <Step> 
+    <Step>
         ### Get your GitHub credentials
         To use GitHub sign in, you need a client ID and client secret. You can get them from the [GitHub Developer Portal](https://github.com/settings/developers).
 
