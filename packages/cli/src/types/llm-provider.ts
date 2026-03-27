@@ -77,7 +77,8 @@ export const PROVIDER_CONFIGS: Record<LLMProvider, AgentDefinition> = {
 		command: 'kilo',
 		args: [],
 		promptFlag: '--prompt',
-		description: 'Kilocode CLI agent',
+		description:
+			'Kilocode VS Code extension — dispatches tasks but AI response goes to VS Code UI, not stdout',
 	},
 	cline: {
 		id: 'cline',
@@ -85,8 +86,9 @@ export const PROVIDER_CONFIGS: Record<LLMProvider, AgentDefinition> = {
 		provider: 'cline',
 		command: 'cline',
 		args: [],
-		promptFlag: '',
-		description: 'Cline CLI agent',
+		promptFlag: '-p',
+		description:
+			'Cline VS Code extension — dispatches tasks but AI response goes to VS Code UI, not stdout',
 	},
 	custom: {
 		id: 'custom',

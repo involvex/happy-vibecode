@@ -9,7 +9,7 @@ import {useEffect} from 'react'
 const ChatComponent = dynamic(() => import('./Chat'), {ssr: false})
 
 export default function ChatPage() {
-	const {isAuthed, isLoaded, userId, logout} = useAuth()
+	const {isAuthed, isLoaded, logout} = useAuth()
 	const router = useRouter()
 	const params = useSearchParams()
 	const roomParam = params.get('room') ?? undefined
@@ -19,6 +19,13 @@ export default function ChatPage() {
 			router.replace('/login')
 		}
 	}, [isLoaded, isAuthed, router])
+
+	// Persist ?room= URL param to localStorage so the pairing screen is skipped
+	useEffect(() => {
+		if (roomParam) {
+			localStorage.setItem('happy-bridge-code', roomParam.toUpperCase())
+		}
+	}, [roomParam])
 
 	const handleLogout = () => {
 		logout()
@@ -45,7 +52,6 @@ export default function ChatPage() {
 					roomId={
 						roomParam ??
 						localStorage.getItem('happy-bridge-code')?.toUpperCase() ??
-						userId ??
 						undefined
 					}
 				/>

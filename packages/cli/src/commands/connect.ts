@@ -14,6 +14,15 @@ import {homedir} from 'os'
 import {join} from 'path'
 import ora from 'ora'
 
+// Strip ANSI escape codes so raw terminal output is sent as plain text
+const ANSI_RE =
+	// eslint-disable-next-line no-control-regex
+	/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><~]/g
+
+function stripAnsi(str: string): string {
+	return str.replace(ANSI_RE, '')
+}
+
 interface WsPrompt {
 	type: 'prompt'
 	content: string
@@ -136,13 +145,16 @@ async function checkCommandExists(command: string): Promise<boolean> {
 
 function getInstallHint(agentId: string): string {
 	const hints: Record<string, string> = {
-		gemini: 'npm install -g @google/gemini-cli or npm install -g gemini-core',
+		gemini: 'npm install -g @google/gemini-cli',
 		claude:
-			'npm install -g @anthropic/claude-cli or see https://www.anthropic.com/claude-code',
+			'npm install -g @anthropic/claude-code or see https://www.anthropic.com/claude-code',
 		codex: 'npm install -g openai-codex or see https://openai.com/codex',
 		'opencode-ai': 'npm install -g opencode-ai or see https://opencode.ai',
 		copilot:
-			'npm install -g @anthropic/claude-code (copilot is part of Claude Code)',
+			'gh extension install github/gh-copilot  (requires GitHub CLI: https://cli.github.com)',
+		cline:
+			'Install the Cline extension in VS Code (marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev). Note: Cline runs inside VS Code and does not stream output to the terminal.',
+		kilo: 'Install the Kilo extension in VS Code. Note: Kilo runs inside VS Code and does not stream output to the terminal.',
 	}
 	return hints[agentId] ?? ''
 }
@@ -156,6 +168,7 @@ async function runAgent(
 	onChunk: (chunk: string) => void,
 	onDone: () => void,
 	onError: (err: string) => void,
+	onProcSpawned?: (proc: ReturnType<typeof spawn>) => void,
 ): Promise<void> {
 	const args: string[] = []
 
@@ -163,8 +176,14 @@ async function runAgent(
 		args.push(agent.modelFlag, model)
 	}
 
-	const promptFlag = agent.promptFlag || '-p'
-	args.push(promptFlag, prompt)
+	// Use ?? so an explicit empty string (positional-arg agents) is preserved
+	const promptFlag = agent.promptFlag !== undefined ? agent.promptFlag : '-p'
+	if (promptFlag) {
+		args.push(promptFlag, prompt)
+	} else {
+		// Positional arg — prompt goes last with no flag
+		args.push(prompt)
+	}
 
 	const fullArgs = [...agent.args, ...args]
 
@@ -188,8 +207,27 @@ async function runAgent(
 		})
 	}
 
+	onProcSpawned?.(proc)
+
+	// 60-second no-output watchdog: kills the process if nothing is written to
+	// stdout/stderr within the first minute (catches VS Code extensions that
+	// dispatch tasks to the IDE without writing to their own stdout).
+	const NO_OUTPUT_TIMEOUT_MS = 60_000
+	let gotOutput = false
+	const watchdog = setTimeout(() => {
+		if (!gotOutput) {
+			spinner.stop()
+			proc.kill()
+			onError(
+				`Agent produced no output within ${NO_OUTPUT_TIMEOUT_MS / 1000}s. ` +
+					`It may require an interactive terminal (e.g. VS Code extension).`,
+			)
+		}
+	}, NO_OUTPUT_TIMEOUT_MS)
+
 	const {stdout, stderr} = proc
 	if (!stdout || !stderr) {
+		clearTimeout(watchdog)
 		onError('Failed to create process streams')
 		spinner.stop()
 		return
@@ -199,17 +237,22 @@ async function runAgent(
 
 	stdout.setEncoding('utf8')
 	stdout.on('data', (chunk: string) => {
+		gotOutput = true
+		clearTimeout(watchdog)
 		spinner.stop()
-		onChunk(chunk)
+		onChunk(stripAnsi(chunk))
 	})
 
 	stderr.setEncoding('utf8')
 	stderr.on('data', (chunk: string) => {
+		gotOutput = true
+		clearTimeout(watchdog)
 		spinner.stop()
-		onChunk(chunk)
+		onChunk(stripAnsi(chunk))
 	})
 
 	proc.on('close', code => {
+		clearTimeout(watchdog)
 		spinner.stop()
 		if (spawnFailed) return
 		if (code !== 0 && code !== null) {
@@ -220,6 +263,7 @@ async function runAgent(
 	})
 
 	proc.on('error', err => {
+		clearTimeout(watchdog)
 		spinner.stop()
 		spawnFailed = true
 		onError(`Failed to start agent: ${err.message}`)
@@ -326,7 +370,8 @@ export const connectCommand = new Command('connect')
 
 		if (!opts.room) {
 			console.log(`Bridge code: ${roomId}`)
-			console.log('  Enter this code in the web or mobile app to pair.\n')
+			console.log('  Enter this code in the web or mobile app to pair.')
+			console.log(`  Or open: ${serverUrl}/chat?room=${roomId}\n`)
 		}
 
 		const agents = await loadAgents(serverUrl, apiToken)
@@ -504,6 +549,9 @@ export const connectCommand = new Command('connect')
 			})
 
 			if (!opts.prompt) {
+				let agentRunning = false
+				let currentAgentProc: ReturnType<typeof spawn> | null = null
+
 				socket.on('message', data => {
 					let msg: IncomingMsg
 					try {
@@ -517,6 +565,15 @@ export const connectCommand = new Command('connect')
 
 					if (msg.type === 'ping') {
 						socket.send(JSON.stringify({type: 'pong'}))
+						return
+					}
+
+					if (msg.type === 'stop') {
+						if (currentAgentProc) {
+							currentAgentProc.kill()
+							currentAgentProc = null
+						}
+						agentRunning = false
 						return
 					}
 
@@ -540,6 +597,22 @@ export const connectCommand = new Command('connect')
 					const {content, sessionId} = msg as WsPrompt
 					console.log(`\n→ Prompt [${sessionId}]: ${content.slice(0, 80)}...`)
 
+					if (agentRunning) {
+						console.log('  (ignored — agent already running)')
+						if (socket.readyState === WebSocket.OPEN) {
+							socket.send(
+								JSON.stringify({
+									type: 'error',
+									message:
+										'Agent is already running. Please wait or press Stop first.',
+									sessionId,
+								}),
+							)
+						}
+						return
+					}
+
+					agentRunning = true
 					socket.send(
 						JSON.stringify({
 							type: 'status',
@@ -567,6 +640,8 @@ export const connectCommand = new Command('connect')
 							}
 						},
 						() => {
+							agentRunning = false
+							currentAgentProc = null
 							console.log(`\n← Done [${sessionId}]`)
 							const response: WsResponse = {
 								type: 'response',
@@ -579,6 +654,8 @@ export const connectCommand = new Command('connect')
 							}
 						},
 						err => {
+							agentRunning = false
+							currentAgentProc = null
 							console.error(`\n✗ Agent error [${sessionId}]: ${err}`)
 							if (socket.readyState === WebSocket.OPEN) {
 								socket.send(
@@ -586,7 +663,18 @@ export const connectCommand = new Command('connect')
 								)
 							}
 						},
+						proc => {
+							currentAgentProc = proc
+						},
 					)
+				})
+
+				socket.on('close', () => {
+					if (currentAgentProc) {
+						currentAgentProc.kill()
+						currentAgentProc = null
+					}
+					agentRunning = false
 				})
 			}
 

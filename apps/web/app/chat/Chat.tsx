@@ -8,6 +8,7 @@ import {
 	SunIcon,
 	BugIcon,
 	LinkIcon,
+	LinkBreakIcon,
 } from '@phosphor-icons/react'
 import {Suspense, useCallback, useState, useEffect, useRef} from 'react'
 import {Button, Badge, InputArea, Empty, Text} from '@cloudflare/kumo'
@@ -105,6 +106,7 @@ function useBridgeAgent(roomId: string) {
 	const streamingIdRef = useRef<string | null>(null)
 
 	useEffect(() => {
+		if (!roomId) return
 		const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
 		const apiToken = localStorage.getItem('happy-api-token')
 		const tokenParam = apiToken ? `&token=${encodeURIComponent(apiToken)}` : ''
@@ -211,7 +213,7 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 	const [bridgeCode, setBridgeCodeState] = useState<string | null>(
 		() => roomIdProp ?? getBridgeCode(),
 	)
-	const roomId = bridgeCode ?? 'pending'
+	const roomId = bridgeCode ?? ''
 
 	const {messages, wsStatus, isStreaming, sendMessage, stop, clearHistory} =
 		useBridgeAgent(roomId)
@@ -232,6 +234,12 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 		setBridgeCode(code)
 		setBridgeCodeState(code)
 	}, [bridgeCodeInput])
+
+	const handleUnpair = useCallback(() => {
+		localStorage.removeItem(BRIDGE_CODE_KEY)
+		setBridgeCodeState(null)
+		setBridgeCodeInput('')
+	}, [])
 
 	const handleStop = useCallback(() => {
 		stop()
@@ -311,6 +319,16 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 							/>
 						</div>
 						<ThemeToggle />
+						{bridgeCode && (
+							<Button
+								variant="secondary"
+								icon={<LinkBreakIcon size={16} />}
+								onClick={handleUnpair}
+								title="Unpair – enter a new bridge code"
+							>
+								Unpair
+							</Button>
+						)}
 						<Button
 							variant="secondary"
 							icon={<TrashIcon size={16} />}
