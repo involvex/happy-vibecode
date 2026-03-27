@@ -54,12 +54,11 @@ export const loginCommand = new Command('login')
 			const data = (await res.json()) as {
 				apiToken: string
 				id: string
-				userId?: string
 			}
 			token = data.apiToken
 			console.log(`\nRegistered! Your API token:\n  ${token}`)
 			console.log("Keep this safe — it won't be shown again.\n")
-			writeConfig({apiToken: token, serverUrl, userId: data.id ?? data.userId})
+			writeConfig({apiToken: token, serverUrl, userId: data.id})
 			console.log('✓ Logged in and config saved to ~/.happy/config.json')
 		} else {
 			// Login with existing token

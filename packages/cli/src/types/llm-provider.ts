@@ -1,24 +1,11 @@
-export type LLMProvider =
-	| 'gemini'
-	| 'claude'
-	| 'codex'
-	| 'opencode-ai'
-	| 'copilot'
-	| 'kilo'
-	| 'cline'
-	| 'custom'
+import type {
+	LLMProvider as SharedLLMProvider,
+	AgentConfig,
+} from '@happy-vibecode/shared'
 
-export interface LLMProviderConfig {
-	id: LLMProvider | string
-	name: string
-	command: string
-	args: string[]
-	promptFlag: string
-	interactiveFlag?: string
-	description: string
-	supportsStreaming: boolean
-	modelFlag?: string
-}
+export type LLMProvider = SharedLLMProvider
+
+export type {AgentConfig}
 
 export interface WorkspaceConfig {
 	id: string
@@ -34,89 +21,80 @@ export interface AgentsConfig {
 	workspaces?: WorkspaceConfig[]
 }
 
-export interface AgentDefinition {
-	id: string
-	name: string
-	command: string
-	args: string[]
-	description: string
-	promptFlag?: string
-	interactiveFlag?: string
-	modelFlag?: string
-}
+export type AgentDefinition = AgentConfig
 
-export const PROVIDER_CONFIGS: Record<LLMProvider, LLMProviderConfig> = {
+export const PROVIDER_CONFIGS: Record<LLMProvider, AgentDefinition> = {
 	gemini: {
 		id: 'gemini',
 		name: 'Gemini CLI',
+		provider: 'gemini',
 		command: 'gemini',
 		args: [],
 		promptFlag: '-p',
 		description: 'Google Gemini CLI agent',
-		supportsStreaming: true,
 	},
 	claude: {
 		id: 'claude',
 		name: 'Claude Code',
+		provider: 'claude',
 		command: 'claude',
 		args: [],
-		promptFlag: '--instructions',
-		description: 'Anthropic Claude CLI agent',
-		supportsStreaming: true,
+		promptFlag: '-p',
 		modelFlag: '-m',
+		description: 'Anthropic Claude CLI agent',
 	},
 	codex: {
 		id: 'codex',
 		name: 'OpenAI Codex',
+		provider: 'codex',
 		command: 'codex',
 		args: [],
 		promptFlag: '-p',
 		description: 'OpenAI Codex CLI agent',
-		supportsStreaming: true,
 	},
 	'opencode-ai': {
 		id: 'opencode-ai',
 		name: 'OpenCode AI',
+		provider: 'opencode-ai',
 		command: 'opencode',
 		args: [],
-		promptFlag: '-p',
+		promptFlag: '--prompt',
 		description: 'OpenCode AI CLI agent',
-		supportsStreaming: true,
 	},
 	copilot: {
 		id: 'copilot',
 		name: 'GitHub Copilot',
+		provider: 'copilot',
 		command: 'copilot',
-		args: ['ai', 'submit'],
-		promptFlag: '--description',
+		args: [],
+		promptFlag: '-p',
 		description: 'GitHub Copilot CLI agent',
-		supportsStreaming: false,
 	},
 	kilo: {
 		id: 'kilo',
 		name: 'Kilocode Cli',
+		provider: 'kilo',
 		command: 'kilo',
 		args: [],
 		promptFlag: '--prompt',
 		description: 'Kilocode CLI agent',
-		supportsStreaming: true,
 	},
 	cline: {
 		id: 'cline',
 		name: 'Cline CLI',
+		provider: 'cline',
 		command: 'cline',
 		args: [],
 		promptFlag: '',
 		description: 'Cline CLI agent',
-		supportsStreaming: true,
 	},
 	custom: {
 		id: 'custom',
 		name: 'Custom Agent',
+		provider: 'custom',
 		command: '',
 		args: [],
 		promptFlag: '',
 		description: 'Custom agent configuration',
-		supportsStreaming: true,
 	},
 }

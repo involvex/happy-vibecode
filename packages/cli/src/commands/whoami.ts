@@ -49,5 +49,4 @@ export const whoamiCommand = new Command('whoami')
 		} catch (err) {
 			console.warn(`\n  Could not reach server: ${(err as Error).message}`)
 		}
-		process.exit(1)
 	})

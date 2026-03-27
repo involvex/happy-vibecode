@@ -1,65 +1,26 @@
 import type {AgentsConfig} from '../types/llm-provider.js'
+import {PROVIDER_CONFIGS} from '../types/llm-provider.js'
 
-// const AGENTS_FILE = join(HAPPY_DIR, 'agents.json')
+const {
+	gemini,
+	claude,
+	codex,
+	'opencode-ai': opencodeAi,
+	copilot,
+	kilo,
+	cline,
+} = PROVIDER_CONFIGS
+
+// DEFAULT_AGENTS derives from PROVIDER_CONFIGS — single source of truth
 export const DEFAULT_AGENTS: AgentsConfig = {
 	agents: [
-		{
-			id: 'gemini',
-			name: 'Gemini CLI',
-			command: 'gemini',
-			args: [],
-			promptFlag: '-p',
-			description: 'Google Gemini CLI agent',
-		},
-		{
-			id: 'claude',
-			name: 'Claude Code',
-			command: 'claude',
-			args: [],
-			promptFlag: '-p',
-			modelFlag: '-m',
-			description: 'Anthropic Claude CLI agent',
-		},
-		{
-			id: 'codex',
-			name: 'OpenAI Codex',
-			command: 'codex',
-			args: [],
-			promptFlag: '-p',
-			description: 'OpenAI Codex CLI agent',
-		},
-		{
-			id: 'opencode-ai',
-			name: 'OpenCode AI',
-			command: 'opencode',
-			args: [],
-			promptFlag: '--prompt',
-			description: 'OpenCode AI CLI agent',
-		},
-		{
-			id: 'copilot',
-			name: 'GitHub Copilot',
-			command: 'copilot',
-			args: [],
-			promptFlag: '-p',
-			description: 'GitHub Copilot CLI agent',
-		},
-		{
-			id: 'kilo',
-			name: 'Kilocode Cli',
-			command: 'kilo',
-			args: [],
-			promptFlag: '--prompt',
-			description: 'Kilocode CLI agent',
-		},
-		{
-			id: 'cline',
-			name: 'Cline CLI',
-			command: 'cline',
-			args: [],
-			promptFlag: '',
-			description: 'Cline CLI agent',
-		},
+		{...gemini, args: []},
+		{...claude, args: []},
+		{...codex, args: []},
+		{...opencodeAi, args: []},
+		{...copilot, args: []},
+		{...kilo, args: []},
+		{...cline, args: []},
 	],
 	workspaces: [],
 }

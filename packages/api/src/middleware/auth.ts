@@ -17,7 +17,6 @@ export interface ApiEnv {
 	STRIPE_PRO_PRODUCT_ID?: string
 	STRIPE_PRO_PRICE_ID?: string
 	STRIPE_PRO_URL?: string
-	SRIPE_PRO_URL?: string
 }
 
 export const authMiddleware = createMiddleware<{

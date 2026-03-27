@@ -9,6 +9,8 @@ interface BridgeSession {
 	type: 'cli' | 'web' | 'mobile'
 	userId: string
 	sessionId?: string
+	workspace?: string
+	model?: string
 }
 
 /**
@@ -109,6 +111,16 @@ export class BridgeAgent extends DurableObject<Env> {
 
 		// CLI → web/mobile: relay responses, errors, and status updates
 		if (senderSession.type === 'cli') {
+			if (msg.type === 'workspace') {
+				senderSession.workspace = msg.workspacePath
+				this.broadcast(data, 'cli')
+				return
+			}
+			if (msg.type === 'model') {
+				senderSession.model = msg.model
+				this.broadcast(data, 'cli')
+				return
+			}
 			if (
 				msg.type === 'response' ||
 				msg.type === 'error' ||

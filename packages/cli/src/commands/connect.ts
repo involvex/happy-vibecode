@@ -81,6 +81,7 @@ async function fetchAgentsFromApi(
 		return data.agents.map(a => ({
 			id: a.id,
 			name: a.name,
+			provider: 'custom' as const,
 			command: a.command,
 			args: a.args,
 			promptFlag: a.promptFlag ?? undefined,
@@ -161,19 +162,15 @@ async function runAgent(
 	}
 
 	const promptFlag = agent.promptFlag || '-p'
-	const quotedPrompt = prompt.replace(/"/g, '\\"')
-	args.push(promptFlag, `"${quotedPrompt}"`)
+	args.push(promptFlag, prompt)
 
 	const fullArgs = [...agent.args, ...args]
-	const agentCmd = [agent.command, ...fullArgs].join(' ')
-
-	const cmdStr = workspace ? `cd "${workspace}" && ${agentCmd}` : agentCmd
 
 	const spinner = ora(`Running ${agent.name}...`).start()
 
-	const proc = spawn(cmdStr, {
+	const proc = spawn(agent.command, fullArgs, {
+		cwd: workspace,
 		stdio: ['ignore', 'pipe', 'pipe'],
-		shell: true,
 	})
 
 	proc.stdout.setEncoding('utf8')
@@ -281,6 +278,7 @@ export const connectCommand = new Command('connect')
 			agent = {
 				id: agentId,
 				name: agentId,
+				provider: 'custom' as const,
 				command: agentId,
 				args: [],
 				promptFlag: '-p',
@@ -291,7 +289,7 @@ export const connectCommand = new Command('connect')
 			}
 		}
 
-		if (!checkCommandExists(agent.command)) {
+		if (!(await checkCommandExists(agent.command))) {
 			const installHint = getInstallHint(agent.id)
 			console.error(`✗ Error: "${agent.command}" not found in PATH.`)
 			if (installHint) {
@@ -330,181 +328,216 @@ export const connectCommand = new Command('connect')
 
 		if (verbose) console.log(`WebSocket URL: ${wsUrl}`)
 
-		const ws = new WebSocket(wsUrl, {
-			headers: {Authorization: `Bearer ${apiToken}`},
-		})
-
 		const log = (...args: unknown[]) => {
 			if (verbose) console.log(...args)
 		}
 
-		ws.on('open', () => {
-			console.log(`✓ Bridge connected. Waiting for prompts...`)
-			console.log('  Press Ctrl+C to disconnect.\n')
+		let reconnectAttempts = 0
+		const MAX_RECONNECT = 3
+		let intentionalClose = false
 
-			ws.send(JSON.stringify({type: 'status', status: 'cli_connected'}))
-
-			if (workspace) {
-				ws.send(JSON.stringify({type: 'workspace', workspacePath: workspace}))
-			}
-			if (model) {
-				ws.send(JSON.stringify({type: 'model', model}))
-			}
-
-			if (opts.prompt) {
-				log('Running in single prompt mode')
-				const sessionId = `single-${Date.now()}`
-				console.log(`→ Prompt: ${opts.prompt.slice(0, 80)}...`)
-
-				ws.send(
-					JSON.stringify({
-						type: 'status',
-						status: 'agent_thinking',
-						sessionId,
-					}),
-				)
-
-				runAgent(
-					agent!,
-					opts.prompt,
-					workspace,
-					model,
-					chunk => {
-						process.stdout.write(chunk)
-						if (ws.readyState === WebSocket.OPEN) {
-							ws.send(
-								JSON.stringify({
-									type: 'response',
-									content: chunk,
-									sessionId,
-									done: false,
-								}),
-							)
-						}
-					},
-					() => {
-						console.log(`\n← Done`)
-						if (ws.readyState === WebSocket.OPEN) {
-							ws.send(
-								JSON.stringify({
-									type: 'response',
-									content: '',
-									sessionId,
-									done: true,
-								}),
-							)
-						}
-						ws.close()
-						process.exit(0)
-					},
-					err => {
-						console.error(`\n✗ Agent error: ${err}`)
-						if (ws.readyState === WebSocket.OPEN) {
-							ws.send(JSON.stringify({type: 'error', message: err, sessionId}))
-						}
-						ws.close()
-						process.exit(1)
-					},
-				)
-			}
-		})
-
-		if (!opts.prompt) {
-			ws.on('message', data => {
-				let msg: IncomingMsg
-				try {
-					msg = JSON.parse(data.toString()) as IncomingMsg
-				} catch {
-					log('Received non-JSON message:', data.toString().slice(0, 120))
-					return
-				}
-
-				log('Received:', msg.type)
-
-				if (msg.type === 'ping') {
-					ws.send(JSON.stringify({type: 'pong'}))
-					return
-				}
-
-				if (msg.type === 'workspace') {
-					const wsMsg = msg as WsWorkspace
-					if (wsMsg.workspacePath) {
-						workspace = wsMsg.workspacePath
-						log('Workspace updated:', workspace)
-					}
-					return
-				}
-
-				if (msg.type === 'model') {
-					const wsMsg = msg as WsModel
-					log('Model updated:', wsMsg.model)
-					return
-				}
-
-				if (msg.type !== 'prompt') return
-
-				const {content, sessionId} = msg as WsPrompt
-				console.log(`\n→ Prompt [${sessionId}]: ${content.slice(0, 80)}...`)
-
-				ws.send(
-					JSON.stringify({
-						type: 'status',
-						status: 'agent_thinking',
-						sessionId,
-					}),
-				)
-
-				runAgent(
-					agent!,
-					content,
-					workspace,
-					model,
-					chunk => {
-						process.stdout.write(chunk)
-						const response: WsResponse = {
-							type: 'response',
-							content: chunk,
-							sessionId,
-							done: false,
-						}
-						if (ws.readyState === WebSocket.OPEN) {
-							ws.send(JSON.stringify(response))
-						}
-					},
-					() => {
-						console.log(`\n← Done [${sessionId}]`)
-						const response: WsResponse = {
-							type: 'response',
-							content: '',
-							sessionId,
-							done: true,
-						}
-						if (ws.readyState === WebSocket.OPEN) {
-							ws.send(JSON.stringify(response))
-						}
-					},
-					err => {
-						console.error(`\n✗ Agent error [${sessionId}]: ${err}`)
-						if (ws.readyState === WebSocket.OPEN) {
-							ws.send(JSON.stringify({type: 'error', message: err, sessionId}))
-						}
-					},
-				)
+		function connectWs(): WebSocket {
+			const socket = new WebSocket(wsUrl, {
+				headers: {Authorization: `Bearer ${apiToken}`},
 			})
+
+			socket.on('open', () => {
+				reconnectAttempts = 0
+				console.log(`✓ Bridge connected. Waiting for prompts...`)
+				console.log('  Press Ctrl+C to disconnect.\n')
+
+				socket.send(JSON.stringify({type: 'status', status: 'cli_connected'}))
+
+				if (workspace) {
+					socket.send(
+						JSON.stringify({type: 'workspace', workspacePath: workspace}),
+					)
+				}
+				if (model) {
+					socket.send(JSON.stringify({type: 'model', model}))
+				}
+
+				if (opts.prompt) {
+					log('Running in single prompt mode')
+					const sessionId = `single-${Date.now()}`
+					console.log(`→ Prompt: ${opts.prompt.slice(0, 80)}...`)
+
+					socket.send(
+						JSON.stringify({
+							type: 'status',
+							status: 'agent_thinking',
+							sessionId,
+						}),
+					)
+
+					runAgent(
+						agent!,
+						opts.prompt,
+						workspace,
+						model,
+						chunk => {
+							process.stdout.write(chunk)
+							if (socket.readyState === WebSocket.OPEN) {
+								socket.send(
+									JSON.stringify({
+										type: 'response',
+										content: chunk,
+										sessionId,
+										done: false,
+									}),
+								)
+							}
+						},
+						() => {
+							console.log(`\n← Done`)
+							if (socket.readyState === WebSocket.OPEN) {
+								socket.send(
+									JSON.stringify({
+										type: 'response',
+										content: '',
+										sessionId,
+										done: true,
+									}),
+								)
+							}
+							intentionalClose = true
+							socket.close()
+							process.exit(0)
+						},
+						err => {
+							console.error(`\n✗ Agent error: ${err}`)
+							if (socket.readyState === WebSocket.OPEN) {
+								socket.send(
+									JSON.stringify({type: 'error', message: err, sessionId}),
+								)
+							}
+							intentionalClose = true
+							socket.close()
+							process.exit(1)
+						},
+					)
+				}
+			})
+
+			if (!opts.prompt) {
+				socket.on('message', data => {
+					let msg: IncomingMsg
+					try {
+						msg = JSON.parse(data.toString()) as IncomingMsg
+					} catch {
+						log('Received non-JSON message:', data.toString().slice(0, 120))
+						return
+					}
+
+					log('Received:', msg.type)
+
+					if (msg.type === 'ping') {
+						socket.send(JSON.stringify({type: 'pong'}))
+						return
+					}
+
+					if (msg.type === 'workspace') {
+						const wsMsg = msg as WsWorkspace
+						if (wsMsg.workspacePath) {
+							workspace = wsMsg.workspacePath
+							log('Workspace updated:', workspace)
+						}
+						return
+					}
+
+					if (msg.type === 'model') {
+						const wsMsg = msg as WsModel
+						log('Model updated:', wsMsg.model)
+						return
+					}
+
+					if (msg.type !== 'prompt') return
+
+					const {content, sessionId} = msg as WsPrompt
+					console.log(`\n→ Prompt [${sessionId}]: ${content.slice(0, 80)}...`)
+
+					socket.send(
+						JSON.stringify({
+							type: 'status',
+							status: 'agent_thinking',
+							sessionId,
+						}),
+					)
+
+					runAgent(
+						agent!,
+						content,
+						workspace,
+						model,
+						chunk => {
+							process.stdout.write(chunk)
+							const response: WsResponse = {
+								type: 'response',
+								content: chunk,
+								sessionId,
+								done: false,
+							}
+							if (socket.readyState === WebSocket.OPEN) {
+								socket.send(JSON.stringify(response))
+							}
+						},
+						() => {
+							console.log(`\n← Done [${sessionId}]`)
+							const response: WsResponse = {
+								type: 'response',
+								content: '',
+								sessionId,
+								done: true,
+							}
+							if (socket.readyState === WebSocket.OPEN) {
+								socket.send(JSON.stringify(response))
+							}
+						},
+						err => {
+							console.error(`\n✗ Agent error [${sessionId}]: ${err}`)
+							if (socket.readyState === WebSocket.OPEN) {
+								socket.send(
+									JSON.stringify({type: 'error', message: err, sessionId}),
+								)
+							}
+						},
+					)
+				})
+			}
+
+			socket.on('error', err => {
+				console.error(`WebSocket error: ${err.message}`)
+			})
+
+			socket.on('close', (code, reason) => {
+				if (intentionalClose) {
+					console.log(`\nBridge disconnected (${code} ${reason.toString()})`)
+					process.exit(0)
+				}
+
+				if (reconnectAttempts < MAX_RECONNECT) {
+					const delay = Math.min(1000 * 2 ** reconnectAttempts, 10_000)
+					reconnectAttempts++
+					console.log(
+						`\nBridge disconnected (${code} ${reason.toString()}). Reconnecting in ${delay / 1000}s... (attempt ${reconnectAttempts}/${MAX_RECONNECT})`,
+					)
+					setTimeout(() => connectWs(), delay)
+				} else {
+					console.log(
+						`\nBridge disconnected (${code} ${reason.toString()}). Max retries reached.`,
+					)
+					process.exit(1)
+				}
+			})
+
+			return socket
 		}
-
-		ws.on('error', err => {
-			console.error(`WebSocket error: ${err.message}`)
-		})
-
-		ws.on('close', (code, reason) => {
-			console.log(`\nBridge disconnected (${code} ${reason.toString()})`)
-			process.exit(0)
-		})
 
 		process.on('SIGINT', () => {
 			console.log('\nDisconnecting...')
-			ws.close()
+			intentionalClose = true
 			process.exit(0)
 		})
+
+		connectWs()
 	})

@@ -42,6 +42,15 @@ export const wsMessageSchema = z.discriminatedUnion('type', [
 	}),
 	z.object({type: z.literal('ping')}),
 	z.object({type: z.literal('pong')}),
+	z.object({
+		type: z.literal('workspace'),
+		workspaceId: z.string().optional(),
+		workspacePath: z.string().optional(),
+	}),
+	z.object({
+		type: z.literal('model'),
+		model: z.string(),
+	}),
 ])
 
 export type MessageRole = z.infer<typeof messageRoleSchema>
