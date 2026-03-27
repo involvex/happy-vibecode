@@ -65,9 +65,7 @@ export default function SessionScreen() {
 				}
 
 				if (msg.type === 'status') {
-					setCliConnected(
-						msg.status === 'cli_connected' || msg.status === 'cli_already_here',
-					)
+					setCliConnected(msg.status === 'cli_connected')
 					if (msg.status === 'cli_disconnected') setCliConnected(false)
 					return
 				}

@@ -88,6 +88,7 @@ function getOrCreateRoomId(): string {
 	// Prefer userId if the user is authenticated
 	const userId = localStorage.getItem('happy-user-id')
 	if (userId) return userId
+	// Last resort: generate a random room ID (unauthenticated case)
 	const key = 'bridge-room-id'
 	let id = localStorage.getItem(key)
 	if (!id) {
@@ -155,6 +156,7 @@ function useBridgeAgent(roomId: string) {
 					const s = msg.status ?? ''
 					if (s === 'cli_connected') setWsStatus('cli_connected')
 					else if (s === 'cli_disconnected') setWsStatus('cli_disconnected')
+					return
 				} else if (msg.type === 'error') {
 					const id = crypto.randomUUID()
 					setMessages(prev => [
