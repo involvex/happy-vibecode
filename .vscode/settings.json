@@ -6,7 +6,8 @@
 		"**/*.code-search": true,
 		"**/.dart_tool": true,
 		"**/.claude/skills": true,
-		"**/.agent/skills": true
+		"**/.agent/skills": true,
+		"**/.turbo/**": true
 	},
 	"files.exclude": {
 		"**/.git": true,
@@ -21,14 +22,16 @@
 		"**/.mcs": true,
 		"**/.claude/skills": true,
 		"**/.agent/skills": true,
-		"**/node_modules/.bun": true
+		"**/node_modules/.bun": true,
+		"**/.turbo/**": true
 	},
 	"files.watcherExclude": {
 		"**/.git/objects/**": true,
 		"**/.git/subtree-cache/**": true,
 		"**/.hg/store/**": true,
 		"**/node_modules/**": true,
-		"**/node_modules/.bun/**": true
+		"**/node_modules/.bun/**": true,
+		"**/.turbo/**": true
 	},
 	"cSpell.words": ["happyvibecode"],
 	"oxc.enable.oxlint": true,
