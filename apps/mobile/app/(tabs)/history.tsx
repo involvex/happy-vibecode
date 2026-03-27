@@ -1,15 +1,16 @@
 import {
 	ActivityIndicator,
 	FlatList,
+	RefreshControl,
 	Text,
 	TextInput,
 	TouchableOpacity,
 	View,
 } from 'react-native'
 import {SafeAreaView} from 'react-native-safe-area-context'
+import {useCallback, useEffect, useState} from 'react'
 import {useAuth} from '../../hooks/useAuth'
 import {Ionicons} from '@expo/vector-icons'
-import {useEffect, useState} from 'react'
 import {useRouter} from 'expo-router'
 
 interface Session {
@@ -34,27 +35,38 @@ export default function HistoryScreen() {
 	const [filtered, setFiltered] = useState<Session[]>([])
 	const [loading, setLoading] = useState(true)
 	const [query, setQuery] = useState('')
+	const [refreshing, setRefreshing] = useState(false)
+
+	const fetchSessions = useCallback(async () => {
+		if (!isAuthed || !apiToken) return
+		const base = serverUrl ?? 'https://happy-vibecode.involvex.workers.dev'
+		try {
+			const r = await fetch(`${base}/api/sessions?status=closed`, {
+				headers: {Authorization: `Bearer ${apiToken}`},
+			})
+			if (r.ok) {
+				const data = (await r.json()) as {sessions: Session[]}
+				const list = data.sessions ?? []
+				setSessions(list)
+				setFiltered(list)
+			}
+		} catch {}
+	}, [isAuthed, apiToken, serverUrl])
 
 	useEffect(() => {
 		if (!isAuthed || !apiToken) {
 			setLoading(false)
 			return
 		}
-		const base = serverUrl ?? 'https://happy-vibecode.involvex.workers.dev'
-		fetch(`${base}/api/sessions?status=closed`, {
-			headers: {Authorization: `Bearer ${apiToken}`},
-		})
-			.then(r =>
-				r.ok ? (r.json() as Promise<{sessions: Session[]}>) : Promise.reject(r),
-			)
-			.then(data => {
-				const list = data.sessions ?? []
-				setSessions(list)
-				setFiltered(list)
-			})
-			.catch(() => {})
-			.finally(() => setLoading(false))
-	}, [isAuthed, apiToken, serverUrl])
+		setLoading(true)
+		fetchSessions().finally(() => setLoading(false))
+	}, [isAuthed, apiToken, fetchSessions])
+
+	const onRefresh = useCallback(async () => {
+		setRefreshing(true)
+		await fetchSessions()
+		setRefreshing(false)
+	}, [fetchSessions])
 
 	useEffect(() => {
 		const q = query.toLowerCase()
@@ -111,6 +123,9 @@ export default function HistoryScreen() {
 				<FlatList
 					data={filtered}
 					keyExtractor={item => item.id}
+					refreshControl={
+						<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+					}
 					contentContainerStyle={{
 						paddingHorizontal: 16,
 						paddingBottom: 16,

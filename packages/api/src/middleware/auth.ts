@@ -6,6 +6,7 @@ export interface ApiEnv {
 	DB: D1Database
 	KV: KVNamespace
 	ASSETS: Fetcher
+	BridgeAgent: DurableObjectNamespace
 	TURNSTILE_SITE_KEY: string
 	TURNSTILE_SECRET_KEY: string
 	AUTH_GITHUB_ID?: string

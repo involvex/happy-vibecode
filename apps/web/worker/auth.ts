@@ -32,6 +32,7 @@ export function createAuth(env: AuthEnv, requestUrl?: string) {
 		baseURL,
 		basePath: '/api/auth',
 		secret: env.BETTER_AUTH_SECRET,
+		trustedProxies: ['127.0.0.0/8'],
 		database: drizzleAdapter(db, {
 			provider: 'sqlite',
 			schema: {

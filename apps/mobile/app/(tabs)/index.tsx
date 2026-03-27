@@ -2,13 +2,14 @@ import {
 	FlatList,
 	KeyboardAvoidingView,
 	Platform,
+	RefreshControl,
 	Text,
 	TextInput,
 	TouchableOpacity,
 	View,
 } from 'react-native'
+import {useCallback, useEffect, useRef, useState} from 'react'
 import {SafeAreaView} from 'react-native-safe-area-context'
-import {useEffect, useRef, useState} from 'react'
 import {useAuth} from '../../hooks/useAuth'
 import {useRouter} from 'expo-router'
 
@@ -25,8 +26,54 @@ export default function ChatTab() {
 	const [messages, setMessages] = useState<Message[]>([])
 	const [input, setInput] = useState('')
 	const [cliConnected, setCliConnected] = useState(false)
+	const [refreshing, setRefreshing] = useState(false)
 	const wsRef = useRef<WebSocket | null>(null)
 	const flatListRef = useRef<FlatList>(null)
+	const userIdRef = useRef(userId)
+	const serverUrlRef = useRef(serverUrl)
+
+	userIdRef.current = userId
+	serverUrlRef.current = serverUrl
+
+	const onRefresh = useCallback(() => {
+		setRefreshing(true)
+		wsRef.current?.close()
+		setCliConnected(false)
+
+		// Reconnect immediately
+		const uid = userIdRef.current
+		if (!uid) {
+			setTimeout(() => setRefreshing(false), 500)
+			return
+		}
+		const host = (
+			serverUrlRef.current ?? 'https://happy-vibecode.involvex.workers.dev'
+		).replace('http', 'ws')
+		const ws = new WebSocket(
+			`${host}/agents/BridgeAgent/${uid}?type=mobile&userId=${uid}`,
+		)
+		wsRef.current = ws
+		ws.onopen = () => {
+			ws.send(JSON.stringify({type: 'ping'}))
+			setRefreshing(false)
+		}
+		ws.onmessage = event => {
+			try {
+				const msg = JSON.parse(event.data as string) as {
+					type: string
+					status?: string
+				}
+				if (msg.type === 'status') {
+					setCliConnected(
+						msg.status === 'cli_connected' || msg.status === 'cli_already_here',
+					)
+					if (msg.status === 'cli_disconnected') setCliConnected(false)
+				}
+			} catch {}
+		}
+		ws.onclose = () => setCliConnected(false)
+		setTimeout(() => setRefreshing(false), 2000)
+	}, [])
 
 	useEffect(() => {
 		if (!isAuthed || !userId) return
@@ -171,6 +218,9 @@ export default function ChatTab() {
 					keyExtractor={item => item.id}
 					className="flex-1 px-4"
 					contentContainerStyle={{paddingVertical: 12, gap: 8}}
+					refreshControl={
+						<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+					}
 					renderItem={({item}) => (
 						<View
 							className={`max-w-[80%] rounded-2xl px-4 py-3 ${

@@ -9,6 +9,7 @@ import {ticketsRouter} from './routes/tickets.js'
 import {devicesRouter} from './routes/devices.js'
 import {billingRouter} from './routes/billing.js'
 import type {ApiEnv} from './middleware/auth.js'
+import {bridgeRouter} from './routes/bridge.js'
 import {agentsRouter} from './routes/agents.js'
 import {userRouter} from './routes/user.js'
 import {authRouter} from './routes/auth.js'
@@ -35,6 +36,7 @@ api.route('/devices', devicesRouter)
 api.route('/user', userRouter)
 api.route('/workspaces', workspacesRouter)
 api.route('/agents', agentsRouter)
+api.route('/bridge', bridgeRouter)
 api.route('/tickets', ticketsRouter)
 api.route('/admin/users', adminUsersRouter)
 api.route('/admin/roles', adminRolesRouter)

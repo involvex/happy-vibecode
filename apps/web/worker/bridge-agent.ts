@@ -28,7 +28,11 @@ export class BridgeAgent extends DurableObject<Env> {
 		const url = new URL(request.url)
 		const upgradeHeader = request.headers.get('Upgrade')
 
+		// HTTP status check endpoint
 		if (!upgradeHeader || upgradeHeader !== 'websocket') {
+			if (url.pathname.endsWith('/status')) {
+				return Response.json({cliConnected: !!this.findCli()})
+			}
 			return new Response('Expected WebSocket', {status: 426})
 		}
 
@@ -65,6 +69,17 @@ export class BridgeAgent extends DurableObject<Env> {
 			this.broadcast(
 				JSON.stringify({type: 'status', status: 'cli_connected'}),
 				'cli',
+			)
+		}
+
+		// Send current CLI status to newly connected web/mobile clients
+		if (clientType === 'web' || clientType === 'mobile') {
+			const cliOnline = !!this.findCli()
+			server.send(
+				JSON.stringify({
+					type: 'status',
+					status: cliOnline ? 'cli_connected' : 'cli_disconnected',
+				}),
 			)
 		}
 

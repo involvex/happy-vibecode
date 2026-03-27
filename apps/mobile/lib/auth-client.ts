@@ -1,3 +1,4 @@
+import {inferAdditionalFields} from 'better-auth/client/plugins'
 import {expoClient} from '@better-auth/expo/client'
 import {createAuthClient} from 'better-auth/react'
 import * as SecureStore from 'expo-secure-store'
@@ -10,5 +11,11 @@ export const authClient = createAuthClient({
 			scheme: 'happy-vibecode',
 			storage: SecureStore,
 		}),
+		inferAdditionalFields<{
+			user: {
+				role: {type: 'string'}
+				apiToken: {type: 'string'}
+			}
+		}>(),
 	],
 })
