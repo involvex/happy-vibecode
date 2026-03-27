@@ -190,6 +190,15 @@ export default function AdminUsersPage() {
 
 	const columns = [
 		{
+			key: 'id',
+			header: 'Id',
+			render: (u: UserRow) => (
+				<div>
+					<p className="font-light">{u.id || 'id not found'}</p>
+				</div>
+			),
+		},
+		{
 			key: 'name',
 			header: 'User',
 			render: (u: UserRow) => (
@@ -223,7 +232,7 @@ export default function AdminUsersPage() {
 			key: 'lastLogin',
 			header: 'Last Login',
 			render: (u: UserRow) => (
-				<span className="text-kumo-secondary text-xs">
+				<span className="text-xs text-kumo-secondary">
 					{u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : 'Never'}
 				</span>
 			),
@@ -232,7 +241,7 @@ export default function AdminUsersPage() {
 			key: 'createdAt',
 			header: 'Joined',
 			render: (u: UserRow) => (
-				<span className="text-kumo-secondary text-xs">
+				<span className="text-xs text-kumo-secondary">
 					{new Date(u.createdAt).toLocaleDateString()}
 				</span>
 			),
@@ -287,7 +296,7 @@ export default function AdminUsersPage() {
 					<h1 className="text-2xl font-bold text-kumo-default">
 						User Management
 					</h1>
-					<p className="text-sm text-kumo-secondary mt-1">
+					<p className="mt-1 text-sm text-kumo-secondary">
 						Manage user accounts, roles, and status
 					</p>
 				</div>
@@ -303,11 +312,11 @@ export default function AdminUsersPage() {
 
 			{/* Filters */}
 			<div className="flex flex-wrap items-center gap-3">
-				<div className="flex items-center gap-2 flex-1 min-w-[200px] max-w-sm">
+				<div className="flex items-center flex-1 max-w-sm gap-2 min-w-50">
 					<div className="relative flex-1">
 						<MagnifyingGlassIcon
 							size={16}
-							className="absolute left-3 top-1/2 -translate-y-1/2 text-kumo-inactive"
+							className="absolute -translate-y-1/2 left-3 top-1/2 text-kumo-inactive"
 						/>
 						<input
 							type="text"
@@ -363,8 +372,8 @@ export default function AdminUsersPage() {
 
 			{/* Create Modal */}
 			{showCreateModal && (
-				<div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-					<div className="bg-kumo-base border border-kumo-line rounded-2xl w-full max-w-md p-6 space-y-4">
+				<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+					<div className="w-full max-w-md p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
 						<h3 className="text-lg font-semibold text-kumo-default">
 							Create User
 						</h3>
@@ -380,8 +389,8 @@ export default function AdminUsersPage() {
 
 			{/* Edit Modal */}
 			{editUser && (
-				<div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-					<div className="bg-kumo-base border border-kumo-line rounded-2xl w-full max-w-md p-6 space-y-4">
+				<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+					<div className="w-full max-w-md p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
 						<h3 className="text-lg font-semibold text-kumo-default">
 							Edit User
 						</h3>
