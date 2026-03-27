@@ -152,6 +152,7 @@ async function runAgent(
 	prompt: string,
 	workspace: string | undefined,
 	model: string | undefined,
+	shell: string | undefined,
 	onChunk: (chunk: string) => void,
 	onDone: () => void,
 	onError: (err: string) => void,
@@ -169,21 +170,41 @@ async function runAgent(
 
 	const spinner = ora(`Running ${agent.name}...`).start()
 
-	const proc = spawn(agent.command, fullArgs, {
-		cwd: workspace,
-		stdio: ['ignore', 'pipe', 'pipe'],
-	})
+	let proc: ReturnType<typeof spawn>
+
+	if (shell) {
+		const commandStr = [agent.command, ...fullArgs]
+			.map(a => `"${a.replace(/"/g, '""')}"`)
+			.join(' ')
+		proc = spawn(shell, ['-c', commandStr], {
+			cwd: workspace,
+			stdio: ['ignore', 'pipe', 'pipe'],
+		})
+	} else {
+		proc = spawn(agent.command, fullArgs, {
+			cwd: workspace,
+			stdio: ['ignore', 'pipe', 'pipe'],
+			shell: true,
+		})
+	}
+
+	const {stdout, stderr} = proc
+	if (!stdout || !stderr) {
+		onError('Failed to create process streams')
+		spinner.stop()
+		return
+	}
 
 	let spawnFailed = false
 
-	proc.stdout.setEncoding('utf8')
-	proc.stdout.on('data', (chunk: string) => {
+	stdout.setEncoding('utf8')
+	stdout.on('data', (chunk: string) => {
 		spinner.stop()
 		onChunk(chunk)
 	})
 
-	proc.stderr.setEncoding('utf8')
-	proc.stderr.on('data', (chunk: string) => {
+	stderr.setEncoding('utf8')
+	stderr.on('data', (chunk: string) => {
 		spinner.stop()
 		onChunk(chunk)
 	})
@@ -226,6 +247,10 @@ export const connectCommand = new Command('connect')
 		'Send a prompt directly and exit (non-interactive mode)',
 	)
 	.option('-i, --interactive', 'Force interactive mode')
+	.option(
+		'-s, --shell <shell>',
+		'Run agent through a specific shell (e.g. powershell, cmd, bash, zsh)',
+	)
 	.option('-v, --verbose', 'Verbose output')
 	.action(async (agentId: string, opts) => {
 		const config = requireConfig()
@@ -372,6 +397,7 @@ export const connectCommand = new Command('connect')
 		debug('WebSocket URL:', wsUrl)
 		debug('Workspace:', workspace ?? '(none)')
 		debug('Model:', model ?? '(default)')
+		debug('Shell:', opts.shell ?? '(default)')
 
 		const log = (...args: unknown[]) => {
 			if (verbose) console.log(...args)
@@ -432,6 +458,7 @@ export const connectCommand = new Command('connect')
 						opts.prompt,
 						workspace,
 						model,
+						opts.shell,
 						chunk => {
 							process.stdout.write(chunk)
 							if (socket.readyState === WebSocket.OPEN) {
@@ -526,6 +553,7 @@ export const connectCommand = new Command('connect')
 						content,
 						workspace,
 						model,
+						opts.shell,
 						chunk => {
 							process.stdout.write(chunk)
 							const response: WsResponse = {
