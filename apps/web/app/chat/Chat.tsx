@@ -7,6 +7,7 @@ import {
 	MoonIcon,
 	SunIcon,
 	BugIcon,
+	LinkIcon,
 } from '@phosphor-icons/react'
 import {Suspense, useCallback, useState, useEffect, useRef} from 'react'
 import {Button, Badge, InputArea, Empty, Text} from '@cloudflare/kumo'
@@ -82,21 +83,19 @@ type BridgeStatus =
 	| 'cli_connected'
 	| 'cli_disconnected'
 
-// ── WebSocket bridge hook ─────────────────────────────────────────────
+// ── Bridge code helpers ────────────────────────────────────────────────
 
-function getOrCreateRoomId(): string {
-	// Prefer userId if the user is authenticated
-	const userId = localStorage.getItem('happy-user-id')
-	if (userId) return userId
-	// Last resort: generate a random room ID (unauthenticated case)
-	const key = 'bridge-room-id'
-	let id = localStorage.getItem(key)
-	if (!id) {
-		id = crypto.randomUUID()
-		localStorage.setItem(key, id)
-	}
-	return id
+const BRIDGE_CODE_KEY = 'happy-bridge-code'
+
+function getBridgeCode(): string | null {
+	return localStorage.getItem(BRIDGE_CODE_KEY)
 }
+
+function setBridgeCode(code: string): void {
+	localStorage.setItem(BRIDGE_CODE_KEY, code.toUpperCase())
+}
+
+// ── WebSocket bridge hook ─────────────────────────────────────────────
 
 function useBridgeAgent(roomId: string) {
 	const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -208,12 +207,31 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 	const [showDebug, setShowDebug] = useState(false)
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
-	const [roomId] = useState(() => roomIdProp ?? getOrCreateRoomId())
+	const [bridgeCodeInput, setBridgeCodeInput] = useState('')
+	const [bridgeCode, setBridgeCodeState] = useState<string | null>(
+		() => roomIdProp ?? getBridgeCode(),
+	)
+	const roomId = bridgeCode ?? 'pending'
 
 	const {messages, wsStatus, isStreaming, sendMessage, stop, clearHistory} =
 		useBridgeAgent(roomId)
 
 	const connected = wsStatus !== 'disconnected'
+	const showPairing = !bridgeCode
+
+	// Auto-dismiss pairing when CLI connects
+	useEffect(() => {
+		if (wsStatus === 'cli_connected' && bridgeCode) {
+			setBridgeCode(bridgeCode)
+		}
+	}, [wsStatus, bridgeCode])
+
+	const handlePair = useCallback(() => {
+		const code = bridgeCodeInput.trim().toUpperCase()
+		if (!code) return
+		setBridgeCode(code)
+		setBridgeCodeState(code)
+	}, [bridgeCodeInput])
 
 	const handleStop = useCallback(() => {
 		stop()
@@ -242,8 +260,8 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 	return (
 		<div className="flex flex-col h-full bg-kumo-elevated">
 			{/* Header */}
-			<header className="px-5 py-4 bg-kumo-base border-b border-kumo-line">
-				<div className="max-w-3xl mx-auto flex items-center justify-between">
+			<header className="px-5 py-4 border-b bg-kumo-base border-kumo-line">
+				<div className="flex items-center justify-between max-w-3xl mx-auto">
 					<div className="flex items-center gap-3">
 						<h1 className="text-lg font-semibold text-kumo-default">
 							<span className="mr-2">⛅</span>Agent Chat
@@ -252,6 +270,12 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 							<ChatCircleDotsIcon size={12} weight="bold" className="mr-1" />
 							{wsStatus === 'cli_connected' ? 'CLI Connected' : 'Bridge'}
 						</Badge>
+						{bridgeCode && (
+							<Badge variant="outline">
+								<LinkIcon size={10} className="mr-1" />
+								{bridgeCode}
+							</Badge>
+						)}
 					</div>
 					<div className="flex items-center gap-3">
 						<div className="flex items-center gap-1.5">
@@ -298,130 +322,170 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 				</div>
 			</header>
 
-			{/* Messages */}
-			<div className="flex-1 overflow-y-auto">
-				<div className="max-w-3xl mx-auto px-5 py-6 space-y-5">
-					{messages.length === 0 && (
-						<Empty
-							icon={<ChatCircleDotsIcon size={32} />}
-							title="Start a conversation"
-							contents={
-								<div className="flex flex-wrap justify-center gap-2">
-									{[
-										'Hello, what can you do?',
-										'What is 42 * 7?',
-										'Write a haiku about Cloudflare',
-										'Explain Durable Objects in one sentence',
-									].map(prompt => (
-										<Button
-											key={prompt}
-											variant="outline"
-											size="sm"
-											disabled={isStreaming || !connected}
-											onClick={() => sendMessage(prompt)}
-										>
-											{prompt}
-										</Button>
-									))}
-								</div>
-							}
-						/>
-					)}
-
-					{messages.map((message: ChatMessage, index: number) => {
-						const isUser = message.role === 'user'
-						const isLastAssistant =
-							message.role === 'assistant' && index === messages.length - 1
-
-						return (
-							<div key={message.id} className="space-y-2">
-								{showDebug && (
-									<pre className="text-[11px] text-kumo-subtle bg-kumo-control rounded-lg p-3 overflow-auto max-h-64">
-										{JSON.stringify(message, null, 2)}
-									</pre>
-								)}
-
-								{isUser ? (
-									<div className="flex justify-end">
-										<div className="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-br-md bg-kumo-contrast text-kumo-inverse leading-relaxed">
-											{message.content}
+			{showPairing ? (
+				<div className="flex items-center justify-center flex-1">
+					<div className="w-full max-w-md px-5 mx-auto space-y-6 text-center">
+						<div className="space-y-2">
+							<LinkIcon size={48} className="mx-auto text-kumo-inactive" />
+							<Text size="lg">Pair with CLI</Text>
+							<Text size="sm" variant="secondary">
+								Run{' '}
+								<code className="bg-kumo-control px-1.5 py-0.5 rounded text-kumo-default">
+									happy-vibecode connect {'<agent>'}
+								</code>{' '}
+								to get a bridge code, then enter it below.
+							</Text>
+						</div>
+						<div className="flex gap-2">
+							<input
+								type="text"
+								value={bridgeCodeInput}
+								onChange={e => setBridgeCodeInput(e.target.value.toUpperCase())}
+								onKeyDown={e => {
+									if (e.key === 'Enter') handlePair()
+								}}
+								placeholder="Enter 8-char code"
+								maxLength={8}
+								className="flex-1 px-4 py-2.5 rounded-xl border border-kumo-line bg-kumo-base text-kumo-default text-center text-lg tracking-widest font-mono uppercase placeholder:tracking-normal placeholder:font-sans placeholder:text-sm placeholder:normal-case focus:outline-none focus:ring-2 focus:ring-kumo-ring"
+							/>
+							<Button
+								variant="primary"
+								onClick={handlePair}
+								disabled={bridgeCodeInput.trim().length < 4}
+							>
+								Pair
+							</Button>
+						</div>
+					</div>
+				</div>
+			) : (
+				<>
+					{/* Messages */}
+					<div className="flex-1 overflow-y-auto">
+						<div className="max-w-3xl px-5 py-6 mx-auto space-y-5">
+							{messages.length === 0 && (
+								<Empty
+									icon={<ChatCircleDotsIcon size={32} />}
+									title="Start a conversation"
+									contents={
+										<div className="flex flex-wrap justify-center gap-2">
+											{[
+												'Hello, what can you do?',
+												'What is 42 * 7?',
+												'Write a haiku about Cloudflare',
+												'Explain Durable Objects in one sentence',
+											].map(prompt => (
+												<Button
+													key={prompt}
+													variant="outline"
+													size="sm"
+													disabled={isStreaming || !connected}
+													onClick={() => sendMessage(prompt)}
+												>
+													{prompt}
+												</Button>
+											))}
 										</div>
+									}
+								/>
+							)}
+
+							{messages.map((message: ChatMessage, index: number) => {
+								const isUser = message.role === 'user'
+								const isLastAssistant =
+									message.role === 'assistant' && index === messages.length - 1
+
+								return (
+									<div key={message.id} className="space-y-2">
+										{showDebug && (
+											<pre className="text-[11px] text-kumo-subtle bg-kumo-control rounded-lg p-3 overflow-auto max-h-64">
+												{JSON.stringify(message, null, 2)}
+											</pre>
+										)}
+
+										{isUser ? (
+											<div className="flex justify-end">
+												<div className="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-br-md bg-kumo-contrast text-kumo-inverse leading-relaxed">
+													{message.content}
+												</div>
+											</div>
+										) : (
+											<div className="flex justify-start">
+												<div className="max-w-[85%] rounded-2xl rounded-bl-md bg-kumo-base text-kumo-default leading-relaxed">
+													<Streamdown
+														className="p-3 sd-theme rounded-2xl rounded-bl-md"
+														controls={false}
+														isAnimating={isLastAssistant && isStreaming}
+													>
+														{message.content}
+													</Streamdown>
+												</div>
+											</div>
+										)}
 									</div>
+								)
+							})}
+
+							<div ref={messagesEndRef} />
+						</div>
+					</div>
+
+					{/* Input */}
+					<div className="border-t border-kumo-line bg-kumo-base">
+						<form
+							onSubmit={e => {
+								e.preventDefault()
+								send()
+							}}
+							className="max-w-3xl px-5 py-4 mx-auto"
+						>
+							<div className="flex items-end gap-3 p-3 transition-shadow border shadow-sm rounded-xl border-kumo-line bg-kumo-base focus-within:ring-2 focus-within:ring-kumo-ring focus-within:border-transparent">
+								<InputArea
+									ref={textareaRef}
+									value={input}
+									onValueChange={setInput}
+									onKeyDown={e => {
+										if (e.key === 'Enter' && !e.shiftKey) {
+											e.preventDefault()
+											send()
+										}
+									}}
+									onInput={e => {
+										const el = e.currentTarget
+										el.style.height = 'auto'
+										el.style.height = `${el.scrollHeight}px`
+									}}
+									placeholder="Send a message..."
+									disabled={!connected || isStreaming}
+									rows={1}
+									className="flex-1 ring-0! focus:ring-0! shadow-none! bg-transparent! outline-none! resize-none max-h-40"
+								/>
+								{isStreaming ? (
+									<Button
+										type="button"
+										variant="secondary"
+										shape="square"
+										aria-label="Stop generation"
+										icon={<StopIcon size={18} />}
+										onClick={handleStop}
+										className="mb-0.5"
+									/>
 								) : (
-									<div className="flex justify-start">
-										<div className="max-w-[85%] rounded-2xl rounded-bl-md bg-kumo-base text-kumo-default leading-relaxed">
-											<Streamdown
-												className="sd-theme rounded-2xl rounded-bl-md p-3"
-												controls={false}
-												isAnimating={isLastAssistant && isStreaming}
-											>
-												{message.content}
-											</Streamdown>
-										</div>
-									</div>
+									<Button
+										type="submit"
+										variant="primary"
+										shape="square"
+										aria-label="Send message"
+										disabled={!input.trim() || !connected}
+										icon={<PaperPlaneRightIcon size={18} />}
+										className="mb-0.5"
+									/>
 								)}
 							</div>
-						)
-					})}
-
-					<div ref={messagesEndRef} />
-				</div>
-			</div>
-
-			{/* Input */}
-			<div className="border-t border-kumo-line bg-kumo-base">
-				<form
-					onSubmit={e => {
-						e.preventDefault()
-						send()
-					}}
-					className="max-w-3xl mx-auto px-5 py-4"
-				>
-					<div className="flex items-end gap-3 rounded-xl border border-kumo-line bg-kumo-base p-3 shadow-sm focus-within:ring-2 focus-within:ring-kumo-ring focus-within:border-transparent transition-shadow">
-						<InputArea
-							ref={textareaRef}
-							value={input}
-							onValueChange={setInput}
-							onKeyDown={e => {
-								if (e.key === 'Enter' && !e.shiftKey) {
-									e.preventDefault()
-									send()
-								}
-							}}
-							onInput={e => {
-								const el = e.currentTarget
-								el.style.height = 'auto'
-								el.style.height = `${el.scrollHeight}px`
-							}}
-							placeholder="Send a message..."
-							disabled={!connected || isStreaming}
-							rows={1}
-							className="flex-1 !ring-0 focus:!ring-0 !shadow-none !bg-transparent !outline-none resize-none max-h-40"
-						/>
-						{isStreaming ? (
-							<Button
-								type="button"
-								variant="secondary"
-								shape="square"
-								aria-label="Stop generation"
-								icon={<StopIcon size={18} />}
-								onClick={handleStop}
-								className="mb-0.5"
-							/>
-						) : (
-							<Button
-								type="submit"
-								variant="primary"
-								shape="square"
-								aria-label="Send message"
-								disabled={!input.trim() || !connected}
-								icon={<PaperPlaneRightIcon size={18} />}
-								className="mb-0.5"
-							/>
-						)}
+						</form>
 					</div>
-				</form>
-			</div>
+				</>
+			)}
 		</div>
 	)
 }

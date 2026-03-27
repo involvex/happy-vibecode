@@ -10,8 +10,16 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context'
 import {useLocalSearchParams, useRouter} from 'expo-router'
 import {useEffect, useRef, useState} from 'react'
+import * as SecureStore from 'expo-secure-store'
 import {useAuth} from '../../hooks/useAuth'
 import {Ionicons} from '@expo/vector-icons'
+
+const BRIDGE_CODE_KEY = 'happy-bridge-code'
+
+let _nextId = 0
+function uniqueId(): string {
+	return String(++_nextId)
+}
 
 interface Message {
 	id: string
@@ -29,10 +37,17 @@ export default function SessionScreen() {
 	const [input, setInput] = useState('')
 	const [connected, setConnected] = useState(false)
 	const [cliConnected, setCliConnected] = useState(false)
+	const [bridgeCode, setBridgeCode] = useState<string | null>(null)
 	const wsRef = useRef<WebSocket | null>(null)
 	const flatListRef = useRef<FlatList>(null)
 
-	const roomId = id ?? userId ?? 'default'
+	useEffect(() => {
+		SecureStore.getItemAsync(BRIDGE_CODE_KEY).then(code => {
+			if (code) setBridgeCode(code)
+		})
+	}, [])
+
+	const roomId = id ?? bridgeCode ?? userId ?? 'default'
 
 	useEffect(() => {
 		const host = (
@@ -82,7 +97,7 @@ export default function SessionScreen() {
 						return [
 							...prev,
 							{
-								id: Date.now().toString(),
+								id: uniqueId(),
 								role: 'assistant',
 								content: msg.content ?? '',
 								done: msg.done,
@@ -99,7 +114,7 @@ export default function SessionScreen() {
 					setMessages(prev => [
 						...prev,
 						{
-							id: Date.now().toString(),
+							id: uniqueId(),
 							role: 'system',
 							content: msg.message ?? 'Unknown error',
 						},
@@ -120,10 +135,7 @@ export default function SessionScreen() {
 		wsRef.current.send(
 			JSON.stringify({type: 'prompt', content, sessionId: roomId}),
 		)
-		setMessages(prev => [
-			...prev,
-			{id: Date.now().toString(), role: 'user', content},
-		])
+		setMessages(prev => [...prev, {id: uniqueId(), role: 'user', content}])
 		setInput('')
 		setTimeout(() => flatListRef.current?.scrollToEnd({animated: true}), 80)
 	}
@@ -136,14 +148,14 @@ export default function SessionScreen() {
 					<Ionicons name="arrow-back" size={22} color="#7c3aed" />
 				</TouchableOpacity>
 				<View className="flex-1">
-					<Text className="text-text font-semibold" numberOfLines={1}>
+					<Text className="font-semibold text-text" numberOfLines={1}>
 						Session {roomId.slice(0, 8)}…
 					</Text>
 					<View className="flex-row items-center gap-1.5 mt-0.5">
 						<View
 							className={`w-1.5 h-1.5 rounded-full ${connected ? (cliConnected ? 'bg-success' : 'bg-warning') : 'bg-error'}`}
 						/>
-						<Text className="text-muted text-xs">
+						<Text className="text-xs text-muted">
 							{connected
 								? cliConnected
 									? 'Agent connected'
@@ -180,13 +192,13 @@ export default function SessionScreen() {
 								{item.content}
 							</Text>
 							{item.role === 'assistant' && !item.done && (
-								<Text className="text-muted text-xs mt-1">●</Text>
+								<Text className="mt-1 text-xs text-muted">●</Text>
 							)}
 						</View>
 					)}
 					ListEmptyComponent={
-						<View className="py-12 items-center">
-							<Text className="text-muted text-sm text-center">
+						<View className="items-center py-12">
+							<Text className="text-sm text-center text-muted">
 								No messages yet
 							</Text>
 						</View>
@@ -195,7 +207,7 @@ export default function SessionScreen() {
 
 				<View className="flex-row items-end gap-2 px-4 py-3 border-t border-border">
 					<TextInput
-						className="flex-1 bg-card border border-border rounded-2xl px-4 py-3 text-text text-sm"
+						className="flex-1 px-4 py-3 text-sm border bg-card border-border rounded-2xl text-text"
 						placeholder="Type a message…"
 						placeholderTextColor="#94a3b8"
 						value={input}

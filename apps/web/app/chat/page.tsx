@@ -9,7 +9,7 @@ import {useEffect} from 'react'
 const ChatComponent = dynamic(() => import('./Chat'), {ssr: false})
 
 export default function ChatPage() {
-	const {isAuthed, isLoaded, userId, logout} = useAuth()
+	const {isAuthed, isLoaded, logout} = useAuth()
 	const router = useRouter()
 	const params = useSearchParams()
 	const roomParam = params.get('room') ?? undefined
@@ -41,7 +41,7 @@ export default function ChatPage() {
 		<div className="flex flex-col h-screen bg-kumo-elevated">
 			<Nav onLogout={handleLogout} />
 			<div className="flex-1 min-h-0">
-				<ChatComponent roomId={roomParam ?? userId ?? undefined} />
+				<ChatComponent roomId={roomParam ?? undefined} />
 			</div>
 		</div>
 	)

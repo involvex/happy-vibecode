@@ -10,8 +10,15 @@ import {
 } from 'react-native'
 import {useCallback, useEffect, useRef, useState} from 'react'
 import {SafeAreaView} from 'react-native-safe-area-context'
+import * as SecureStore from 'expo-secure-store'
 import {useAuth} from '../../hooks/useAuth'
 import {useRouter} from 'expo-router'
+const BRIDGE_CODE_KEY = 'happy-bridge-code'
+
+let _nextId = 0
+function uniqueId(): string {
+	return String(++_nextId)
+}
 
 interface Message {
 	id: string
@@ -27,24 +34,55 @@ export default function ChatTab() {
 	const [input, setInput] = useState('')
 	const [cliConnected, setCliConnected] = useState(false)
 	const [refreshing, setRefreshing] = useState(false)
+	const [bridgeCode, setBridgeCode] = useState<string | null>(null)
+	const [bridgeCodeInput, setBridgeCodeInput] = useState('')
+	const [bridgeCodeLoaded, setBridgeCodeLoaded] = useState(false)
 	const wsRef = useRef<WebSocket | null>(null)
 	const flatListRef = useRef<FlatList>(null)
-	const userIdRef = useRef(userId)
+	const bridgeCodeRef = useRef(bridgeCode)
 	const serverUrlRef = useRef(serverUrl)
 	const apiTokenRef = useRef(apiToken)
 
-	userIdRef.current = userId
+	bridgeCodeRef.current = bridgeCode
 	serverUrlRef.current = serverUrl
 	apiTokenRef.current = apiToken
+
+	// Load bridge code from SecureStore
+	useEffect(() => {
+		SecureStore.getItemAsync(BRIDGE_CODE_KEY).then(code => {
+			if (code) setBridgeCode(code)
+			setBridgeCodeLoaded(true)
+		})
+	}, [])
+
+	const saveBridgeCode = useCallback(async (code: string) => {
+		const upper = code.toUpperCase()
+		await SecureStore.setItemAsync(BRIDGE_CODE_KEY, upper)
+		setBridgeCode(upper)
+	}, [])
+
+	const clearBridgeCode = useCallback(async () => {
+		await SecureStore.deleteItemAsync(BRIDGE_CODE_KEY)
+		setBridgeCode(null)
+		wsRef.current?.close()
+	}, [])
+
+	const handlePair = useCallback(() => {
+		const code = bridgeCodeInput.trim()
+		if (!code) return
+		saveBridgeCode(code)
+		setBridgeCodeInput('')
+	}, [bridgeCodeInput, saveBridgeCode])
+
+	const roomId = bridgeCode ?? userId ?? 'pending'
 
 	const onRefresh = useCallback(() => {
 		setRefreshing(true)
 		wsRef.current?.close()
 		setCliConnected(false)
 
-		// Reconnect immediately
-		const uid = userIdRef.current
-		if (!uid) {
+		const code = bridgeCodeRef.current
+		if (!code) {
 			setTimeout(() => setRefreshing(false), 500)
 			return
 		}
@@ -55,7 +93,7 @@ export default function ChatTab() {
 			? `&token=${encodeURIComponent(apiTokenRef.current)}`
 			: ''
 		const ws = new WebSocket(
-			`${host}/agents/BridgeAgent/${uid}?type=mobile${tokenParam}`,
+			`${host}/agents/BridgeAgent/${code}?type=mobile${tokenParam}`,
 		)
 		wsRef.current = ws
 		ws.onopen = () => {
@@ -79,14 +117,14 @@ export default function ChatTab() {
 	}, [])
 
 	useEffect(() => {
-		if (!isAuthed || !userId) return
+		if (!isAuthed || !bridgeCodeLoaded) return
 
 		const host = (
 			serverUrl ?? 'https://happy-vibecode.involvex.workers.dev'
 		).replace('http', 'ws')
 		const tokenParam = apiToken ? `&token=${encodeURIComponent(apiToken)}` : ''
 		const ws = new WebSocket(
-			`${host}/agents/BridgeAgent/${userId}?type=mobile${tokenParam}`,
+			`${host}/agents/BridgeAgent/${roomId}?type=mobile${tokenParam}`,
 		)
 		wsRef.current = ws
 
@@ -123,7 +161,7 @@ export default function ChatTab() {
 						return [
 							...prev,
 							{
-								id: Date.now().toString(),
+								id: uniqueId(),
 								role: 'assistant',
 								content: msg.content ?? '',
 								done: msg.done,
@@ -136,7 +174,7 @@ export default function ChatTab() {
 					setMessages(prev => [
 						...prev,
 						{
-							id: Date.now().toString(),
+							id: uniqueId(),
 							role: 'system',
 							content: msg.message ?? 'Unknown error',
 						},
@@ -154,20 +192,54 @@ export default function ChatTab() {
 		return () => {
 			ws.close()
 		}
-	}, [isAuthed, userId, apiToken, serverUrl])
+	}, [isAuthed, bridgeCodeLoaded, roomId, apiToken, serverUrl])
 
 	if (!isAuthed) {
 		return (
-			<SafeAreaView className="flex-1 bg-surface items-center justify-center">
-				<Text className="text-text text-lg mb-4">
+			<SafeAreaView className="items-center justify-center flex-1 bg-surface">
+				<Text className="mb-4 text-lg text-text">
 					Sign in to start chatting
 				</Text>
 				<TouchableOpacity
-					className="bg-primary px-6 py-3 rounded-xl"
+					className="px-6 py-3 bg-primary rounded-xl"
 					onPress={() => router.push('/(tabs)/settings')}
 				>
-					<Text className="text-white font-semibold">Go to Settings</Text>
+					<Text className="font-semibold text-white">Go to Settings</Text>
 				</TouchableOpacity>
+			</SafeAreaView>
+		)
+	}
+
+	if (!bridgeCode) {
+		return (
+			<SafeAreaView className="items-center justify-center flex-1 px-6 bg-surface">
+				<Text className="mb-2 text-lg font-semibold text-text">
+					Pair with CLI
+				</Text>
+				<Text className="mb-6 text-sm text-center text-muted">
+					Run{'\n'}happy-vibecode connect {'<agent>'}
+					{'\n'}to get a bridge code, then enter it below.
+				</Text>
+				<View className="flex-row items-center w-full gap-2">
+					<TextInput
+						className="flex-1 px-4 py-3 font-mono text-lg tracking-widest text-center uppercase border bg-card border-border rounded-xl text-text"
+						placeholder="8-char code"
+						placeholderTextColor="#94a3b8"
+						value={bridgeCodeInput}
+						onChangeText={text => setBridgeCodeInput(text.toUpperCase())}
+						onSubmitEditing={handlePair}
+						maxLength={8}
+						autoCapitalize="characters"
+						autoCorrect={false}
+					/>
+					<TouchableOpacity
+						className={`px-5 py-3 rounded-xl ${bridgeCodeInput.trim().length >= 4 ? 'bg-primary' : 'bg-border'}`}
+						onPress={handlePair}
+						disabled={bridgeCodeInput.trim().length < 4}
+					>
+						<Text className="font-semibold text-white">Pair</Text>
+					</TouchableOpacity>
+				</View>
 			</SafeAreaView>
 		)
 	}
@@ -181,14 +253,11 @@ export default function ChatTab() {
 		const msg = {
 			type: 'prompt' as const,
 			content,
-			sessionId: userId ?? 'default',
+			sessionId: roomId,
 		}
 		ws.send(JSON.stringify(msg))
 
-		setMessages(prev => [
-			...prev,
-			{id: Date.now().toString(), role: 'user', content},
-		])
+		setMessages(prev => [...prev, {id: uniqueId(), role: 'user', content}])
 		setInput('')
 
 		setTimeout(() => flatListRef.current?.scrollToEnd({animated: true}), 100)
@@ -198,12 +267,20 @@ export default function ChatTab() {
 		<SafeAreaView className="flex-1 bg-surface">
 			{/* Header */}
 			<View className="flex-row items-center justify-between px-4 py-3 border-b border-border">
-				<Text className="text-text text-lg font-semibold">Chat</Text>
 				<View className="flex-row items-center gap-2">
+					<Text className="text-lg font-semibold text-text">Chat</Text>
+					<View className="bg-border rounded px-1.5 py-0.5">
+						<Text className="font-mono text-xs text-muted">{bridgeCode}</Text>
+					</View>
+				</View>
+				<View className="flex-row items-center gap-2">
+					<TouchableOpacity onPress={clearBridgeCode}>
+						<Text className="text-xs text-muted">Unpair</Text>
+					</TouchableOpacity>
 					<View
 						className={`w-2 h-2 rounded-full ${cliConnected ? 'bg-success' : 'bg-muted'}`}
 					/>
-					<Text className="text-muted text-xs">
+					<Text className="text-xs text-muted">
 						{cliConnected ? 'Agent connected' : 'No agent'}
 					</Text>
 				</View>
@@ -241,8 +318,8 @@ export default function ChatTab() {
 						</View>
 					)}
 					ListEmptyComponent={
-						<View className="flex-1 items-center justify-center py-12">
-							<Text className="text-muted text-center">
+						<View className="items-center justify-center flex-1 py-12">
+							<Text className="text-center text-muted">
 								{cliConnected
 									? 'Start the conversation…'
 									: 'Connect a local agent via the CLI to start chatting'}
@@ -254,7 +331,7 @@ export default function ChatTab() {
 				{/* Input */}
 				<View className="flex-row items-end gap-2 px-4 py-3 border-t border-border">
 					<TextInput
-						className="flex-1 bg-card border border-border rounded-2xl px-4 py-3 text-text text-sm"
+						className="flex-1 px-4 py-3 text-sm border bg-card border-border rounded-2xl text-text"
 						placeholder="Type a message…"
 						placeholderTextColor="#94a3b8"
 						value={input}
@@ -271,7 +348,7 @@ export default function ChatTab() {
 						onPress={sendMessage}
 						disabled={!input.trim()}
 					>
-						<Text className="text-white text-lg">↑</Text>
+						<Text className="text-lg text-white">↑</Text>
 					</TouchableOpacity>
 				</View>
 			</KeyboardAvoidingView>

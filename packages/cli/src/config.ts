@@ -6,6 +6,7 @@ export interface HappyConfig {
 	apiToken: string
 	serverUrl: string
 	userId?: string
+	bridgeCode?: string
 }
 
 const CONFIG_DIR = join(homedir(), '.happy')
@@ -34,6 +35,10 @@ export function requireConfig(): HappyConfig {
 		process.exit(1)
 	}
 	return config
+}
+
+export function generateBridgeCode(): string {
+	return crypto.randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase()
 }
 
 export const DEFAULT_SERVER_URL = 'https://happy-vibecode.involvex.workers.dev'

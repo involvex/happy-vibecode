@@ -3,8 +3,8 @@ import type {
 	AgentsConfig,
 	WorkspaceConfig,
 } from '../types/llm-provider.js'
+import {requireConfig, writeConfig, generateBridgeCode} from '../config.js'
 import {DEFAULT_AGENTS} from '../utils/agents-config.js'
-import {requireConfig, writeConfig} from '../config.js'
 import {existsSync, readFileSync} from 'fs'
 import {spawn} from 'child_process'
 import {Command} from 'commander'
@@ -270,7 +270,22 @@ export const connectCommand = new Command('connect')
 			process.exit(1)
 		}
 
-		const roomId: string = opts.room ?? userId
+		// Determine room ID: explicit --room > saved bridge code > generate new > userId fallback
+		let roomId: string
+		if (opts.room) {
+			roomId = opts.room
+		} else if (config.bridgeCode) {
+			roomId = config.bridgeCode
+		} else {
+			const bridgeCode = generateBridgeCode()
+			writeConfig({...config, bridgeCode})
+			roomId = bridgeCode
+		}
+
+		if (!opts.room) {
+			console.log(`Bridge code: ${roomId}`)
+			console.log('  Enter this code in the web or mobile app to pair.\n')
+		}
 
 		const agents = await loadAgents(serverUrl, apiToken)
 		let agent: AgentDefinition | undefined = findAgent(agents, agentId)
