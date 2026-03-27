@@ -1,4 +1,5 @@
 import {Ionicons} from '@expo/vector-icons'
+import {useColorScheme} from 'nativewind'
 import {Tabs} from 'expo-router'
 
 type IconName = React.ComponentProps<typeof Ionicons>['name']
@@ -10,17 +11,20 @@ function TabIcon({name, focused}: {name: IconName; focused: boolean}) {
 }
 
 export default function TabLayout() {
+	const {colorScheme} = useColorScheme()
+	const isDark = colorScheme === 'dark'
+
 	return (
 		<Tabs
 			screenOptions={{
 				tabBarStyle: {
-					backgroundColor: '#1a1a2e',
-					borderTopColor: '#2a2a4a',
+					backgroundColor: isDark ? '#1a1a2e' : '#ffffff',
+					borderTopColor: isDark ? '#2a2a4a' : '#e2e8f0',
 					height: 60,
 					paddingBottom: 8,
 				},
 				tabBarActiveTintColor: '#7c3aed',
-				tabBarInactiveTintColor: '#94a3b8',
+				tabBarInactiveTintColor: isDark ? '#94a3b8' : '#64748b',
 				headerShown: false,
 			}}
 		>

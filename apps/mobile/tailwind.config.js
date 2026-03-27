@@ -6,11 +6,12 @@ module.exports = {
 		extend: {
 			colors: {
 				primary: '#7c3aed',
-				surface: '#1a1a2e',
-				card: '#16213e',
-				border: '#2a2a4a',
-				text: '#e2e8f0',
-				muted: '#94a3b8',
+				// Light defaults — dark: variants activate in dark color scheme
+				surface: {DEFAULT: '#f1f5f9', dark: '#1a1a2e'},
+				card: {DEFAULT: '#ffffff', dark: '#16213e'},
+				border: {DEFAULT: '#e2e8f0', dark: '#2a2a4a'},
+				text: {DEFAULT: '#1e293b', dark: '#e2e8f0'},
+				muted: {DEFAULT: '#64748b', dark: '#94a3b8'},
 				success: '#22c55e',
 				warning: '#f59e0b',
 				error: '#ef4444',

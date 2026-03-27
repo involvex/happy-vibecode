@@ -1,18 +1,23 @@
 import {
+	Animated,
 	FlatList,
 	KeyboardAvoidingView,
 	Platform,
 	RefreshControl,
+	ScrollView,
 	Text,
 	TextInput,
 	TouchableOpacity,
 	View,
 } from 'react-native'
 import {useCallback, useEffect, useRef, useState} from 'react'
+import {usePromptPresets} from '../../hooks/usePromptPresets'
 import {SafeAreaView} from 'react-native-safe-area-context'
 import * as SecureStore from 'expo-secure-store'
 import {useAuth} from '../../hooks/useAuth'
+import {useColorScheme} from 'nativewind'
 import {useRouter} from 'expo-router'
+
 const BRIDGE_CODE_KEY = 'happy-bridge-code'
 
 let _nextId = 0
@@ -27,9 +32,83 @@ interface Message {
 	done?: boolean
 }
 
+function TypingIndicator() {
+	const {colorScheme} = useColorScheme()
+	const isDark = colorScheme === 'dark'
+	const dot1 = useRef(new Animated.Value(0)).current
+	const dot2 = useRef(new Animated.Value(0)).current
+	const dot3 = useRef(new Animated.Value(0)).current
+
+	useEffect(() => {
+		const makeAnim = (dot: Animated.Value, delay: number) =>
+			Animated.loop(
+				Animated.sequence([
+					Animated.delay(delay),
+					Animated.timing(dot, {
+						toValue: 1,
+						duration: 280,
+						useNativeDriver: true,
+					}),
+					Animated.timing(dot, {
+						toValue: 0,
+						duration: 280,
+						useNativeDriver: true,
+					}),
+					Animated.delay(840 - delay),
+				]),
+			)
+		const anim = Animated.parallel([
+			makeAnim(dot1, 0),
+			makeAnim(dot2, 140),
+			makeAnim(dot3, 280),
+		])
+		anim.start()
+		return () => anim.stop()
+	}, [dot1, dot2, dot3])
+
+	const dotStyle = (anim: Animated.Value) => ({
+		width: 7,
+		height: 7,
+		borderRadius: 4,
+		backgroundColor: isDark ? '#94a3b8' : '#64748b',
+		marginHorizontal: 2,
+		opacity: anim.interpolate({inputRange: [0, 1], outputRange: [0.3, 1]}),
+		transform: [
+			{
+				translateY: anim.interpolate({
+					inputRange: [0, 1],
+					outputRange: [0, -4],
+				}),
+			},
+		],
+	})
+
+	return (
+		<View
+			style={{
+				flexDirection: 'row',
+				alignItems: 'center',
+				padding: 12,
+				borderRadius: 16,
+				backgroundColor: isDark ? '#16213e' : '#ffffff',
+				borderWidth: 1,
+				borderColor: isDark ? '#2a2a4a' : '#e2e8f0',
+				alignSelf: 'flex-start',
+				marginBottom: 8,
+			}}
+		>
+			<Animated.View style={dotStyle(dot1)} />
+			<Animated.View style={dotStyle(dot2)} />
+			<Animated.View style={dotStyle(dot3)} />
+		</View>
+	)
+}
+
 export default function ChatTab() {
 	const {isAuthed, userId, apiToken, serverUrl} = useAuth()
 	const router = useRouter()
+	const {presets} = usePromptPresets()
+
 	const [messages, setMessages] = useState<Message[]>([])
 	const [input, setInput] = useState('')
 	const [cliConnected, setCliConnected] = useState(false)
@@ -37,11 +116,14 @@ export default function ChatTab() {
 	const [bridgeCode, setBridgeCode] = useState<string | null>(null)
 	const [bridgeCodeInput, setBridgeCodeInput] = useState('')
 	const [bridgeCodeLoaded, setBridgeCodeLoaded] = useState(false)
+	const [isAgentTyping, setIsAgentTyping] = useState(false)
+
 	const wsRef = useRef<WebSocket | null>(null)
 	const flatListRef = useRef<FlatList>(null)
 	const bridgeCodeRef = useRef(bridgeCode)
 	const serverUrlRef = useRef(serverUrl)
 	const apiTokenRef = useRef(apiToken)
+	const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	bridgeCodeRef.current = bridgeCode
 	serverUrlRef.current = serverUrl
@@ -53,6 +135,12 @@ export default function ChatTab() {
 			if (code) setBridgeCode(code)
 			setBridgeCodeLoaded(true)
 		})
+	}, [])
+
+	useEffect(() => {
+		return () => {
+			if (typingTimerRef.current) clearTimeout(typingTimerRef.current)
+		}
 	}, [])
 
 	const saveBridgeCode = useCallback(async (code: string) => {
@@ -150,6 +238,14 @@ export default function ChatTab() {
 				}
 
 				if (msg.type === 'response' && msg.content !== undefined) {
+					if (typingTimerRef.current) clearTimeout(typingTimerRef.current)
+					setIsAgentTyping(!msg.done)
+					if (!msg.done) {
+						typingTimerRef.current = setTimeout(
+							() => setIsAgentTyping(false),
+							8000,
+						)
+					}
 					setMessages(prev => {
 						const last = prev[prev.length - 1]
 						if (last?.role === 'assistant' && !last.done) {
@@ -168,9 +264,14 @@ export default function ChatTab() {
 							},
 						]
 					})
+					setTimeout(
+						() => flatListRef.current?.scrollToEnd({animated: true}),
+						50,
+					)
 				}
 
 				if (msg.type === 'error') {
+					setIsAgentTyping(false)
 					setMessages(prev => [
 						...prev,
 						{
@@ -196,8 +297,11 @@ export default function ChatTab() {
 
 	if (!isAuthed) {
 		return (
-			<SafeAreaView className="items-center justify-center flex-1 bg-surface">
-				<Text className="mb-4 text-lg text-text">
+			<SafeAreaView
+				className="flex-1 items-center justify-center bg-surface dark:bg-surface-dark"
+				edges={['top']}
+			>
+				<Text className="mb-4 text-lg text-text dark:text-text-dark">
 					Sign in to start chatting
 				</Text>
 				<TouchableOpacity
@@ -212,77 +316,104 @@ export default function ChatTab() {
 
 	if (!bridgeCode) {
 		return (
-			<SafeAreaView className="items-center justify-center flex-1 px-6 bg-surface">
-				<Text className="mb-2 text-lg font-semibold text-text">
-					Pair with CLI
-				</Text>
-				<Text className="mb-6 text-sm text-center text-muted">
-					Run{'\n'}happy-vibecode connect {'<agent>'}
-					{'\n'}to get a bridge code, then enter it below.
-				</Text>
-				<View className="flex-row items-center w-full gap-2">
-					<TextInput
-						className="flex-1 px-4 py-3 font-mono text-lg tracking-widest text-center uppercase border bg-card border-border rounded-xl text-text"
-						placeholder="8-char code"
-						placeholderTextColor="#94a3b8"
-						value={bridgeCodeInput}
-						onChangeText={text => setBridgeCodeInput(text.toUpperCase())}
-						onSubmitEditing={handlePair}
-						maxLength={8}
-						autoCapitalize="characters"
-						autoCorrect={false}
-					/>
-					<TouchableOpacity
-						className={`px-5 py-3 rounded-xl ${bridgeCodeInput.trim().length >= 4 ? 'bg-primary' : 'bg-border'}`}
-						onPress={handlePair}
-						disabled={bridgeCodeInput.trim().length < 4}
-					>
-						<Text className="font-semibold text-white">Pair</Text>
-					</TouchableOpacity>
-				</View>
-			</SafeAreaView>
+			<KeyboardAvoidingView
+				className="flex-1"
+				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+			>
+				<SafeAreaView
+					className="flex-1 items-center justify-center px-6 bg-surface dark:bg-surface-dark"
+					edges={['top']}
+				>
+					<View className="w-16 h-16 rounded-2xl bg-primary/20 items-center justify-center mb-6">
+						<Text className="text-3xl">🔗</Text>
+					</View>
+					<Text className="mb-2 text-xl font-bold text-text dark:text-text-dark">
+						Pair with CLI
+					</Text>
+					<Text className="mb-8 text-sm text-center text-muted dark:text-muted-dark leading-5">
+						Run{' '}
+						<Text className="font-mono text-primary">
+							vibe connect &lt;agent&gt;
+						</Text>{' '}
+						in your terminal, then enter the 8-character bridge code.
+					</Text>
+					<View className="flex-row items-center w-full gap-3">
+						<TextInput
+							className="flex-1 px-4 py-3.5 font-mono text-lg tracking-widest text-center uppercase border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl text-text dark:text-text-dark"
+							placeholder="XXXXXXXX"
+							placeholderTextColor="#94a3b8"
+							value={bridgeCodeInput}
+							onChangeText={text => setBridgeCodeInput(text.toUpperCase())}
+							onSubmitEditing={handlePair}
+							maxLength={8}
+							autoCapitalize="characters"
+							autoCorrect={false}
+							returnKeyType="done"
+						/>
+						<TouchableOpacity
+							className={`px-5 py-3.5 rounded-2xl ${
+								bridgeCodeInput.trim().length >= 4
+									? 'bg-primary'
+									: 'bg-border dark:bg-border-dark'
+							}`}
+							onPress={handlePair}
+							disabled={bridgeCodeInput.trim().length < 4}
+						>
+							<Text className="font-semibold text-white">Pair</Text>
+						</TouchableOpacity>
+					</View>
+					<Text className="mt-4 text-xs text-muted dark:text-muted-dark text-center">
+						Bridge codes expire after 15 minutes of inactivity
+					</Text>
+				</SafeAreaView>
+			</KeyboardAvoidingView>
 		)
 	}
 
-	const sendMessage = () => {
-		const content = input.trim()
+	const sendMessage = (text?: string) => {
+		const content = (text ?? input).trim()
 		if (!content || !wsRef.current) return
 		const ws = wsRef.current
 		if (ws.readyState !== WebSocket.OPEN) return
 
-		const msg = {
-			type: 'prompt' as const,
-			content,
-			sessionId: roomId,
-		}
-		ws.send(JSON.stringify(msg))
-
+		ws.send(JSON.stringify({type: 'prompt', content, sessionId: roomId}))
 		setMessages(prev => [...prev, {id: uniqueId(), role: 'user', content}])
 		setInput('')
-
+		setIsAgentTyping(true)
 		setTimeout(() => flatListRef.current?.scrollToEnd({animated: true}), 100)
 	}
 
 	return (
-		<SafeAreaView className="flex-1 bg-surface">
+		<SafeAreaView
+			className="flex-1 bg-surface dark:bg-surface-dark"
+			edges={['top']}
+		>
 			{/* Header */}
-			<View className="flex-row items-center justify-between px-4 py-3 border-b border-border">
+			<View className="flex-row items-center justify-between px-4 py-3 border-b border-border dark:border-border-dark">
 				<View className="flex-row items-center gap-2">
-					<Text className="text-lg font-semibold text-text">Chat</Text>
-					<View className="bg-border rounded px-1.5 py-0.5">
-						<Text className="font-mono text-xs text-muted">{bridgeCode}</Text>
+					<Text className="text-lg font-semibold text-text dark:text-text-dark">
+						Chat
+					</Text>
+					<View className="bg-border dark:bg-border-dark rounded px-1.5 py-0.5">
+						<Text className="font-mono text-xs text-muted dark:text-muted-dark">
+							{bridgeCode}
+						</Text>
 					</View>
 				</View>
-				<View className="flex-row items-center gap-2">
+				<View className="flex-row items-center gap-3">
 					<TouchableOpacity onPress={clearBridgeCode}>
-						<Text className="text-xs text-muted">Unpair</Text>
+						<Text className="text-xs text-muted dark:text-muted-dark">
+							Unpair
+						</Text>
 					</TouchableOpacity>
-					<View
-						className={`w-2 h-2 rounded-full ${cliConnected ? 'bg-success' : 'bg-muted'}`}
-					/>
-					<Text className="text-xs text-muted">
-						{cliConnected ? 'Agent connected' : 'No agent'}
-					</Text>
+					<View className="flex-row items-center gap-1.5">
+						<View
+							className={`w-2 h-2 rounded-full ${cliConnected ? 'bg-success' : 'bg-muted dark:bg-muted-dark'}`}
+						/>
+						<Text className="text-xs text-muted dark:text-muted-dark">
+							{cliConnected ? 'Connected' : 'No agent'}
+						</Text>
+					</View>
 				</View>
 			</View>
 
@@ -296,59 +427,102 @@ export default function ChatTab() {
 					data={messages}
 					keyExtractor={item => item.id}
 					className="flex-1 px-4"
-					contentContainerStyle={{paddingVertical: 12, gap: 8}}
+					contentContainerStyle={{paddingTop: 12, paddingBottom: 4, gap: 8}}
 					refreshControl={
 						<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
 					}
 					renderItem={({item}) => (
 						<View
-							className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+							className={`max-w-[85%] rounded-2xl px-4 py-3 ${
 								item.role === 'user'
 									? 'self-end bg-primary'
 									: item.role === 'system'
-										? 'self-center bg-border'
-										: 'self-start bg-card border border-border'
+										? 'self-center bg-warning/20 border border-warning/30'
+										: 'self-start bg-card dark:bg-card-dark border border-border dark:border-border-dark'
 							}`}
 						>
-							<Text
-								className={item.role === 'user' ? 'text-white' : 'text-text'}
-							>
-								{item.content}
-							</Text>
+							{item.role === 'system' ? (
+								<Text className="text-xs text-warning text-center">
+									{item.content}
+								</Text>
+							) : (
+								<Text
+									className={
+										item.role === 'user'
+											? 'text-white text-sm leading-5'
+											: 'text-text dark:text-text-dark text-sm leading-5'
+									}
+									selectable
+								>
+									{item.content}
+								</Text>
+							)}
 						</View>
 					)}
+					ListFooterComponent={isAgentTyping ? <TypingIndicator /> : null}
 					ListEmptyComponent={
-						<View className="items-center justify-center flex-1 py-12">
-							<Text className="text-center text-muted">
+						<View className="items-center justify-center py-16">
+							<Text className="text-5xl mb-4">
+								{cliConnected ? '💬' : '🔌'}
+							</Text>
+							<Text className="text-center text-text dark:text-text-dark text-base font-medium mb-2">
+								{cliConnected ? 'Agent ready' : 'Waiting for agent'}
+							</Text>
+							<Text className="text-center text-muted dark:text-muted-dark text-sm leading-5">
 								{cliConnected
-									? 'Start the conversation…'
-									: 'Connect a local agent via the CLI to start chatting'}
+									? 'Type a message or tap a preset below'
+									: 'Run "vibe connect <agent>" in your terminal'}
 							</Text>
 						</View>
 					}
 				/>
 
-				{/* Input */}
-				<View className="flex-row items-end gap-2 px-4 py-3 border-t border-border">
+				{/* Preset chips */}
+				{presets.length > 0 && (
+					<ScrollView
+						horizontal
+						showsHorizontalScrollIndicator={false}
+						className="border-t border-border dark:border-border-dark max-h-12"
+						contentContainerStyle={{
+							paddingHorizontal: 12,
+							paddingVertical: 8,
+							gap: 8,
+						}}
+					>
+						{presets.map(preset => (
+							<TouchableOpacity
+								key={preset.id}
+								className="bg-card dark:bg-card-dark border border-border dark:border-border-dark rounded-full px-3 py-1.5"
+								onPress={() => setInput(preset.text)}
+							>
+								<Text className="text-xs text-text dark:text-text-dark">
+									{preset.label}
+								</Text>
+							</TouchableOpacity>
+						))}
+					</ScrollView>
+				)}
+
+				{/* Input bar */}
+				<View className="flex-row items-end gap-2 px-4 py-3 border-t border-border dark:border-border-dark">
 					<TextInput
-						className="flex-1 px-4 py-3 text-sm border bg-card border-border rounded-2xl text-text"
+						className="flex-1 px-4 py-3 text-sm border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl text-text dark:text-text-dark"
 						placeholder="Type a message…"
 						placeholderTextColor="#94a3b8"
 						value={input}
 						onChangeText={setInput}
 						multiline
 						maxLength={4000}
-						onSubmitEditing={sendMessage}
 						blurOnSubmit={false}
 					/>
 					<TouchableOpacity
 						className={`w-10 h-10 rounded-full items-center justify-center ${
-							input.trim() ? 'bg-primary' : 'bg-border'
+							input.trim() ? 'bg-primary' : 'bg-border dark:bg-border-dark'
 						}`}
-						onPress={sendMessage}
+						onPress={() => sendMessage()}
 						disabled={!input.trim()}
 					>
-						<Text className="text-lg text-white">↑</Text>
+						<Text className="text-base text-white">↑</Text>
 					</TouchableOpacity>
 				</View>
 			</KeyboardAvoidingView>

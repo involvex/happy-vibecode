@@ -19,8 +19,22 @@ const ANSI_RE =
 	// eslint-disable-next-line no-control-regex
 	/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><~]/g
 
-function stripAnsi(str: string): string {
-	return str.replace(ANSI_RE, '')
+// Box-drawing and block-element characters used by TUI apps (Kilo, Cline, etc.)
+// Unicode ranges: Box Drawing U+2500–U+257F, Block Elements U+2580–U+259F
+const BOX_RE = /[\u2500-\u259F]/g
+
+/**
+ * Remove TUI decoration artifacts from raw agent output.
+ * Strips ANSI codes then filters lines that consist only of box-drawing
+ * characters or contain no word characters (TUI tab-bar / border fragments).
+ */
+function cleanAgentOutput(raw: string): string {
+	const noAnsi = raw.replace(ANSI_RE, '').replace(/\r/g, '')
+	const lines = noAnsi.split('\n').filter(line => {
+		const stripped = line.replace(BOX_RE, '').trim()
+		return /\w/.test(stripped)
+	})
+	return lines.join('\n')
 }
 
 interface WsPrompt {
@@ -240,7 +254,7 @@ async function runAgent(
 		gotOutput = true
 		clearTimeout(watchdog)
 		spinner.stop()
-		onChunk(stripAnsi(chunk))
+		onChunk(cleanAgentOutput(chunk))
 	})
 
 	stderr.setEncoding('utf8')
@@ -248,7 +262,7 @@ async function runAgent(
 		gotOutput = true
 		clearTimeout(watchdog)
 		spinner.stop()
-		onChunk(stripAnsi(chunk))
+		onChunk(cleanAgentOutput(chunk))
 	})
 
 	proc.on('close', code => {
