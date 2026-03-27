@@ -9,6 +9,7 @@ import {
 import {drizzleAdapter} from 'better-auth/adapters/drizzle'
 import {expo} from '@better-auth/expo'
 import {betterAuth} from 'better-auth'
+import {eq} from 'drizzle-orm'
 
 export interface AuthEnv {
 	DB: D1Database
@@ -74,6 +75,25 @@ export function createAuth(env: AuthEnv, requestUrl?: string) {
 					after: async user => {
 						const now = new Date()
 						const u = user as typeof user & {apiToken?: string}
+						const role = (user as typeof user & {role?: string}).role ?? 'user'
+
+						if (user.email) {
+							// Check for a legacy users row with this email but different id
+							const existing = await db.query.users.findFirst({
+								where: (usr, {eq}) => eq(usr.email, user.email!),
+							})
+							if (existing) {
+								// Sync the Better Auth apiToken onto the existing row so
+								// the Bearer-token fast-path resolves the correct user id
+								await db
+									.update(users)
+									.set({apiToken: u.apiToken ?? null, updatedAt: now})
+									.where(eq(users.id, existing.id))
+								return
+							}
+						}
+
+						// No pre-existing row — create one for this Better Auth user
 						await db
 							.insert(users)
 							.values({
@@ -81,7 +101,7 @@ export function createAuth(env: AuthEnv, requestUrl?: string) {
 								email: user.email ?? null,
 								apiToken: u.apiToken ?? null,
 								nickname: user.name ?? null,
-								role: (user as typeof user & {role?: string}).role ?? 'user',
+								role,
 								createdAt: now,
 								updatedAt: now,
 							})
