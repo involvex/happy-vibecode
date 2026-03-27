@@ -1,4 +1,5 @@
 'use client'
+import type {UserSubscription} from '@happy-vibecode/shared'
 import {useCallback, useEffect, useState} from 'react'
 import {authClient} from '../../lib/auth-client'
 
@@ -17,6 +18,7 @@ interface AuthState {
 	githubId: string | null
 	hasPassword: boolean
 	role: 'user' | 'admin'
+	subscription: UserSubscription | null
 	serverUrl: string
 	isLoaded: boolean
 }
@@ -49,6 +51,7 @@ export function useAuth() {
 		githubId: null,
 		hasPassword: false,
 		role: 'user',
+		subscription: null,
 		serverUrl: DEFAULT_SERVER_URL,
 		isLoaded: false,
 	})
@@ -67,6 +70,7 @@ export function useAuth() {
 				email: u.email ?? null,
 				nickname: u.name ?? null,
 				role: (u.role as 'user' | 'admin') ?? 'user',
+				subscription: prev.subscription,
 				serverUrl:
 					localStorage.getItem(AUTH_KEYS.serverUrl) ?? DEFAULT_SERVER_URL,
 				isLoaded: true,
@@ -87,6 +91,7 @@ export function useAuth() {
 			githubId: null,
 			hasPassword: false,
 			role: 'user',
+			subscription: null,
 			serverUrl:
 				localStorage.getItem(AUTH_KEYS.serverUrl) || DEFAULT_SERVER_URL,
 			isLoaded: true,
@@ -116,6 +121,7 @@ export function useAuth() {
 				githubId: githubId ?? null,
 				hasPassword: hasPassword ?? false,
 				role: 'user',
+				subscription: null,
 				serverUrl: serverUrl || DEFAULT_SERVER_URL,
 				isLoaded: true,
 			})
@@ -136,6 +142,7 @@ export function useAuth() {
 			githubId: null,
 			hasPassword: false,
 			role: 'user',
+			subscription: null,
 			serverUrl: DEFAULT_SERVER_URL,
 			isLoaded: true,
 		})
@@ -155,6 +162,7 @@ export function useAuth() {
 				githubId: string | null
 				hasPassword: boolean
 				role: 'user' | 'admin'
+				subscription: UserSubscription
 			}
 			setAuth(prev => ({
 				...prev,
@@ -164,6 +172,7 @@ export function useAuth() {
 				githubId: data.githubId,
 				hasPassword: data.hasPassword,
 				role: data.role,
+				subscription: data.subscription,
 			}))
 			return data
 		} catch {

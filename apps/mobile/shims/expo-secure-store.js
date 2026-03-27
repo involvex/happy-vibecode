@@ -5,9 +5,12 @@
 // Build a native dev client for real encrypted storage: `npx expo run:android`.
 
 let _storage = null
+let _storageLoading = false
 
 function getStorage() {
 	if (_storage) return _storage
+	if (_storageLoading) return null
+	_storageLoading = true
 	try {
 		_storage = require('@react-native-async-storage/async-storage').default
 	} catch {
@@ -26,6 +29,31 @@ function getStorage() {
 	return _storage
 }
 
+// In-memory cache for synchronous getItem/setItem required by @better-auth/expo/client.
+// Async methods delegate to AsyncStorage for persistence.
+const _cache = new Map()
+
+function cacheGet(key) {
+	return _cache.get(key) ?? null
+}
+
+function cacheSet(key, value) {
+	_cache.set(key, value)
+	// Fire-and-forget persist to AsyncStorage
+	const storage = getStorage()
+	if (storage) {
+		storage.setItem(key, value).catch(() => {})
+	}
+}
+
+function cacheDelete(key) {
+	_cache.delete(key)
+	const storage = getStorage()
+	if (storage) {
+		storage.removeItem(key).catch(() => {})
+	}
+}
+
 const Accessible = {
 	AFTER_FIRST_UNLOCK: 0,
 	AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY: 1,
@@ -40,22 +68,49 @@ module.exports = {
 	...Accessible,
 	SecureStoreAccessible: Accessible,
 
-	getItemAsync: (key, _options) => {
+	// Synchronous methods required by @better-auth/expo/client storage interface.
+	// Uses in-memory cache with fire-and-forget AsyncStorage persistence.
+	getItem: (key, _options) => cacheGet(key),
+
+	setItem: (key, value, _options) => {
+		cacheSet(key, value)
+	},
+
+	deleteItem: (key, _options) => {
+		cacheDelete(key)
+	},
+
+	// Async methods for direct usage in hooks (useAuth, useWorkspaces).
+	getItemAsync: async (key, _options) => {
 		console.warn(
 			'[expo-secure-store shim] Using AsyncStorage fallback (unencrypted)',
 		)
-		return getStorage().getItem(key)
+		const storage = getStorage()
+		if (storage) {
+			const value = await storage.getItem(key)
+			if (value !== null) _cache.set(key, value)
+			return value
+		}
+		return cacheGet(key)
 	},
 
-	setItemAsync: (key, value, _options) => {
+	setItemAsync: async (key, value, _options) => {
 		console.warn(
 			'[expo-secure-store shim] Using AsyncStorage fallback (unencrypted)',
 		)
-		return getStorage().setItem(key, value)
+		_cache.set(key, value)
+		const storage = getStorage()
+		if (storage) {
+			await storage.setItem(key, value)
+		}
 	},
 
-	deleteItemAsync: (key, _options) => {
-		return getStorage().removeItem(key)
+	deleteItemAsync: async (key, _options) => {
+		_cache.delete(key)
+		const storage = getStorage()
+		if (storage) {
+			await storage.removeItem(key)
+		}
 	},
 
 	// canUseBiometricAuthentication — not available in shim

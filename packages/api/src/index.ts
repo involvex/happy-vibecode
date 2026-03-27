@@ -7,6 +7,7 @@ import {workspacesRouter} from './routes/workspaces.js'
 import {sessionsRouter} from './routes/sessions.js'
 import {ticketsRouter} from './routes/tickets.js'
 import {devicesRouter} from './routes/devices.js'
+import {billingRouter} from './routes/billing.js'
 import type {ApiEnv} from './middleware/auth.js'
 import {agentsRouter} from './routes/agents.js'
 import {userRouter} from './routes/user.js'
@@ -28,6 +29,7 @@ api.get('/health', c =>
 )
 
 api.route('/auth', authRouter)
+api.route('/billing', billingRouter)
 api.route('/sessions', sessionsRouter)
 api.route('/devices', devicesRouter)
 api.route('/user', userRouter)

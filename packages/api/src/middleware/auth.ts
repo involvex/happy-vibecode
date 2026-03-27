@@ -11,6 +11,12 @@ export interface ApiEnv {
 	AUTH_GITHUB_ID?: string
 	AUTH_GITHUB_SECRET?: string
 	BETTER_AUTH_SECRET?: string
+	STRIPE_API_KEY?: string
+	STRIPE_WEBHOOK_SECRET?: string
+	STRIPE_PRO_PRODUCT_ID?: string
+	STRIPE_PRO_PRICE_ID?: string
+	STRIPE_PRO_URL?: string
+	SRIPE_PRO_URL?: string
 }
 
 export const authMiddleware = createMiddleware<{

@@ -13,6 +13,28 @@ export const users = sqliteTable('users', {
 	status: text('status', {enum: ['active', 'suspended', 'pending']})
 		.notNull()
 		.default('active'),
+	planTier: text('plan_tier', {enum: ['free', 'pro']})
+		.notNull()
+		.default('free'),
+	subscriptionStatus: text('subscription_status', {
+		enum: ['inactive', 'trialing', 'active', 'past_due', 'canceled', 'unpaid'],
+	})
+		.notNull()
+		.default('inactive'),
+	stripeCustomerId: text('stripe_customer_id').unique(),
+	stripeSubscriptionId: text('stripe_subscription_id').unique(),
+	stripePriceId: text('stripe_price_id'),
+	subscriptionCurrentPeriodEnd: integer('subscription_current_period_end', {
+		mode: 'timestamp_ms',
+	}),
+	subscriptionCancelAtPeriodEnd: integer('subscription_cancel_at_period_end', {
+		mode: 'boolean',
+	})
+		.notNull()
+		.default(false),
+	subscriptionUpdatedAt: integer('subscription_updated_at', {
+		mode: 'timestamp_ms',
+	}),
 	lastLogin: integer('last_login', {mode: 'timestamp_ms'}),
 	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
 	updatedAt: integer('updated_at', {mode: 'timestamp_ms'}).notNull(),

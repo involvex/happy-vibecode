@@ -2,10 +2,13 @@ import {
 	changePasswordSchema,
 	linkEmailSchema,
 	setPasswordSchema,
+	userSchema,
+	userSubscriptionSchema,
 	updateProfileSchema,
 } from '@happy-vibecode/shared/schema/user'
 import {hashPassword, verifyPassword} from '@happy-vibecode/shared/crypto'
 import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
+import {mapUserSubscription} from '../utils/subscription.js'
 import {createDb} from '@happy-vibecode/db'
 import {eq, sql} from 'drizzle-orm'
 import {Hono} from 'hono'
@@ -30,7 +33,7 @@ userRouter.get('/profile', async c => {
 		return c.json({error: 'User not found'}, 404)
 	}
 
-	return c.json({
+	const profile = userSchema.parse({
 		id: user.id,
 		email: user.email,
 		nickname: user.nickname,
@@ -39,10 +42,13 @@ userRouter.get('/profile', async c => {
 		hasPassword: !!user.passwordHash,
 		role: user.role,
 		status: user.status,
+		subscription: mapUserSubscription(user),
 		lastLogin: user.lastLogin ? user.lastLogin.toISOString() : null,
 		createdAt: user.createdAt.toISOString(),
 		updatedAt: user.updatedAt.toISOString(),
 	})
+
+	return c.json(profile)
 })
 
 userRouter.put('/profile', async c => {
@@ -77,7 +83,7 @@ userRouter.put('/profile', async c => {
 		return c.json({error: 'User not found'}, 404)
 	}
 
-	return c.json({
+	const profile = userSchema.parse({
 		id: user.id,
 		email: user.email,
 		nickname: user.nickname,
@@ -86,10 +92,28 @@ userRouter.put('/profile', async c => {
 		hasPassword: !!user.passwordHash,
 		role: user.role,
 		status: user.status,
+		subscription: mapUserSubscription(user),
 		lastLogin: user.lastLogin ? user.lastLogin.toISOString() : null,
 		createdAt: user.createdAt.toISOString(),
 		updatedAt: user.updatedAt.toISOString(),
 	})
+
+	return c.json(profile)
+})
+
+userRouter.get('/subscription', async c => {
+	const userId = c.get('userId')
+	const db = createDb(c.env.DB)
+
+	const user = await db.query.users.findFirst({
+		where: (u, {eq}) => eq(u.id, userId),
+	})
+
+	if (!user) {
+		return c.json({error: 'User not found'}, 404)
+	}
+
+	return c.json(userSubscriptionSchema.parse(mapUserSubscription(user)))
 })
 
 userRouter.post('/password/set', async c => {

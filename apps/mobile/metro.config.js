@@ -4,10 +4,9 @@ const path = require('path')
 
 const config = getDefaultConfig(__dirname)
 
-// Force-intercept native modules that are absent or have API mismatches when
-// running in Expo Go or a dev client built without them. resolveRequest runs
-// BEFORE node_modules lookup, so it overrides even properly-installed packages
-// (unlike extraNodeModules which is fallback-only).
+// Conditionally intercept native modules that are absent or have API mismatches.
+// resolveRequest tries the real module first; falls back to shim only when the
+// native module is unavailable (Expo Go, or dev client built without it).
 //
 // Shimmed modules:
 //   expo-network     — @better-auth/expo network state monitoring (no-op safe)
@@ -28,7 +27,13 @@ config.resolver = {
 	resolveRequest: (context, moduleName, platform) => {
 		const shimPath = SHIMS[moduleName]
 		if (shimPath) {
-			return {filePath: shimPath, type: 'sourceFile'}
+			try {
+				// Try the real native module first — available in dev client builds
+				return context.resolveRequest(context, moduleName, platform)
+			} catch {
+				// Fall back to shim when native module is unavailable (Expo Go, missing build)
+				return {filePath: shimPath, type: 'sourceFile'}
+			}
 		}
 		return context.resolveRequest(context, moduleName, platform)
 	},

@@ -5,10 +5,13 @@ import {
 	BellIcon,
 	TranslateIcon,
 	UserIcon,
+	CreditCardIcon,
+	LightningIcon,
 } from '@phosphor-icons/react'
+import type {UserSubscription} from '@happy-vibecode/shared'
+import {useRouter, useSearchParams} from 'next/navigation'
 import {zodResolver} from '@hookform/resolvers/zod'
 import {Button, Text} from '@cloudflare/kumo'
-import {useRouter} from 'next/navigation'
 import {useEffect, useState} from 'react'
 import {useAuth} from '../hooks/useAuth'
 import {useForm} from 'react-hook-form'
@@ -36,6 +39,7 @@ interface UserProfile {
 		notifications: boolean
 		language: string
 	} | null
+	subscription: UserSubscription
 }
 
 const LANGUAGES = [
@@ -48,10 +52,15 @@ const LANGUAGES = [
 ]
 
 export default function ProfilePage() {
-	const {isAuthed, isLoaded, apiToken, logout} = useAuth()
+	const {isAuthed, isLoaded, apiToken, logout, refreshUser} = useAuth()
 	const router = useRouter()
+	const searchParams = useSearchParams()
 
 	const [profileLoading, setProfileLoading] = useState(true)
+	const [subscription, setSubscription] = useState<UserSubscription | null>(
+		null,
+	)
+	const [checkoutLoading, setCheckoutLoading] = useState(false)
 	const [saveSuccess, setSaveSuccess] = useState('')
 	const [saveError, setSaveError] = useState('')
 
@@ -74,22 +83,49 @@ export default function ProfilePage() {
 	useEffect(() => {
 		if (apiToken && isAuthed) {
 			setProfileLoading(true)
-			fetch('/api/user/profile', {
-				headers: {Authorization: `Bearer ${apiToken}`},
-			})
-				.then(res => res.json() as Promise<UserProfile>)
-				.then(data => {
+			Promise.all([
+				fetch('/api/user/profile', {
+					headers: {Authorization: `Bearer ${apiToken}`},
+				}),
+				fetch('/api/user/subscription', {
+					headers: {Authorization: `Bearer ${apiToken}`},
+				}),
+			])
+				.then(async ([profileRes, subscriptionRes]) => {
+					if (!profileRes.ok) {
+						throw new Error('Failed to load profile')
+					}
+
+					const data = (await profileRes.json()) as UserProfile
+					const subscriptionData = subscriptionRes.ok
+						? ((await subscriptionRes.json()) as UserSubscription)
+						: data.subscription
+					return {profile: data, subscription: subscriptionData}
+				})
+				.then(({profile, subscription}) => {
 					profileForm.reset({
-						nickname: data.nickname || '',
-						theme: data.preferences?.theme || 'system',
-						notifications: data.preferences?.notifications ?? true,
-						language: data.preferences?.language || 'en',
+						nickname: profile.nickname || '',
+						theme: profile.preferences?.theme || 'system',
+						notifications: profile.preferences?.notifications ?? true,
+						language: profile.preferences?.language || 'en',
 					})
+					setSubscription(subscription)
 				})
 				.catch(console.error)
 				.finally(() => setProfileLoading(false))
 		}
 	}, [apiToken, isAuthed, profileForm])
+
+	useEffect(() => {
+		const billingState = searchParams.get('billing')
+		if (billingState === 'success') {
+			setSaveSuccess(
+				'Stripe checkout started successfully. Your subscription will update shortly.',
+			)
+		} else if (billingState === 'canceled') {
+			setSaveError('Stripe checkout was canceled before completion.')
+		}
+	}, [searchParams])
 
 	const handleSubmit = async (data: UpdateProfileForm) => {
 		if (!apiToken) return
@@ -125,6 +161,28 @@ export default function ProfilePage() {
 	const handleLogout = () => {
 		logout()
 		router.replace('/login')
+	}
+
+	const handleUpgrade = async () => {
+		if (!apiToken) return
+		setCheckoutLoading(true)
+		setSaveError('')
+		try {
+			const res = await fetch('/api/billing/checkout-session', {
+				method: 'POST',
+				headers: {Authorization: `Bearer ${apiToken}`},
+			})
+			const payload = (await res.json()) as {url?: string; error?: string}
+			if (!res.ok || !payload.url) {
+				throw new Error(payload.error ?? 'Failed to start checkout')
+			}
+			window.location.assign(payload.url)
+		} catch (err) {
+			setSaveError((err as Error).message)
+		} finally {
+			setCheckoutLoading(false)
+			void refreshUser()
+		}
 	}
 
 	if (!isLoaded || !isAuthed) {
@@ -275,6 +333,65 @@ export default function ProfilePage() {
 										</option>
 									))}
 								</select>
+							</div>
+						</section>
+
+						<section className="bg-kumo-base border border-kumo-line rounded-2xl p-6 space-y-4">
+							<div className="flex items-center gap-2 text-kumo-default font-semibold">
+								<CreditCardIcon size={18} weight="duotone" />
+								Subscription
+							</div>
+							<Text size="sm" variant="secondary">
+								Manage your plan from the web profile. Mobile will read the same
+								subscription state later.
+							</Text>
+							<div className="rounded-xl border border-kumo-line bg-kumo-elevated p-4 space-y-3">
+								<div className="flex items-center justify-between gap-4">
+									<div>
+										<p className="text-sm text-kumo-secondary">Current plan</p>
+										<p className="text-lg font-semibold text-kumo-default">
+											{subscription?.isPro ? 'Pro' : 'Free'}
+										</p>
+									</div>
+									<div className="text-right">
+										<p className="text-sm text-kumo-secondary">Status</p>
+										<p className="text-sm font-medium text-kumo-default capitalize">
+											{subscription?.cancelAtPeriodEnd && subscription.isPro
+												? 'canceling'
+												: (subscription?.status.replace('_', ' ') ??
+													'inactive')}
+										</p>
+									</div>
+								</div>
+								{subscription?.currentPeriodEnd && (
+									<p className="text-sm text-kumo-secondary">
+										{subscription.cancelAtPeriodEnd
+											? `Your Pro access ends on ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}.`
+											: `Your current billing period renews on ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}.`}
+									</p>
+								)}
+								{subscription?.isPro ? (
+									<div className="flex items-center gap-2 rounded-lg bg-kumo-accent/10 px-3 py-2 text-sm text-kumo-default">
+										<LightningIcon size={16} weight="duotone" />
+										Your account currently has Pro access.
+									</div>
+								) : (
+									<div className="space-y-3">
+										<Text size="sm" variant="secondary">
+											Upgrade to Pro for €8.99/month when you are ready.
+										</Text>
+										<Button
+											type="button"
+											variant="primary"
+											onClick={handleUpgrade}
+											disabled={checkoutLoading}
+										>
+											{checkoutLoading
+												? 'Opening Checkout...'
+												: 'Upgrade to Pro'}
+										</Button>
+									</div>
+								)}
 							</div>
 						</section>
 

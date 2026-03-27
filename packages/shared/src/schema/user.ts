@@ -6,6 +6,29 @@ export const userPreferencesSchema = z.object({
 	language: z.string().default('en'),
 })
 
+export const planTierSchema = z.enum(['free', 'pro'])
+
+export const subscriptionStatusSchema = z.enum([
+	'inactive',
+	'trialing',
+	'active',
+	'past_due',
+	'canceled',
+	'unpaid',
+])
+
+export const userSubscriptionSchema = z.object({
+	planTier: planTierSchema.default('free'),
+	status: subscriptionStatusSchema.default('inactive'),
+	stripeCustomerId: z.string().nullable(),
+	stripeSubscriptionId: z.string().nullable(),
+	stripePriceId: z.string().nullable(),
+	currentPeriodEnd: z.string().datetime().nullable(),
+	cancelAtPeriodEnd: z.boolean().default(false),
+	updatedAt: z.string().datetime().nullable(),
+	isPro: z.boolean(),
+})
+
 export const userSchema = z.object({
 	id: z.string().uuid(),
 	email: z.string().email().nullable(),
@@ -15,6 +38,7 @@ export const userSchema = z.object({
 	hasPassword: z.boolean(),
 	role: z.enum(['user', 'admin']).default('user'),
 	status: z.enum(['active', 'suspended', 'pending']).default('active'),
+	subscription: userSubscriptionSchema,
 	lastLogin: z.string().datetime().nullable(),
 	createdAt: z.string().datetime(),
 	updatedAt: z.string().datetime(),
@@ -61,6 +85,9 @@ export const loginWithPasswordSchema = z.object({
 })
 
 export type UserPreferences = z.infer<typeof userPreferencesSchema>
+export type PlanTier = z.infer<typeof planTierSchema>
+export type SubscriptionStatus = z.infer<typeof subscriptionStatusSchema>
+export type UserSubscription = z.infer<typeof userSubscriptionSchema>
 export type User = z.infer<typeof userSchema>
 export type AuthToken = z.infer<typeof authTokenSchema>
 export type CreateUser = z.infer<typeof createUserSchema>
