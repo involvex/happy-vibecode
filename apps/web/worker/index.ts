@@ -1,7 +1,9 @@
 import {handleImageOptimization} from 'vinext/server/image-optimization'
+import {createDb, authUser} from '@happy-vibecode/db'
 import handler from 'vinext/server/app-router-entry'
 import {api} from '@happy-vibecode/api'
 import {createAuth} from './auth'
+import {eq} from 'drizzle-orm'
 
 export {BridgeAgent} from './bridge-agent'
 
@@ -73,9 +75,55 @@ export default {
 		if (url.pathname.startsWith('/agents/BridgeAgent/')) {
 			const roomId =
 				url.pathname.slice('/agents/BridgeAgent/'.length) || 'default'
+
+			// Validate Bearer token before forwarding to Durable Object
+			const authHeader = request.headers.get('Authorization')
+			if (!authHeader?.startsWith('Bearer ')) {
+				return new Response('Unauthorized', {status: 401})
+			}
+			const token = authHeader.slice(7)
+			if (!token) {
+				return new Response('Unauthorized', {status: 401})
+			}
+
+			const db = createDb(env.DB)
+			let userId: string | undefined
+
+			// Fast path: check users table
+			const user = await db.query.users.findFirst({
+				where: (u, {eq}) => eq(u.apiToken, token),
+			})
+			if (user) {
+				userId = user.id
+			} else {
+				// Fallback: check auth_user table (Better Auth users)
+				const authUserRecord = await db
+					.select()
+					.from(authUser)
+					.where(eq(authUser.apiToken, token))
+					.get()
+				if (authUserRecord) {
+					userId = authUserRecord.id
+				}
+			}
+
+			if (!userId) {
+				return new Response('Unauthorized', {status: 401})
+			}
+
+			// Pass authenticated userId to BridgeAgent via trusted header
+			const headers = new Headers(request.headers)
+			headers.set('X-Authenticated-UserId', userId)
+
+			const authenticatedRequest = new Request(request.url, {
+				method: request.method,
+				headers,
+				body: request.body,
+			})
+
 			const id = env.BridgeAgent.idFromName(roomId)
 			const stub = env.BridgeAgent.get(id)
-			return stub.fetch(request)
+			return stub.fetch(authenticatedRequest)
 		}
 
 		// Delegate everything else to vinext

@@ -40,7 +40,12 @@ export class BridgeAgent extends DurableObject<Env> {
 			| 'cli'
 			| 'web'
 			| 'mobile'
-		const userId = url.searchParams.get('userId') ?? 'anonymous'
+		// Read userId from authenticated header set by the worker
+		// Falls back to query param for backward compatibility
+		const userId =
+			request.headers.get('X-Authenticated-UserId') ??
+			url.searchParams.get('userId') ??
+			'anonymous'
 
 		const {0: client, 1: server} = new WebSocketPair()
 		server.accept()

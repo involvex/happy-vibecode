@@ -4,8 +4,8 @@ import type {
 	WorkspaceConfig,
 } from '../types/llm-provider.js'
 import {DEFAULT_AGENTS} from '../utils/agents-config.js'
+import {requireConfig, writeConfig} from '../config.js'
 import {existsSync, readFileSync} from 'fs'
-import {requireConfig} from '../config.js'
 import {spawn} from 'child_process'
 import {Command} from 'commander'
 import WebSocket from 'ws'
@@ -227,9 +227,53 @@ export const connectCommand = new Command('connect')
 	.option('-v, --verbose', 'Verbose output')
 	.action(async (agentId: string, opts) => {
 		const config = requireConfig()
-		const {serverUrl, apiToken, userId} = config
-		const roomId: string = opts.room ?? userId ?? apiToken.slice(0, 8)
+		const {serverUrl, apiToken} = config
+		let userId = config.userId
 		const verbose: boolean = opts.verbose ?? false
+
+		// Verify token and resolve userId if not in config
+		if (serverUrl && apiToken) {
+			try {
+				const res = await fetch(`${serverUrl}/api/auth/verify`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${apiToken}`,
+					},
+				})
+				if (res.ok) {
+					const data = (await res.json()) as {
+						valid: boolean
+						userId: string
+					}
+					if (data.valid && data.userId) {
+						if (!userId || userId !== data.userId) {
+							userId = data.userId
+							writeConfig({...config, userId: data.userId})
+							if (verbose)
+								console.log(`Updated userId in config: ${data.userId}`)
+						}
+					}
+				} else {
+					console.error(
+						'✗ API token is invalid. Please run: happy-vibecode login',
+					)
+					process.exit(1)
+				}
+			} catch (err) {
+				if (verbose)
+					console.log(`Token verification failed: ${(err as Error).message}`)
+			}
+		}
+
+		if (!userId) {
+			console.error(
+				'✗ Could not determine user ID. Please run: happy-vibecode login',
+			)
+			process.exit(1)
+		}
+
+		const roomId: string = opts.room ?? userId
 
 		const agents = await loadAgents(serverUrl, apiToken)
 		let agent: AgentDefinition | undefined = findAgent(agents, agentId)

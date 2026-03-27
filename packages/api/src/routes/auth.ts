@@ -1,6 +1,6 @@
 import {hashPassword, verifyPassword} from '../utils/password.js'
+import {createDb, authUser} from '@happy-vibecode/db'
 import {type ApiEnv} from '../middleware/auth.js'
-import {createDb} from '@happy-vibecode/db'
 import {eq} from 'drizzle-orm'
 import {Hono} from 'hono'
 
@@ -72,12 +72,25 @@ authRouter.post('/verify', async c => {
 	const token = authHeader.slice(7)
 	const db = createDb(c.env.DB)
 
+	// Check users table first
 	const user = await db.query.users.findFirst({
 		where: (u, {eq}) => eq(u.apiToken, token),
 	})
+	if (user) return c.json({valid: true, userId: user.id, email: user.email})
 
-	if (!user) return c.json({valid: false}, 401)
-	return c.json({valid: true, userId: user.id, email: user.email})
+	// Fallback: check auth_user table (Better Auth users)
+	const authUserRecord = await db
+		.select()
+		.from(authUser)
+		.where(eq(authUser.apiToken, token))
+		.get()
+	if (!authUserRecord) return c.json({valid: false}, 401)
+
+	return c.json({
+		valid: true,
+		userId: authUserRecord.id,
+		email: authUserRecord.email,
+	})
 })
 
 authRouter.post('/token/rotate', async c => {

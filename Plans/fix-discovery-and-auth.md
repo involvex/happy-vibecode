@@ -1,266 +1,213 @@
-# Fix Discovery, Auth, and Mobile Refresh
+# Fix CLI Auth, WebSocket Auth, and Discovery
 
 ## Problem Analysis
 
-### 1. 401 on `/api/agents` — Mobile Auth Client Missing `inferAdditionalFields`
+### Issue 1: CLI gets 401 on `GET /api/agents`
 
-The mobile auth client (`apps/mobile/lib/auth-client.ts`) does NOT include the `inferAdditionalFields` plugin, while the web client does. This means `session.user.apiToken` is `undefined` on mobile for GitHub OAuth users. The mobile app falls back to `SecureStore` legacy token, which is also `null` if the user only signed in via GitHub OAuth. Result: all API calls send `Bearer null` → 401.
+The CLI's stored `apiToken` in `~/.happy/config.json` doesn't exist in either `users` or `auth_user` table. This can happen if:
 
-**Root cause**: `apps/mobile/lib/auth-client.ts:5-13` — missing `inferAdditionalFields<ReturnType<typeof createAuth>>()` plugin.
+- User registered via CLI, then the DB was reset/migrated
+- User has a stale token from a previous session
+- The token was never properly saved
 
-### 2. Discovery — BridgeAgent Doesn't Send Initial Status
+**Impact**: `fetchAgentsFromApi` returns `[]`, CLI falls back to `DEFAULT_AGENTS`. This isn't fatal, but indicates the user's auth is broken.
 
-When a web/mobile client connects to BridgeAgent DO (`apps/web/worker/bridge-agent.ts`), the DO only broadcasts `cli_connected` when a CLI connects. If the CLI is already connected before the web/mobile client joins, the client never receives the status. There's no initial status check on connection.
+### Issue 2: WebSocket connections have NO authentication
 
-**Root cause**: `apps/web/worker/bridge-agent.ts:64-69` — CLI connection broadcast only fires when CLI connects, not when web/mobile connects.
+`apps/web/worker/index.ts:72-79` forwards WebSocket requests to BridgeAgent without validating the Authorization header. The BridgeAgent reads `userId` from the query string (`url.searchParams.get('userId') ?? 'anonymous'`), meaning:
 
-### 3. Room ID Mismatch Between CLI and Web/Mobile
+- Anyone can connect to any user's room by knowing their userId
+- No token validation happens at all
+- Security vulnerability
 
-- CLI default room: `apiToken.slice(0, 8)` (line 231 in connect.ts)
+### Issue 3: Room ID mismatch between CLI and web/mobile
+
+- CLI default room: `userId ?? apiToken.slice(0, 8)` (connect.ts:231)
 - Web default room: full `userId` from localStorage
 - Mobile default room: full `userId`
 
-These don't match unless the user explicitly passes `-r <userId>` to the CLI.
+If `userId` is missing from CLI config, room IDs don't match → can't discover each other.
 
-### 4. Better Auth Rate Limiting Warning
+### Issue 4: `/api/auth/verify` only checks `users` table
 
-Better Auth can't determine client IP on Cloudflare Workers because it doesn't check `cf-connecting-ip` or `request.cf.clientIP`. The `trustedProxies` config needs to be set.
-
-### 5. Mobile App Has No Manual Refresh
-
-No pull-to-refresh on history screen, no reconnect mechanism on chat screen.
+Unlike the auth middleware which has a two-tier lookup (users → auth_user), the `/verify` endpoint only checks `users`. Better Auth users whose token is in `auth_user` but not yet synced to `users` can't verify.
 
 ---
 
 ## Implementation Plan
 
-### Step 1: Fix Mobile Auth Client
+### Step 1: Add WebSocket auth validation in worker
 
-**File**: `apps/mobile/lib/auth-client.ts`
+**File**: `apps/web/worker/index.ts`
 
-Add `inferAdditionalFields` plugin so `session.user.apiToken` is populated for GitHub OAuth users on mobile.
-
-```typescript
-import {inferAdditionalFields} from 'better-auth/client/plugins'
-import {expoClient} from '@better-auth/expo/client'
-import {createAuthClient} from 'better-auth/react'
-import type {createAuth} from '../../worker/auth'
-import * as SecureStore from 'expo-secure-store'
-
-export const authClient = createAuthClient({
-	baseURL: 'https://happy-vibecode.involvex.workers.dev',
-	basePath: '/api/auth',
-	plugins: [
-		expoClient({
-			scheme: 'happy-vibecode',
-			storage: SecureStore,
-		}),
-		inferAdditionalFields<ReturnType<typeof createAuth>>(),
-	],
-})
-```
-
-### Step 2: Fix BridgeAgent — Send Initial CLI Status on Web/Mobile Connect
-
-**File**: `apps/web/worker/bridge-agent.ts`
-
-When a web or mobile client connects, immediately send the current CLI connection status so the client doesn't have to wait for a CLI connect/disconnect event.
+Before forwarding WebSocket requests to BridgeAgent, validate the Bearer token and extract the authenticated userId. Pass the userId to the DO via a header or query param that the DO trusts.
 
 ```typescript
-// After line 68 (after the CLI broadcast block), add:
-if (clientType === 'web' || clientType === 'mobile') {
-	const cliOnline = !!this.findCli()
-	server.send(
-		JSON.stringify({
-			type: 'status',
-			status: cliOnline ? 'cli_connected' : 'cli_disconnected',
-		}),
-	)
+if (url.pathname.startsWith('/agents/BridgeAgent/')) {
+	const roomId = url.pathname.slice('/agents/BridgeAgent/'.length) || 'default'
+
+	// Validate auth before forwarding to Durable Object
+	const authHeader = request.headers.get('Authorization')
+	if (!authHeader?.startsWith('Bearer ')) {
+		return new Response('Unauthorized', {status: 401})
+	}
+	const token = authHeader.slice(7)
+
+	// Validate token against DB
+	const db = createDb(env.DB)
+	const user = await db.query.users.findFirst({
+		where: (u, {eq}) => eq(u.apiToken, token),
+	})
+
+	let userId = user?.id
+	if (!user) {
+		// Fallback: check auth_user table
+		const authUserRecord = await db
+			.select()
+			.from(authUser)
+			.where(eq(authUser.apiToken, token))
+			.get()
+		if (!authUserRecord) {
+			return new Response('Unauthorized', {status: 401})
+		}
+		userId = authUserRecord.id
+	}
+
+	// Pass authenticated userId to BridgeAgent via header
+	const headers = new Headers(request.headers)
+	headers.set('X-Authenticated-UserId', userId!)
+
+	const authenticatedRequest = new Request(request.url, {
+		method: request.method,
+		headers,
+		body: request.body,
+	})
+
+	const id = env.BridgeAgent.idFromName(roomId)
+	const stub = env.BridgeAgent.get(id)
+	return stub.fetch(authenticatedRequest)
 }
 ```
 
-### Step 3: Add HTTP Status Endpoint to BridgeAgent
+### Step 2: Fix BridgeAgent to use authenticated userId
 
 **File**: `apps/web/worker/bridge-agent.ts`
 
-Add an HTTP endpoint so the API can query CLI connection status without WebSocket.
+Change the DO to read userId from the `X-Authenticated-UserId` header (set by the worker after auth validation) instead of the query string.
 
 ```typescript
-// Modify the fetch method to handle non-WebSocket requests
-override async fetch(request: Request): Promise<Response> {
-  const url = new URL(request.url)
-  const upgradeHeader = request.headers.get('Upgrade')
+// Replace:
+const userId = url.searchParams.get('userId') ?? 'anonymous'
 
-  if (!upgradeHeader || upgradeHeader !== 'websocket') {
-    // HTTP status check
-    if (url.pathname.endsWith('/status')) {
-      return Response.json({cliConnected: !!this.findCli()})
-    }
-    return new Response('Expected WebSocket', {status: 426})
-  }
-  // ... rest of existing WebSocket code
-}
+// With:
+const userId = request.headers.get('X-Authenticated-UserId') ?? 'anonymous'
 ```
 
-### Step 4: Add API Route to Check CLI Status
+### Step 3: Fix `/api/auth/verify` endpoint
 
-**File**: `packages/api/src/routes/bridge.ts` (new file)
+**File**: `packages/api/src/routes/auth.ts`
 
-Create a route that queries the BridgeAgent DO's status endpoint.
+Add fallback to check `auth_user` table, matching the auth middleware's behavior.
 
 ```typescript
-import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
-import {Hono} from 'hono'
+authRouter.post('/verify', async c => {
+	const authHeader = c.req.header('Authorization')
+	if (!authHeader?.startsWith('Bearer ')) {
+		return c.json({valid: false, error: 'Missing token'}, 401)
+	}
+	const token = authHeader.slice(7)
+	const db = createDb(c.env.DB)
 
-export const bridgeRouter = new Hono<{
-	Bindings: ApiEnv
-	Variables: {userId: string}
-}>()
+	// Check users table first
+	const user = await db.query.users.findFirst({
+		where: (u, {eq}) => eq(u.apiToken, token),
+	})
+	if (user) return c.json({valid: true, userId: user.id, email: user.email})
 
-bridgeRouter.use('*', authMiddleware)
+	// Fallback: check auth_user table
+	const authUserRecord = await db
+		.select()
+		.from(authUser)
+		.where(eq(authUser.apiToken, token))
+		.get()
+	if (!authUserRecord) return c.json({valid: false}, 401)
 
-bridgeRouter.get('/status', async c => {
-	const userId = c.get('userId')
-	const roomId = c.req.query('roomId') ?? userId
-	const id = c.env.BridgeAgent.idFromName(roomId)
-	const stub = c.env.BridgeAgent.get(id)
-	const res = await stub.fetch(new Request(`https://do/status`))
-	const data = (await res.json()) as {cliConnected: boolean}
-	return c.json(data)
+	return c.json({
+		valid: true,
+		userId: authUserRecord.id,
+		email: authUserRecord.email,
+	})
 })
 ```
 
-**File**: `packages/api/src/index.ts` — mount the new router:
-
-```typescript
-import {bridgeRouter} from './routes/bridge.js'
-// ...
-api.route('/bridge', bridgeRouter)
-```
-
-### Step 5: Add Pull-to-Refresh to Mobile History Screen
-
-**File**: `apps/mobile/app/(tabs)/history.tsx`
-
-Add `RefreshControl` to the FlatList for pull-to-refresh.
-
-```tsx
-import {RefreshControl} from 'react-native'
-
-// Add refreshing state
-const [refreshing, setRefreshing] = useState(false)
-
-// Add refresh handler
-const onRefresh = useCallback(async () => {
-  if (!isAuthed || !apiToken) return
-  setRefreshing(true)
-  try {
-    const base = serverUrl ?? 'https://happy-vibecode.involvex.workers.dev'
-    const res = await fetch(`${base}/api/sessions?status=closed`, {
-      headers: {Authorization: `Bearer ${apiToken}`},
-    })
-    if (res.ok) {
-      const data = (await res.json()) as {sessions: Session[]}
-      setSessions(data.sessions ?? [])
-      setFiltered(data.sessions ?? [])
-    }
-  } finally {
-    setRefreshing(false)
-  }
-}, [isAuthed, apiToken, serverUrl])
-
-// Add RefreshControl to FlatList
-<FlatList
-  refreshControl={
-    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-  }
-  // ...existing props
-/>
-```
-
-### Step 6: Add Pull-to-Refresh and Reconnect to Mobile Chat Screen
-
-**File**: `apps/mobile/app/(tabs)/index.tsx`
-
-Add `RefreshControl` to the messages FlatList for manual WebSocket reconnection.
-
-```tsx
-import {RefreshControl} from 'react-native'
-
-// Add refreshing state
-const [refreshing, setRefreshing] = useState(false)
-
-// Add reconnect handler
-const onRefresh = useCallback(() => {
-  setRefreshing(true)
-  // Close existing connection
-  wsRef.current?.close()
-  // The useEffect will re-run and create a new connection
-  setTimeout(() => setRefreshing(false), 1000)
-}, [])
-
-// Add RefreshControl to FlatList
-<FlatList
-  refreshControl={
-    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-  }
-  // ...existing props
-/>
-```
-
-### Step 7: Fix Better Auth Rate Limiting — Add trustedProxies
-
-**File**: `apps/web/worker/auth.ts`
-
-Add `trustedProxies` to the Better Auth config. On Cloudflare Workers, the `cf-connecting-ip` header provides the real client IP. Setting `trustedProxies` to `['127.0.0.1']` (or the loopback range) allows Better Auth to extract the IP from standard proxy headers.
-
-```typescript
-return betterAuth({
-	baseURL,
-	basePath: '/api/auth',
-	secret: env.BETTER_AUTH_SECRET,
-	trustedProxies: ['127.0.0.0/8'],
-	// ...rest of config
-})
-```
-
-### Step 8: Fix CLI Room ID Default
+### Step 4: Fix CLI connect command
 
 **File**: `packages/cli/src/commands/connect.ts`
 
-The CLI default room is `apiToken.slice(0, 8)` which doesn't match web/mobile's `userId`. Change the default to use `userId` from config when available.
+1. Verify token before connecting
+2. If token is invalid, show clear error with re-login instructions
+3. Use verified userId as room ID (not token prefix)
 
 ```typescript
-// Line ~231: Change from
-const roomId: string = opts.room ?? userId ?? apiToken.slice(0, 8)
+.action(async (agentId: string, opts) => {
+  const config = requireConfig()
+  const {serverUrl, apiToken} = config
+  let userId = config.userId
+  const verbose: boolean = opts.verbose ?? false
 
-// To: (already uses userId first, but verify this is correct)
-const roomId: string = opts.room ?? userId ?? apiToken.slice(0, 8)
+  // Verify token and get userId if not in config
+  if (!userId && serverUrl && apiToken) {
+    try {
+      const res = await fetch(`${serverUrl}/api/auth/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiToken}`,
+        },
+      })
+      if (res.ok) {
+        const data = (await res.json()) as {userId: string}
+        userId = data.userId
+        // Update config with userId
+        writeConfig({...config, userId: data.userId})
+      }
+    } catch {}
+  }
+
+  if (!userId) {
+    console.error('✗ Could not determine user ID. Please run: happy-vibecode login')
+    process.exit(1)
+  }
+
+  const roomId: string = opts.room ?? userId
+  // ... rest of connect logic
+})
 ```
 
-This is already correct IF `userId` is stored in the CLI config. The issue is that when users register via CLI, the `userId` IS stored. But when they sign in via GitHub OAuth on web/mobile and then try to connect CLI, the CLI might have a different `userId`. No code change needed here — the fix is documentation/user guidance to use `-r <userId>` flag.
+### Step 5: Add `authUser` import to worker
+
+**File**: `apps/web/worker/index.ts`
+
+Add the import for `authUser` and `createDb` from `@happy-vibecode/db` and `eq` from `drizzle-orm`.
 
 ---
 
 ## Files to Modify
 
-| File                                 | Change                                         |
-| ------------------------------------ | ---------------------------------------------- |
-| `apps/mobile/lib/auth-client.ts`     | Add `inferAdditionalFields` plugin             |
-| `apps/web/worker/bridge-agent.ts`    | Add initial status send + HTTP status endpoint |
-| `packages/api/src/routes/bridge.ts`  | New file — CLI status API route                |
-| `packages/api/src/index.ts`          | Mount bridge router                            |
-| `apps/mobile/app/(tabs)/history.tsx` | Add pull-to-refresh                            |
-| `apps/mobile/app/(tabs)/index.tsx`   | Add pull-to-refresh reconnect                  |
-| `apps/web/worker/auth.ts`            | Add `trustedProxies` config                    |
+| File                                   | Change                                               |
+| -------------------------------------- | ---------------------------------------------------- |
+| `apps/web/worker/index.ts`             | Add WebSocket auth validation, import db/eq/authUser |
+| `apps/web/worker/bridge-agent.ts`      | Read userId from X-Authenticated-UserId header       |
+| `packages/api/src/routes/auth.ts`      | Add auth_user fallback to /verify endpoint           |
+| `packages/cli/src/commands/connect.ts` | Verify token, use userId as room ID                  |
 
 ## Verification
 
-1. `bun run typecheck` — ensure no type errors
+1. `bun run typecheck --force` — ensure no type errors
 2. `bun run lint:fix` — fix any lint issues
 3. Deploy and test:
-   - Mobile app should see `apiToken` in session after GitHub OAuth login
-   - `/api/agents` should return 200 with valid token
-   - Web/mobile clients should immediately see CLI status on connect
-   - Pull-to-refresh should reload history and reconnect WebSocket
-   - Better Auth rate limiting warning should be resolved
+   - WebSocket connections should require valid Bearer token
+   - `/api/auth/verify` should accept tokens from both `users` and `auth_user` tables
+   - CLI should auto-detect userId and use it as room ID
+   - CLI should show clear error if token is invalid
+   - Web/mobile should see CLI connect immediately (same room)
