@@ -40,5 +40,13 @@
 	"appmod.experimental.enableExperimentalTasks": false,
 	"kilo-code.new.autocomplete.enableAutoTrigger": false,
 	"prettier.configPath": "node_modules/@involvex/prettier-config/index.json",
-	"js/ts.preferences.organizeImports": {"locale": "true"}
+	"js/ts.preferences.organizeImports": {
+		"locale": "true"
+	},
+	"vs-browser.url": "http://localhost:5173/",
+	"vs-browser.favourites.list": {
+		"localhost:5173": "http://localhost:5173/",
+		"happy-vibecode.involvex.workers.dev": "https://happy-vibecode.involvex.workers.dev/",
+		"cloudflare-observability": "https://dash.cloudflare.com/d4e0f1c1c830642168db2f4ea3aece58/observability/overview/events"
+	}
 }
