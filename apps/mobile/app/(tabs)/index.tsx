@@ -21,7 +21,7 @@ interface Message {
 }
 
 export default function ChatTab() {
-	const {isAuthed, userId, serverUrl} = useAuth()
+	const {isAuthed, userId, apiToken, serverUrl} = useAuth()
 	const router = useRouter()
 	const [messages, setMessages] = useState<Message[]>([])
 	const [input, setInput] = useState('')
@@ -31,9 +31,11 @@ export default function ChatTab() {
 	const flatListRef = useRef<FlatList>(null)
 	const userIdRef = useRef(userId)
 	const serverUrlRef = useRef(serverUrl)
+	const apiTokenRef = useRef(apiToken)
 
 	userIdRef.current = userId
 	serverUrlRef.current = serverUrl
+	apiTokenRef.current = apiToken
 
 	const onRefresh = useCallback(() => {
 		setRefreshing(true)
@@ -49,8 +51,11 @@ export default function ChatTab() {
 		const host = (
 			serverUrlRef.current ?? 'https://happy-vibecode.involvex.workers.dev'
 		).replace('http', 'ws')
+		const tokenParam = apiTokenRef.current
+			? `&token=${encodeURIComponent(apiTokenRef.current)}`
+			: ''
 		const ws = new WebSocket(
-			`${host}/agents/BridgeAgent/${uid}?type=mobile&userId=${uid}`,
+			`${host}/agents/BridgeAgent/${uid}?type=mobile${tokenParam}`,
 		)
 		wsRef.current = ws
 		ws.onopen = () => {
@@ -81,8 +86,9 @@ export default function ChatTab() {
 		const host = (
 			serverUrl ?? 'https://happy-vibecode.involvex.workers.dev'
 		).replace('http', 'ws')
+		const tokenParam = apiToken ? `&token=${encodeURIComponent(apiToken)}` : ''
 		const ws = new WebSocket(
-			`${host}/agents/BridgeAgent/${userId}?type=mobile&userId=${userId}`,
+			`${host}/agents/BridgeAgent/${userId}?type=mobile${tokenParam}`,
 		)
 		wsRef.current = ws
 
@@ -152,7 +158,7 @@ export default function ChatTab() {
 		return () => {
 			ws.close()
 		}
-	}, [isAuthed, userId, serverUrl])
+	}, [isAuthed, userId, apiToken, serverUrl])
 
 	if (!isAuthed) {
 		return (

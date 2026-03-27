@@ -106,7 +106,9 @@ function useBridgeAgent(roomId: string) {
 
 	useEffect(() => {
 		const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-		const url = `${proto}://${window.location.host}/agents/BridgeAgent/${roomId}?type=web`
+		const apiToken = localStorage.getItem('happy-api-token')
+		const tokenParam = apiToken ? `&token=${encodeURIComponent(apiToken)}` : ''
+		const url = `${proto}://${window.location.host}/agents/BridgeAgent/${roomId}?type=web${tokenParam}`
 		const ws = new WebSocket(url)
 		wsRef.current = ws
 

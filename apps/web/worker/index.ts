@@ -77,11 +77,11 @@ export default {
 				url.pathname.slice('/agents/BridgeAgent/'.length) || 'default'
 
 			// Validate Bearer token before forwarding to Durable Object
+			// Accept token from Authorization header (CLI/mobile) or query param (browser WS)
 			const authHeader = request.headers.get('Authorization')
-			if (!authHeader?.startsWith('Bearer ')) {
-				return new Response('Unauthorized', {status: 401})
-			}
-			const token = authHeader.slice(7)
+			const token = authHeader?.startsWith('Bearer ')
+				? authHeader.slice(7)
+				: url.searchParams.get('token')
 			if (!token) {
 				return new Response('Unauthorized', {status: 401})
 			}

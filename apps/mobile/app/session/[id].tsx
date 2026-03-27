@@ -23,7 +23,7 @@ interface Message {
 export default function SessionScreen() {
 	const {id} = useLocalSearchParams<{id: string}>()
 	const router = useRouter()
-	const {userId, serverUrl} = useAuth()
+	const {userId, apiToken, serverUrl} = useAuth()
 
 	const [messages, setMessages] = useState<Message[]>([])
 	const [input, setInput] = useState('')
@@ -38,8 +38,9 @@ export default function SessionScreen() {
 		const host = (
 			serverUrl ?? 'https://happy-vibecode.involvex.workers.dev'
 		).replace('http', 'ws')
+		const tokenParam = apiToken ? `&token=${encodeURIComponent(apiToken)}` : ''
 		const ws = new WebSocket(
-			`${host}/agents/BridgeAgent/${roomId}?type=mobile&userId=${userId ?? 'anon'}`,
+			`${host}/agents/BridgeAgent/${roomId}?type=mobile${tokenParam}`,
 		)
 		wsRef.current = ws
 
@@ -112,7 +113,7 @@ export default function SessionScreen() {
 		}
 
 		return () => ws.close()
-	}, [roomId, userId, serverUrl])
+	}, [roomId, apiToken, serverUrl])
 
 	const send = () => {
 		const content = input.trim()
