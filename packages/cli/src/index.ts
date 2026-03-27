@@ -8,12 +8,19 @@ import {doctorCommand} from './commands/doctor.js'
 import {configCommand} from './commands/config.js'
 import {loginCommand} from './commands/login.js'
 import {initCommand} from './commands/init.js'
+import {setDebug} from './utils/log.js'
 import {program} from 'commander'
 
 program
 	.name('happy')
 	.description('Happy Vibecode — remote control for local AI agents')
 	.version(pkg.version)
+	.option('--debug', 'Enable debug logging with enhanced output')
+
+program.hook('preAction', thisCommand => {
+	const opts = thisCommand.opts()
+	if (opts.debug) setDebug(true)
+})
 
 program.addCommand(loginCommand)
 program.addCommand(connectCommand)

@@ -1,3 +1,4 @@
+import {debug, debugTime} from '../utils/log.js'
 import {requireConfig} from '../config.js'
 import {Command} from 'commander'
 
@@ -23,22 +24,30 @@ export const statusCommand = new Command('status')
 
 		// Ping health endpoint
 		try {
+			debug('GET /api/health')
+			const done = debugTime('GET /api/health')
 			const res = await fetch(`${serverUrl}/api/health`)
+			done()
 			if (!res.ok) throw new Error(`HTTP ${res.status}`)
 			const data = (await res.json()) as HealthResponse
+			debug('Health response:', JSON.stringify(data))
 			console.log(`✓ Server online — ${serverUrl}`)
 			console.log(`  Status: ${data.status}  |  Time: ${data.timestamp}`)
 		} catch (err) {
 			console.error(`✗ Server unreachable at ${serverUrl}`)
 			console.error(`  ${(err as Error).message}`)
+			debug('Health check error:', (err as Error).stack)
 			process.exit(1)
 		}
 
 		// List active sessions
 		try {
+			debug('GET /api/sessions')
+			const done = debugTime('GET /api/sessions')
 			const res = await fetch(`${serverUrl}/api/sessions`, {
 				headers: {Authorization: `Bearer ${apiToken}`},
 			})
+			done()
 			if (!res.ok) throw new Error(`HTTP ${res.status}`)
 			const data = (await res.json()) as SessionsResponse
 			const sessions = data.sessions ?? []

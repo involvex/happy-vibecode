@@ -201,17 +201,17 @@ export default function ProfilePage() {
 		<div className="min-h-screen bg-kumo-elevated">
 			<Nav onLogout={handleLogout} />
 
-			<main className="max-w-2xl mx-auto px-6 py-10 space-y-6">
+			<main className="max-w-2xl px-6 py-10 mx-auto space-y-6">
 				<h1 className="text-2xl font-bold text-kumo-default">Profile</h1>
 
 				{saveSuccess && (
-					<div className="text-sm text-kumo-success bg-kumo-success/10 border border-kumo-success/20 rounded-lg px-3 py-2">
+					<div className="px-3 py-2 text-sm border rounded-lg text-kumo-success bg-kumo-success/10 border-kumo-success/20">
 						{saveSuccess}
 					</div>
 				)}
 
 				{saveError && (
-					<div className="text-sm text-kumo-danger bg-kumo-danger/10 border border-kumo-danger/20 rounded-lg px-3 py-2">
+					<div className="px-3 py-2 text-sm border rounded-lg text-kumo-danger bg-kumo-danger/10 border-kumo-danger/20">
 						{saveError}
 					</div>
 				)}
@@ -230,8 +230,8 @@ export default function ProfilePage() {
 						className="space-y-6"
 					>
 						{/* Nickname */}
-						<section className="bg-kumo-base border border-kumo-line rounded-2xl p-6 space-y-4">
-							<div className="flex items-center gap-2 text-kumo-default font-semibold">
+						<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
+							<div className="flex items-center gap-2 font-semibold text-kumo-default">
 								<UserIcon size={18} weight="duotone" />
 								Nickname
 							</div>
@@ -248,10 +248,10 @@ export default function ProfilePage() {
 									placeholder="Your nickname"
 									maxLength={50}
 									{...profileForm.register('nickname')}
-									className="w-full px-3 py-2 rounded-lg border border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
+									className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
 								/>
 								{profileForm.formState.errors.nickname && (
-									<p className="text-xs text-kumo-danger mt-1">
+									<p className="mt-1 text-xs text-kumo-danger">
 										{profileForm.formState.errors.nickname.message}
 									</p>
 								)}
@@ -259,8 +259,8 @@ export default function ProfilePage() {
 						</section>
 
 						{/* Theme */}
-						<section className="bg-kumo-base border border-kumo-line rounded-2xl p-6 space-y-4">
-							<div className="flex items-center gap-2 text-kumo-default font-semibold">
+						<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
+							<div className="flex items-center gap-2 font-semibold text-kumo-default">
 								<PaletteIcon size={18} weight="duotone" />
 								Theme
 							</div>
@@ -291,8 +291,8 @@ export default function ProfilePage() {
 						</section>
 
 						{/* Notifications */}
-						<section className="bg-kumo-base border border-kumo-line rounded-2xl p-6 space-y-4">
-							<div className="flex items-center gap-2 text-kumo-default font-semibold">
+						<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
+							<div className="flex items-center gap-2 font-semibold text-kumo-default">
 								<BellIcon size={18} weight="duotone" />
 								Notifications
 							</div>
@@ -310,8 +310,8 @@ export default function ProfilePage() {
 						</section>
 
 						{/* Language */}
-						<section className="bg-kumo-base border border-kumo-line rounded-2xl p-6 space-y-4">
-							<div className="flex items-center gap-2 text-kumo-default font-semibold">
+						<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
+							<div className="flex items-center gap-2 font-semibold text-kumo-default">
 								<TranslateIcon size={18} weight="duotone" />
 								Language
 							</div>
@@ -325,7 +325,7 @@ export default function ProfilePage() {
 								<select
 									id="language"
 									{...profileForm.register('language')}
-									className="w-full px-3 py-2 rounded-lg border border-kumo-line bg-kumo-base text-kumo-default focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
+									className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
 								>
 									{LANGUAGES.map(lang => (
 										<option key={lang.code} value={lang.code}>
@@ -336,8 +336,8 @@ export default function ProfilePage() {
 							</div>
 						</section>
 
-						<section className="bg-kumo-base border border-kumo-line rounded-2xl p-6 space-y-4">
-							<div className="flex items-center gap-2 text-kumo-default font-semibold">
+						<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
+							<div className="flex items-center gap-2 font-semibold text-kumo-default">
 								<CreditCardIcon size={18} weight="duotone" />
 								Subscription
 							</div>
@@ -345,7 +345,7 @@ export default function ProfilePage() {
 								Manage your plan from the web profile. Mobile will read the same
 								subscription state later.
 							</Text>
-							<div className="rounded-xl border border-kumo-line bg-kumo-elevated p-4 space-y-3">
+							<div className="p-4 space-y-3 border rounded-xl border-kumo-line bg-kumo-elevated">
 								<div className="flex items-center justify-between gap-4">
 									<div>
 										<p className="text-sm text-kumo-secondary">Current plan</p>
@@ -355,7 +355,7 @@ export default function ProfilePage() {
 									</div>
 									<div className="text-right">
 										<p className="text-sm text-kumo-secondary">Status</p>
-										<p className="text-sm font-medium text-kumo-default capitalize">
+										<p className="text-sm font-medium capitalize text-kumo-default">
 											{subscription?.cancelAtPeriodEnd && subscription.isPro
 												? 'canceling'
 												: (subscription?.status.replace('_', ' ') ??
@@ -371,7 +371,7 @@ export default function ProfilePage() {
 									</p>
 								)}
 								{subscription?.isPro ? (
-									<div className="flex items-center gap-2 rounded-lg bg-kumo-accent/10 px-3 py-2 text-sm text-kumo-default">
+									<div className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg bg-kumo-accent/10 text-kumo-default">
 										<LightningIcon size={16} weight="duotone" />
 										Your account currently has Pro access.
 									</div>

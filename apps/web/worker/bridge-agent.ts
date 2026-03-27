@@ -146,13 +146,28 @@ export class BridgeAgent extends DurableObject<Env> {
 		) {
 			const cliSession = this.findCli()
 			if (cliSession) {
-				cliSession.ws.send(data)
-				this.persistMessage(
-					msg.sessionId ?? senderSession.userId,
-					senderSession.userId,
-					'user',
-					msg.content,
-				).catch(() => {})
+				try {
+					// Inject sessionId so CLI can identify the prompt origin
+					const payload = JSON.stringify({
+						...msg,
+						sessionId: msg.sessionId ?? senderSession.userId,
+					})
+					cliSession.ws.send(payload)
+					this.persistMessage(
+						msg.sessionId ?? senderSession.userId,
+						senderSession.userId,
+						'user',
+						msg.content,
+					).catch(() => {})
+				} catch {
+					sender.send(
+						JSON.stringify({
+							type: 'error',
+							message: 'CLI connection lost. Please reconnect.',
+						}),
+					)
+					this.sessions.delete(cliSession.ws)
+				}
 			} else {
 				sender.send(
 					JSON.stringify({

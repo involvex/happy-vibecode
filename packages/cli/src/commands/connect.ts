@@ -5,6 +5,7 @@ import type {
 } from '../types/llm-provider.js'
 import {requireConfig, writeConfig, generateBridgeCode} from '../config.js'
 import {DEFAULT_AGENTS} from '../utils/agents-config.js'
+import {debug, debugTime} from '../utils/log.js'
 import {existsSync, readFileSync} from 'fs'
 import {spawn} from 'child_process'
 import {Command} from 'commander'
@@ -173,6 +174,8 @@ async function runAgent(
 		stdio: ['ignore', 'pipe', 'pipe'],
 	})
 
+	let spawnFailed = false
+
 	proc.stdout.setEncoding('utf8')
 	proc.stdout.on('data', (chunk: string) => {
 		spinner.stop()
@@ -187,6 +190,7 @@ async function runAgent(
 
 	proc.on('close', code => {
 		spinner.stop()
+		if (spawnFailed) return
 		if (code !== 0 && code !== null) {
 			onError(`Agent exited with code ${code}`)
 		} else {
@@ -196,6 +200,7 @@ async function runAgent(
 
 	proc.on('error', err => {
 		spinner.stop()
+		spawnFailed = true
 		onError(`Failed to start agent: ${err.message}`)
 	})
 }
@@ -228,9 +233,14 @@ export const connectCommand = new Command('connect')
 		let userId = config.userId
 		const verbose: boolean = opts.verbose ?? false
 
+		debug('Config loaded from ~/.happy/config.json')
+		debug('Server URL:', serverUrl)
+		debug('Agent requested:', agentId)
+
 		// Verify token and resolve userId if not in config
 		if (serverUrl && apiToken) {
 			try {
+				const done = debugTime('POST /api/auth/verify')
 				const res = await fetch(`${serverUrl}/api/auth/verify`, {
 					method: 'POST',
 					headers: {
@@ -238,17 +248,20 @@ export const connectCommand = new Command('connect')
 						Authorization: `Bearer ${apiToken}`,
 					},
 				})
+				done()
 				if (res.ok) {
 					const data = (await res.json()) as {
 						valid: boolean
 						userId: string
 					}
+					debug('Token valid:', data.valid, 'userId:', data.userId)
 					if (data.valid && data.userId) {
 						if (!userId || userId !== data.userId) {
 							userId = data.userId
 							writeConfig({...config, userId: data.userId})
 							if (verbose)
 								console.log(`Updated userId in config: ${data.userId}`)
+							debug('userId updated in config:', data.userId)
 						}
 					}
 				} else {
@@ -260,6 +273,7 @@ export const connectCommand = new Command('connect')
 			} catch (err) {
 				if (verbose)
 					console.log(`Token verification failed: ${(err as Error).message}`)
+				debug('Token verification failed:', (err as Error).message)
 			}
 		}
 
@@ -274,12 +288,15 @@ export const connectCommand = new Command('connect')
 		let roomId: string
 		if (opts.room) {
 			roomId = opts.room
+			debug('Room ID from --room flag:', roomId)
 		} else if (config.bridgeCode) {
 			roomId = config.bridgeCode
+			debug('Room ID from stored bridge code:', roomId)
 		} else {
 			const bridgeCode = generateBridgeCode()
 			writeConfig({...config, bridgeCode})
 			roomId = bridgeCode
+			debug('Generated new bridge code:', bridgeCode)
 		}
 
 		if (!opts.room) {
@@ -302,6 +319,16 @@ export const connectCommand = new Command('connect')
 			if (verbose) {
 				console.log(`No config found for "${agentId}", using as raw command.`)
 			}
+			debug('No agent config found, using raw command:', agentId)
+		} else {
+			debug(
+				'Agent:',
+				agent.name,
+				'— command:',
+				agent.command,
+				'args:',
+				JSON.stringify(agent.args),
+			)
 		}
 
 		if (!(await checkCommandExists(agent.command))) {
@@ -342,6 +369,9 @@ export const connectCommand = new Command('connect')
 			.concat(`/agents/BridgeAgent/${roomId}?type=cli`)
 
 		if (verbose) console.log(`WebSocket URL: ${wsUrl}`)
+		debug('WebSocket URL:', wsUrl)
+		debug('Workspace:', workspace ?? '(none)')
+		debug('Model:', model ?? '(default)')
 
 		const log = (...args: unknown[]) => {
 			if (verbose) console.log(...args)
@@ -350,6 +380,7 @@ export const connectCommand = new Command('connect')
 		let reconnectAttempts = 0
 		const MAX_RECONNECT = 3
 		let intentionalClose = false
+		let keepaliveTimer: ReturnType<typeof setInterval> | null = null
 
 		function connectWs(): WebSocket {
 			const socket = new WebSocket(wsUrl, {
@@ -360,8 +391,19 @@ export const connectCommand = new Command('connect')
 				reconnectAttempts = 0
 				console.log(`✓ Bridge connected. Waiting for prompts...`)
 				console.log('  Press Ctrl+C to disconnect.\n')
+				debug('WS open — sent cli_connected status')
 
 				socket.send(JSON.stringify({type: 'status', status: 'cli_connected'}))
+
+				// Keepalive: send ping every 30s to prevent Cloudflare idle timeout
+				if (keepaliveTimer) clearInterval(keepaliveTimer)
+				keepaliveTimer = setInterval(() => {
+					if (socket.readyState === WebSocket.OPEN) {
+						socket.send(JSON.stringify({type: 'ping'}))
+						debug('Keepalive ping sent')
+					}
+				}, 30_000)
+				debug('Keepalive ping scheduled (30s interval)')
 
 				if (workspace) {
 					socket.send(
@@ -522,9 +564,17 @@ export const connectCommand = new Command('connect')
 
 			socket.on('error', err => {
 				console.error(`WebSocket error: ${err.message}`)
+				debug('WS error:', err.message, err.stack)
 			})
 
 			socket.on('close', (code, reason) => {
+				debug('WS close — code:', code, 'reason:', reason.toString())
+
+				if (keepaliveTimer) {
+					clearInterval(keepaliveTimer)
+					keepaliveTimer = null
+				}
+
 				if (intentionalClose) {
 					console.log(`\nBridge disconnected (${code} ${reason.toString()})`)
 					process.exit(0)
@@ -536,6 +586,7 @@ export const connectCommand = new Command('connect')
 					console.log(
 						`\nBridge disconnected (${code} ${reason.toString()}). Reconnecting in ${delay / 1000}s... (attempt ${reconnectAttempts}/${MAX_RECONNECT})`,
 					)
+					debug('Reconnecting in', delay, 'ms')
 					setTimeout(() => connectWs(), delay)
 				} else {
 					console.log(
