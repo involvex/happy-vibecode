@@ -25,9 +25,9 @@ import {
 	exportToCSV,
 	exportToPDF,
 } from '../components/ExportButton'
-import {SkeletonChart, SkeletonCards} from '../components/Skeletons'
+import {SkeletonChart, SkeletonCards} from '../../components/LoadingSkeletons'
 import {DateRangePicker} from '../components/DateRangePicker'
-import {StatCard} from '../components/StatCard'
+import {StatCard} from '../../components/StatCard'
 import {useAuth} from '../../hooks/useAuth'
 import {useEffect, useState} from 'react'
 
