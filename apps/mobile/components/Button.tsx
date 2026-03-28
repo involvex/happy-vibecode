@@ -25,7 +25,8 @@ const variantStyles = {
 		disabled: 'bg-primary/50',
 	},
 	secondary: {
-		container: 'bg-card dark:bg-card-dark border border-border dark:border-border-dark',
+		container:
+			'bg-card dark:bg-card-dark border border-border dark:border-border-dark',
 		text: 'text-text dark:text-text-dark',
 		disabled: 'bg-card dark:bg-card-dark opacity-50',
 	},

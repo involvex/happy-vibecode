@@ -91,11 +91,7 @@ function ToastItem({
 				marginTop: dp(50),
 			}}
 		>
-			<Ionicons
-				name={styles.icon}
-				size={dp(20)}
-				color={styles.iconColor}
-			/>
+			<Ionicons name={styles.icon} size={dp(20)} color={styles.iconColor} />
 			<Text className="text-text dark:text-text-dark text-sm flex-1 font-medium">
 				{message}
 			</Text>
@@ -114,10 +110,13 @@ let toastHandler: ToastContextValue | null = null
 export function ToastProvider({children}: {children: React.ReactNode}) {
 	const [toasts, setToasts] = useState<ToastMessage[]>([])
 
-	const show = useCallback((message: string, variant: ToastVariant = 'info') => {
-		const id = ++toastId
-		setToasts(prev => [...prev, {id, message, variant}])
-	}, [])
+	const show = useCallback(
+		(message: string, variant: ToastVariant = 'info') => {
+			const id = ++toastId
+			setToasts(prev => [...prev, {id, message, variant}])
+		},
+		[],
+	)
 
 	const remove = useCallback((id: number) => {
 		setToasts(prev => prev.filter(t => t.id !== id))
