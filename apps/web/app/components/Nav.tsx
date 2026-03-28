@@ -10,6 +10,7 @@ import {
 	ListIcon,
 	XIcon,
 	ShieldCheckIcon,
+	ChartLineUpIcon,
 } from '@phosphor-icons/react'
 import {usePathname} from 'next/navigation'
 import {useAuth} from '../hooks/useAuth'
@@ -26,6 +27,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
 	{href: '/dashboard', label: 'Dashboard', icon: <HouseIcon size={18} />},
+	{href: '/analytics', label: 'Analytics', icon: <ChartLineUpIcon size={18} />},
 	{href: '/chat', label: 'Chat', icon: <ChatCircleDotsIcon size={18} />},
 	{href: '/history', label: 'History', icon: <ClockIcon size={18} />},
 	{href: '/contact', label: 'Contact', icon: <EnvelopeSimpleIcon size={18} />},
