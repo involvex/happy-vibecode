@@ -1,5 +1,6 @@
 'use client'
 import {
+	ArrowClockwiseIcon,
 	CircleIcon,
 	ChatCircleDotsIcon,
 	ClockIcon,
@@ -59,12 +60,12 @@ function SessionCard({session}: {session: Session}) {
 	return (
 		<div className="bg-kumo-base border border-kumo-line rounded-2xl p-5 flex flex-col gap-3">
 			<div className="flex items-start justify-between gap-3">
-				<div>
-					<p className="font-semibold text-kumo-default capitalize">
+				<div className="min-w-0">
+					<p className="font-semibold text-kumo-default capitalize truncate">
 						{session.agentType.replace('_', ' ')}
 					</p>
-					<p className="text-xs text-kumo-inactive font-mono mt-0.5">
-						{session.id.slice(0, 12)}…
+					<p className="text-xs text-kumo-inactive font-mono mt-0.5 truncate">
+						{session.id}
 					</p>
 				</div>
 				<StatusDot status={session.status} />
@@ -91,6 +92,22 @@ export default function DashboardPage() {
 	const [sessions, setSessions] = useState<Session[]>([])
 	const [fetching, setFetching] = useState(true)
 
+	const loadSessions = async () => {
+		if (!apiToken) return
+		setFetching(true)
+		try {
+			const res = await fetch('/api/sessions', {
+				headers: {Authorization: `Bearer ${apiToken}`},
+			})
+			if (res.ok) {
+				const data = (await res.json()) as SessionsResponse
+				setSessions(data.sessions ?? [])
+			}
+		} finally {
+			setFetching(false)
+		}
+	}
+
 	useEffect(() => {
 		if (isLoaded && !isAuthed) {
 			router.replace('/login')
@@ -98,22 +115,7 @@ export default function DashboardPage() {
 	}, [isLoaded, isAuthed, router])
 
 	useEffect(() => {
-		if (!apiToken) return
-		async function load() {
-			setFetching(true)
-			try {
-				const res = await fetch('/api/sessions', {
-					headers: {Authorization: `Bearer ${apiToken}`},
-				})
-				if (res.ok) {
-					const data = (await res.json()) as SessionsResponse
-					setSessions(data.sessions ?? [])
-				}
-			} finally {
-				setFetching(false)
-			}
-		}
-		load()
+		loadSessions()
 	}, [apiToken])
 
 	const handleLogout = () => {
@@ -139,9 +141,9 @@ export default function DashboardPage() {
 		<div className="min-h-screen bg-kumo-elevated">
 			<Nav onLogout={handleLogout} />
 
-			<main className="max-w-5xl mx-auto px-6 py-10">
+			<main className="max-w-5xl mx-auto px-4 py-6 sm:px-6 sm:py-10">
 				{/* Summary cards */}
-				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
 					{[
 						{
 							icon: <DevicesIcon size={22} weight="duotone" />,
@@ -181,16 +183,30 @@ export default function DashboardPage() {
 				</div>
 
 				{/* Sessions list */}
-				<div className="flex items-center justify-between mb-5">
+				<div className="flex items-center justify-between mb-5 gap-2">
 					<h2 className="text-xl font-bold text-kumo-default">
 						Agent Sessions
 					</h2>
-					<Link href="/chat">
-						<Button variant="primary" size="sm">
-							<ChatCircleDotsIcon size={14} />
-							New Chat
+					<div className="flex items-center gap-2">
+						<Button
+							variant="secondary"
+							size="sm"
+							onClick={loadSessions}
+							disabled={fetching}
+							aria-label="Refresh sessions"
+						>
+							<ArrowClockwiseIcon
+								size={14}
+								className={fetching ? 'animate-spin' : ''}
+							/>
 						</Button>
-					</Link>
+						<Link href="/chat">
+							<Button variant="primary" size="sm">
+								<ChatCircleDotsIcon size={14} />
+								New Chat
+							</Button>
+						</Link>
+					</div>
 				</div>
 
 				{fetching ? (
