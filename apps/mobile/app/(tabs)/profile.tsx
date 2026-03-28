@@ -93,44 +93,60 @@ export default function ProfileScreen() {
 		? apiToken.slice(0, 3) + '\u2022'.repeat(12) + apiToken.slice(-3)
 		: 'Not available'
 
-	const fetchProfile = async () => {
-		if (!apiToken) return
-		setLoading(true)
-		try {
-			const [profileRes, subRes] = await Promise.all([
-				fetch(`${baseUrl}/api/user/profile`, {
-					headers: {Authorization: `Bearer ${apiToken}`},
-				}),
-				fetch(`${baseUrl}/api/user/subscription`, {
-					headers: {Authorization: `Bearer ${apiToken}`},
-				}),
-			])
-
-			if (!profileRes.ok) throw new Error('Failed to load profile')
-			const profile = (await profileRes.json()) as UserProfile
-
-			setNickname(profile.nickname ?? '')
-			setTheme(profile.preferences?.theme ?? 'system')
-			setNotifications(profile.preferences?.notifications ?? true)
-			setLanguage(profile.preferences?.language ?? 'en')
-			setEmail(profile.email)
-
-			if (subRes.ok) {
-				const sub = (await subRes.json()) as UserSubscription
-				setSubscription(sub)
-			} else {
-				setSubscription(profile.subscription)
-			}
-		} catch (err) {
-			console.error('Profile load error:', err)
-		} finally {
-			setLoading(false)
-		}
-	}
-
 	useEffect(() => {
+		let cancelled = false
+
+		const fetchProfile = async () => {
+			if (!apiToken) return
+			setLoading(true)
+			try {
+				const [profileRes, subRes] = await Promise.all([
+					fetch(`${baseUrl}/api/user/profile`, {
+						headers: {Authorization: `Bearer ${apiToken}`},
+					}),
+					fetch(`${baseUrl}/api/user/subscription`, {
+						headers: {Authorization: `Bearer ${apiToken}`},
+					}),
+				])
+
+				if (!profileRes.ok) throw new Error('Failed to load profile')
+				const profile = (await profileRes.json()) as UserProfile
+
+				if (cancelled) return
+
+				const profileTheme = profile.preferences?.theme ?? 'system'
+				setNickname(profile.nickname ?? '')
+				setTheme(profileTheme)
+				// Apply the loaded theme preference to NativeWind and persist it
+				try {
+					setColorScheme(profileTheme === 'system' ? 'system' : profileTheme)
+					await AsyncStorage.setItem(COLOR_SCHEME_KEY, profileTheme)
+				} catch (storageErr) {
+					console.error('Failed to persist theme preference:', storageErr)
+				}
+				setNotifications(profile.preferences?.notifications ?? true)
+				setLanguage(profile.preferences?.language ?? 'en')
+				setEmail(profile.email)
+
+				if (subRes.ok) {
+					const sub = (await subRes.json()) as UserSubscription
+					setSubscription(sub)
+				} else {
+					setSubscription(profile.subscription)
+				}
+			} catch (err) {
+				if (!cancelled) console.error('Profile load error:', err)
+			} finally {
+				if (!cancelled) setLoading(false)
+			}
+		}
+
 		fetchProfile()
-	}, [apiToken])
+
+		return () => {
+			cancelled = true
+		}
+	}, [apiToken, baseUrl, setColorScheme])
 
 	const handleSave = async () => {
 		if (!apiToken) return
@@ -208,16 +224,16 @@ export default function ProfileScreen() {
 				edges={['top']}
 			>
 				<View className="px-4 py-3 border-b border-border dark:border-border-dark">
-					<Text className="text-text dark:text-text-dark text-lg font-semibold">
+					<Text className="text-lg font-semibold text-text dark:text-text-dark">
 						Profile
 					</Text>
 				</View>
-				<View className="flex-1 items-center justify-center px-6">
+				<View className="items-center justify-center flex-1 px-6">
 					<Ionicons name="person-circle-outline" size={64} color={mutedColor} />
-					<Text className="text-text dark:text-text-dark text-lg font-semibold mt-4">
+					<Text className="mt-4 text-lg font-semibold text-text dark:text-text-dark">
 						Sign in to view your profile
 					</Text>
-					<Text className="text-muted dark:text-muted-dark text-sm mt-1 text-center">
+					<Text className="mt-1 text-sm text-center text-muted dark:text-muted-dark">
 						Go to Settings to sign in or create an account.
 					</Text>
 				</View>
@@ -231,7 +247,7 @@ export default function ProfileScreen() {
 			edges={['top']}
 		>
 			<View className="px-4 py-3 border-b border-border dark:border-border-dark">
-				<Text className="text-text dark:text-text-dark text-lg font-semibold">
+				<Text className="text-lg font-semibold text-text dark:text-text-dark">
 					Profile
 				</Text>
 			</View>
@@ -247,31 +263,31 @@ export default function ProfileScreen() {
 					keyboardDismissMode="on-drag"
 				>
 					{saveMessage !== '' && (
-						<View className="bg-success/10 border border-success/20 rounded-xl px-3 py-2">
-							<Text className="text-success text-sm">{saveMessage}</Text>
+						<View className="px-3 py-2 border bg-success/10 border-success/20 rounded-xl">
+							<Text className="text-sm text-success">{saveMessage}</Text>
 						</View>
 					)}
 
 					{saveError !== '' && (
-						<View className="bg-error/10 border border-error/20 rounded-xl px-3 py-2">
-							<Text className="text-error text-sm">{saveError}</Text>
+						<View className="px-3 py-2 border bg-error/10 border-error/20 rounded-xl">
+							<Text className="text-sm text-error">{saveError}</Text>
 						</View>
 					)}
 
 					{loading ? (
 						<View className="items-center justify-center py-10">
 							<Ionicons name="reload-outline" size={24} color={mutedColor} />
-							<Text className="text-muted dark:text-muted-dark text-sm mt-2">
+							<Text className="mt-2 text-sm text-muted dark:text-muted-dark">
 								Loading profile...
 							</Text>
 						</View>
 					) : (
 						<>
 							{/* User Info */}
-							<View className="bg-card dark:bg-card-dark border border-border dark:border-border-dark rounded-2xl p-4 gap-3">
+							<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
 								<View className="flex-row items-center gap-2">
 									<Ionicons name="person-outline" size={18} color={iconColor} />
-									<Text className="text-text dark:text-text-dark font-semibold">
+									<Text className="font-semibold text-text dark:text-text-dark">
 										Account
 									</Text>
 								</View>
@@ -281,7 +297,7 @@ export default function ProfileScreen() {
 										<Text className="text-muted dark:text-muted-dark text-xs mb-0.5">
 											Email
 										</Text>
-										<Text className="text-text dark:text-text-dark text-sm">
+										<Text className="text-sm text-text dark:text-text-dark">
 											{email ?? 'Not available'}
 										</Text>
 									</View>
@@ -290,7 +306,7 @@ export default function ProfileScreen() {
 										<Text className="text-muted dark:text-muted-dark text-xs mb-0.5">
 											User ID
 										</Text>
-										<Text className="text-text dark:text-text-dark text-sm font-mono">
+										<Text className="font-mono text-sm text-text dark:text-text-dark">
 											{userId ?? 'Not available'}
 										</Text>
 									</View>
@@ -300,7 +316,7 @@ export default function ProfileScreen() {
 											API Token
 										</Text>
 										<View className="flex-row items-center gap-2">
-											<Text className="text-text dark:text-text-dark text-sm font-mono flex-1">
+											<Text className="flex-1 font-mono text-sm text-text dark:text-text-dark">
 												{maskedToken}
 											</Text>
 											<TouchableOpacity
@@ -324,19 +340,19 @@ export default function ProfileScreen() {
 							</View>
 
 							{/* Nickname */}
-							<View className="bg-card dark:bg-card-dark border border-border dark:border-border-dark rounded-2xl p-4 gap-3">
+							<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
 								<View className="flex-row items-center gap-2">
 									<Ionicons name="at-outline" size={18} color={iconColor} />
-									<Text className="text-text dark:text-text-dark font-semibold">
+									<Text className="font-semibold text-text dark:text-text-dark">
 										Nickname
 									</Text>
 								</View>
-								<Text className="text-muted dark:text-muted-dark text-xs">
-									This is how you'll appear to others.
+								<Text className="text-xs text-muted dark:text-muted-dark">
+									This is how you&apos;ll appear to others.
 								</Text>
 								<View className="flex-row items-center gap-2">
 									<TextInput
-										className="flex-1 bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-xl px-4 py-3 text-text dark:text-text-dark text-sm"
+										className="flex-1 px-4 py-3 text-sm border bg-surface dark:bg-surface-dark border-border dark:border-border-dark rounded-xl text-text dark:text-text-dark"
 										placeholder="Your nickname"
 										placeholderTextColor={placeholderColor}
 										value={nickname}
@@ -349,7 +365,7 @@ export default function ProfileScreen() {
 										onPress={handleSave}
 										disabled={saving}
 									>
-										<Text className="text-white font-semibold text-sm">
+										<Text className="text-sm font-semibold text-white">
 											{saving ? 'Saving...' : 'Save'}
 										</Text>
 									</TouchableOpacity>
@@ -358,21 +374,21 @@ export default function ProfileScreen() {
 
 							{/* Theme */}
 							<View className="gap-3">
-								<Text className="text-text dark:text-text-dark font-semibold text-sm uppercase tracking-wide">
+								<Text className="text-sm font-semibold tracking-wide uppercase text-text dark:text-text-dark">
 									Appearance
 								</Text>
-								<View className="bg-card dark:bg-card-dark border border-border dark:border-border-dark rounded-2xl p-4 gap-3">
+								<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
 									<View className="flex-row items-center gap-2">
 										<Ionicons
 											name="color-palette-outline"
 											size={18}
 											color={iconColor}
 										/>
-										<Text className="text-text dark:text-text-dark font-semibold">
+										<Text className="font-semibold text-text dark:text-text-dark">
 											Theme
 										</Text>
 									</View>
-									<Text className="text-muted dark:text-muted-dark text-xs">
+									<Text className="text-xs text-muted dark:text-muted-dark">
 										Choose your preferred color scheme.
 									</Text>
 									<View className="flex-row gap-2">
@@ -416,10 +432,10 @@ export default function ProfileScreen() {
 
 							{/* Notifications */}
 							<View className="gap-3">
-								<Text className="text-text dark:text-text-dark font-semibold text-sm uppercase tracking-wide">
+								<Text className="text-sm font-semibold tracking-wide uppercase text-text dark:text-text-dark">
 									Preferences
 								</Text>
-								<View className="bg-card dark:bg-card-dark border border-border dark:border-border-dark rounded-2xl px-4 py-3 flex-row items-center justify-between">
+								<View className="flex-row items-center justify-between px-4 py-3 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
 									<View className="flex-row items-center gap-3">
 										<Ionicons
 											name="notifications-outline"
@@ -427,10 +443,10 @@ export default function ProfileScreen() {
 											color={iconColor}
 										/>
 										<View>
-											<Text className="text-text dark:text-text-dark font-medium text-sm">
+											<Text className="text-sm font-medium text-text dark:text-text-dark">
 												Notifications
 											</Text>
-											<Text className="text-muted dark:text-muted-dark text-xs">
+											<Text className="text-xs text-muted dark:text-muted-dark">
 												Receive updates about your agent sessions.
 											</Text>
 										</View>
@@ -445,18 +461,18 @@ export default function ProfileScreen() {
 							</View>
 
 							{/* Language */}
-							<View className="bg-card dark:bg-card-dark border border-border dark:border-border-dark rounded-2xl p-4 gap-3">
+							<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
 								<View className="flex-row items-center gap-2">
 									<Ionicons
 										name="language-outline"
 										size={18}
 										color={iconColor}
 									/>
-									<Text className="text-text dark:text-text-dark font-semibold">
+									<Text className="font-semibold text-text dark:text-text-dark">
 										Language
 									</Text>
 								</View>
-								<Text className="text-muted dark:text-muted-dark text-xs">
+								<Text className="text-xs text-muted dark:text-muted-dark">
 									Select your preferred language.
 								</Text>
 								<ScrollView
@@ -490,13 +506,13 @@ export default function ProfileScreen() {
 
 							{/* Subscription */}
 							<View className="gap-3">
-								<Text className="text-text dark:text-text-dark font-semibold text-sm uppercase tracking-wide">
+								<Text className="text-sm font-semibold tracking-wide uppercase text-text dark:text-text-dark">
 									Subscription
 								</Text>
-								<View className="bg-card dark:bg-card-dark border border-border dark:border-border-dark rounded-2xl p-4 gap-3">
+								<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
 									<View className="flex-row items-center gap-2">
 										<Ionicons name="card-outline" size={18} color={iconColor} />
-										<Text className="text-text dark:text-text-dark font-semibold">
+										<Text className="font-semibold text-text dark:text-text-dark">
 											Plan
 										</Text>
 										<View
@@ -520,10 +536,10 @@ export default function ProfileScreen() {
 
 									{subscription && (
 										<View className="flex-row items-center justify-between">
-											<Text className="text-muted dark:text-muted-dark text-xs">
+											<Text className="text-xs text-muted dark:text-muted-dark">
 												Status
 											</Text>
-											<Text className="text-text dark:text-text-dark text-xs font-medium capitalize">
+											<Text className="text-xs font-medium capitalize text-text dark:text-text-dark">
 												{subscription.cancelAtPeriodEnd && subscription.isPro
 													? 'canceling'
 													: subscription.status.replace('_', ' ')}
@@ -532,7 +548,7 @@ export default function ProfileScreen() {
 									)}
 
 									{subscription?.currentPeriodEnd && (
-										<Text className="text-muted dark:text-muted-dark text-xs">
+										<Text className="text-xs text-muted dark:text-muted-dark">
 											{subscription.cancelAtPeriodEnd
 												? `Your Pro access ends on ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}.`
 												: `Your current billing period renews on ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}.`}
@@ -540,13 +556,13 @@ export default function ProfileScreen() {
 									)}
 
 									{subscription?.isPro ? (
-										<View className="flex-row items-center gap-2 bg-primary/10 rounded-xl px-3 py-2">
+										<View className="flex-row items-center gap-2 px-3 py-2 bg-primary/10 rounded-xl">
 											<Ionicons
 												name="flash-outline"
 												size={16}
 												color="#7c3aed"
 											/>
-											<Text className="text-primary text-sm font-medium">
+											<Text className="text-sm font-medium text-primary">
 												Your account currently has Pro access.
 											</Text>
 										</View>
@@ -561,7 +577,7 @@ export default function ProfileScreen() {
 												size={16}
 												color="#ffffff"
 											/>
-											<Text className="text-white font-semibold">
+											<Text className="font-semibold text-white">
 												{checkoutLoading
 													? 'Opening Checkout...'
 													: 'Upgrade to Pro'}
@@ -577,7 +593,7 @@ export default function ProfileScreen() {
 								onPress={handleSave}
 								disabled={saving}
 							>
-								<Text className="text-white font-semibold">
+								<Text className="font-semibold text-white">
 									{saving ? 'Saving...' : 'Save Changes'}
 								</Text>
 							</TouchableOpacity>
