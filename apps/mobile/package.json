@@ -27,6 +27,7 @@
 		"better-auth": "^1.5.6",
 		"crypto": "^1.0.1",
 		"expo": "^55.0.8",
+		"expo-clipboard": "^55.0.10-canary-20260327-0789fbc",
 		"expo-constants": "~55.0.9",
 		"expo-crypto": "~55.0.10",
 		"expo-dev-client": "~55.0.18",
