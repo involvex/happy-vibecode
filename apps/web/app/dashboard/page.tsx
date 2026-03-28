@@ -7,9 +7,9 @@ import {
 	DevicesIcon,
 	WifiHighIcon,
 } from '@phosphor-icons/react'
+import {useCallback, useEffect, useState} from 'react'
 import {Button, Text} from '@cloudflare/kumo'
 import {useRouter} from 'next/navigation'
-import {useEffect, useState} from 'react'
 import {useAuth} from '../hooks/useAuth'
 import {Nav} from '../components/Nav'
 import Link from 'next/link'
@@ -58,10 +58,10 @@ function SessionCard({session}: {session: Session}) {
 	}
 
 	return (
-		<div className="bg-kumo-base border border-kumo-line rounded-2xl p-5 flex flex-col gap-3">
+		<div className="flex flex-col gap-3 p-5 border bg-kumo-base border-kumo-line rounded-2xl">
 			<div className="flex items-start justify-between gap-3">
 				<div className="min-w-0">
-					<p className="font-semibold text-kumo-default capitalize truncate">
+					<p className="font-semibold capitalize truncate text-kumo-default">
 						{session.agentType.replace('_', ' ')}
 					</p>
 					<p className="text-xs text-kumo-inactive font-mono mt-0.5 truncate">
@@ -91,22 +91,40 @@ export default function DashboardPage() {
 	const router = useRouter()
 	const [sessions, setSessions] = useState<Session[]>([])
 	const [fetching, setFetching] = useState(true)
+	const [error, setError] = useState<string | null>(null)
 
-	const loadSessions = async () => {
-		if (!apiToken) return
+	const loadSessions = useCallback(async () => {
+		if (!apiToken) {
+			setSessions([])
+			setFetching(false)
+			setError(null)
+			return
+		}
+
 		setFetching(true)
+		setError(null)
+
 		try {
 			const res = await fetch('/api/sessions', {
 				headers: {Authorization: `Bearer ${apiToken}`},
 			})
-			if (res.ok) {
-				const data = (await res.json()) as SessionsResponse
-				setSessions(data.sessions ?? [])
+
+			if (!res.ok) {
+				setSessions([])
+				setError(`Failed to load sessions (status ${res.status})`)
+				return
 			}
+
+			const data = (await res.json()) as SessionsResponse
+			setSessions(data.sessions ?? [])
+		} catch (err) {
+			console.error('Error loading sessions', err)
+			setSessions([])
+			setError('Failed to load sessions')
 		} finally {
 			setFetching(false)
 		}
-	}
+	}, [apiToken])
 
 	useEffect(() => {
 		if (isLoaded && !isAuthed) {
@@ -116,7 +134,7 @@ export default function DashboardPage() {
 
 	useEffect(() => {
 		loadSessions()
-	}, [apiToken])
+	}, [loadSessions])
 
 	const handleLogout = () => {
 		logout()
@@ -141,9 +159,9 @@ export default function DashboardPage() {
 		<div className="min-h-screen bg-kumo-elevated">
 			<Nav onLogout={handleLogout} />
 
-			<main className="max-w-5xl mx-auto px-4 py-6 sm:px-6 sm:py-10">
+			<main className="max-w-5xl px-4 py-6 mx-auto sm:px-6 sm:py-10">
 				{/* Summary cards */}
-				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+				<div className="grid grid-cols-2 gap-4 mb-10 lg:grid-cols-4">
 					{[
 						{
 							icon: <DevicesIcon size={22} weight="duotone" />,
@@ -169,7 +187,7 @@ export default function DashboardPage() {
 					].map(card => (
 						<div
 							key={card.label}
-							className="bg-kumo-base border border-kumo-line rounded-2xl px-5 py-4 flex items-center gap-4"
+							className="flex items-center gap-4 px-5 py-4 border bg-kumo-base border-kumo-line rounded-2xl"
 						>
 							<div className="text-kumo-accent">{card.icon}</div>
 							<div>
@@ -183,7 +201,7 @@ export default function DashboardPage() {
 				</div>
 
 				{/* Sessions list */}
-				<div className="flex items-center justify-between mb-5 gap-2">
+				<div className="flex items-center justify-between gap-2 mb-5">
 					<h2 className="text-xl font-bold text-kumo-default">
 						Agent Sessions
 					</h2>
@@ -210,7 +228,7 @@ export default function DashboardPage() {
 				</div>
 
 				{fetching ? (
-					<div className="flex items-center gap-3 text-kumo-secondary py-10">
+					<div className="flex items-center gap-3 py-10 text-kumo-secondary">
 						<CircleIcon
 							size={18}
 							weight="duotone"
@@ -219,11 +237,11 @@ export default function DashboardPage() {
 						Loading sessions…
 					</div>
 				) : sessions.length === 0 ? (
-					<div className="bg-kumo-base border border-dashed border-kumo-line rounded-2xl py-16 text-center">
+					<div className="py-16 text-center border border-dashed bg-kumo-base border-kumo-line rounded-2xl">
 						<ChatCircleDotsIcon
 							size={40}
 							weight="duotone"
-							className="text-kumo-inactive mx-auto mb-3"
+							className="mx-auto mb-3 text-kumo-inactive"
 						/>
 						<Text variant="secondary">
 							No sessions yet. Start by connecting your local agent.
@@ -233,7 +251,7 @@ export default function DashboardPage() {
 						</code>
 					</div>
 				) : (
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 						{sessions.map(s => (
 							<SessionCard key={s.id} session={s} />
 						))}
@@ -241,7 +259,7 @@ export default function DashboardPage() {
 				)}
 
 				{/* Footer user info */}
-				<div className="mt-10 pt-6 border-t border-kumo-line text-xs text-kumo-inactive font-mono">
+				<div className="pt-6 mt-10 font-mono text-xs border-t border-kumo-line text-kumo-inactive">
 					User ID: {userId}
 				</div>
 			</main>
