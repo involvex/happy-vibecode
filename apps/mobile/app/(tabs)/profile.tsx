@@ -80,7 +80,10 @@ export default function ProfileScreen() {
 	const baseUrl = serverUrl ?? ''
 
 	const loadProfile = useCallback(async () => {
-		if (!apiToken || !baseUrl) return
+		if (!apiToken || !baseUrl) {
+			setLoading(false)
+			return
+		}
 		setLoading(true)
 		try {
 			const [profileRes, subRes] = await Promise.all([
@@ -165,248 +168,245 @@ export default function ProfileScreen() {
 
 	if (loading) {
 		return (
-			<SafeAreaView edges={['top']}>
-				<View className="items-center justify-center flex-1 bg-surface dark:bg-surface-dark">
-					<Text className="text-muted dark:text-muted-dark">Loading...</Text>
-				</View>
+			<SafeAreaView
+				className="flex-1 items-center justify-center bg-surface dark:bg-surface-dark"
+				edges={['top']}
+			>
+				<Text className="text-muted dark:text-muted-dark">Loading...</Text>
 			</SafeAreaView>
 		)
 	}
 
 	return (
-		<SafeAreaView edges={['top']}>
-			<View className="flex-1 bg-surface dark:bg-surface-dark">
-				<View className="px-4 py-3 border-b border-border dark:border-border-dark">
-					<Text className="text-lg font-semibold text-text dark:text-text-dark">
-						Profile
-					</Text>
-				</View>
+		<SafeAreaView
+			className="flex-1 bg-surface dark:bg-surface-dark"
+			edges={['top']}
+		>
+			<View className="px-4 py-3 border-b border-border dark:border-border-dark">
+				<Text className="text-lg font-semibold text-text dark:text-text-dark">
+					Profile
+				</Text>
+			</View>
 
-				<KeyboardAvoidingView
+			<KeyboardAvoidingView
+				className="flex-1"
+				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+			>
+				<ScrollView
 					className="flex-1"
-					behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+					contentContainerStyle={{padding: 16, gap: 16}}
+					keyboardShouldPersistTaps="handled"
+					keyboardDismissMode="on-drag"
 				>
-					<ScrollView
-						className="flex-1"
-						contentContainerStyle={{padding: 16, gap: 16}}
-						keyboardShouldPersistTaps="handled"
-						keyboardDismissMode="on-drag"
-					>
-						{/* Nickname */}
-						<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
-							<View className="flex-row items-center gap-2">
-								<Ionicons name="person-outline" size={18} color={mutedColor} />
-								<Text className="font-semibold text-text dark:text-text-dark">
-									Nickname
-								</Text>
-							</View>
-							<Text className="text-xs text-muted dark:text-muted-dark">
-								{"This is how you'll appear to others."}
+					{/* Nickname */}
+					<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
+						<View className="flex-row items-center gap-2">
+							<Ionicons name="person-outline" size={18} color={mutedColor} />
+							<Text className="font-semibold text-text dark:text-text-dark">
+								Nickname
 							</Text>
-							<TextInput
-								className="px-4 py-3 text-sm border bg-surface dark:bg-surface-dark border-border dark:border-border-dark rounded-xl text-text dark:text-text-dark"
-								placeholder="Your nickname"
-								placeholderTextColor={placeholderColor}
-								value={nickname}
-								onChangeText={setNickname}
-								maxLength={50}
+						</View>
+						<Text className="text-xs text-muted dark:text-muted-dark">
+							{"This is how you'll appear to others."}
+						</Text>
+						<TextInput
+							className="px-4 py-3 text-sm border bg-surface dark:bg-surface-dark border-border dark:border-border-dark rounded-xl text-text dark:text-text-dark"
+							placeholder="Your nickname"
+							placeholderTextColor={placeholderColor}
+							value={nickname}
+							onChangeText={setNickname}
+							maxLength={50}
+						/>
+					</View>
+
+					{/* Theme */}
+					<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
+						<View className="flex-row items-center gap-2">
+							<Ionicons
+								name="color-palette-outline"
+								size={18}
+								color={mutedColor}
+							/>
+							<Text className="font-semibold text-text dark:text-text-dark">
+								Theme
+							</Text>
+						</View>
+						<Text className="text-xs text-muted dark:text-muted-dark">
+							Choose your preferred color scheme.
+						</Text>
+						<View className="flex-row gap-3">
+							{THEMES.map(t => (
+								<TouchableOpacity
+									key={t}
+									className={`flex-1 py-3 rounded-xl border items-center ${
+										theme === t
+											? 'border-primary bg-primary/10'
+											: 'border-border dark:border-border-dark'
+									}`}
+									onPress={() => setTheme(t)}
+								>
+									<Text
+										className={`text-sm capitalize ${
+											theme === t
+												? 'text-primary font-semibold'
+												: 'text-muted dark:text-muted-dark'
+										}`}
+									>
+										{t}
+									</Text>
+								</TouchableOpacity>
+							))}
+						</View>
+					</View>
+
+					{/* Notifications */}
+					<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
+						<View className="flex-row items-center gap-2">
+							<Ionicons
+								name="notifications-outline"
+								size={18}
+								color={mutedColor}
+							/>
+							<Text className="font-semibold text-text dark:text-text-dark">
+								Notifications
+							</Text>
+						</View>
+						<Text className="text-xs text-muted dark:text-muted-dark">
+							Receive updates about your agent sessions.
+						</Text>
+						<View className="flex-row items-center justify-between">
+							<Text className="text-sm text-text dark:text-text-dark">
+								Enable notifications
+							</Text>
+							<Switch
+								value={notifications}
+								onValueChange={setNotifications}
+								trackColor={{false: '#e2e8f0', true: '#3b82f6'}}
+								thumbColor="#ffffff"
 							/>
 						</View>
+					</View>
 
-						{/* Theme */}
-						<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
-							<View className="flex-row items-center gap-2">
-								<Ionicons
-									name="color-palette-outline"
-									size={18}
-									color={mutedColor}
-								/>
-								<Text className="font-semibold text-text dark:text-text-dark">
-									Theme
-								</Text>
-							</View>
-							<Text className="text-xs text-muted dark:text-muted-dark">
-								Choose your preferred color scheme.
+					{/* Language */}
+					<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
+						<View className="flex-row items-center gap-2">
+							<Ionicons name="language-outline" size={18} color={mutedColor} />
+							<Text className="font-semibold text-text dark:text-text-dark">
+								Language
 							</Text>
-							<View className="flex-row gap-3">
-								{THEMES.map(t => (
-									<TouchableOpacity
-										key={t}
-										className={`flex-1 py-3 rounded-xl border items-center ${
-											theme === t
-												? 'border-primary bg-primary/10'
-												: 'border-border dark:border-border-dark'
-										}`}
-										onPress={() => setTheme(t)}
-									>
-										<Text
-											className={`text-sm capitalize ${
-												theme === t
-													? 'text-primary font-semibold'
-													: 'text-muted dark:text-muted-dark'
-											}`}
-										>
-											{t}
-										</Text>
-									</TouchableOpacity>
-								))}
-							</View>
 						</View>
-
-						{/* Notifications */}
-						<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
-							<View className="flex-row items-center gap-2">
-								<Ionicons
-									name="notifications-outline"
-									size={18}
-									color={mutedColor}
-								/>
-								<Text className="font-semibold text-text dark:text-text-dark">
-									Notifications
-								</Text>
-							</View>
-							<Text className="text-xs text-muted dark:text-muted-dark">
-								Receive updates about your agent sessions.
-							</Text>
-							<View className="flex-row items-center justify-between">
-								<Text className="text-sm text-text dark:text-text-dark">
-									Enable notifications
-								</Text>
-								<Switch
-									value={notifications}
-									onValueChange={setNotifications}
-									trackColor={{false: '#e2e8f0', true: '#3b82f6'}}
-									thumbColor="#ffffff"
-								/>
-							</View>
-						</View>
-
-						{/* Language */}
-						<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
-							<View className="flex-row items-center gap-2">
-								<Ionicons
-									name="language-outline"
-									size={18}
-									color={mutedColor}
-								/>
-								<Text className="font-semibold text-text dark:text-text-dark">
-									Language
-								</Text>
-							</View>
-							<Text className="text-xs text-muted dark:text-muted-dark">
-								Select your preferred language.
-							</Text>
-							<View className="flex-row flex-wrap gap-2">
-								{LANGUAGES.map(lang => (
-									<TouchableOpacity
-										key={lang.code}
-										className={`px-4 py-2 rounded-xl border ${
+						<Text className="text-xs text-muted dark:text-muted-dark">
+							Select your preferred language.
+						</Text>
+						<View className="flex-row flex-wrap gap-2">
+							{LANGUAGES.map(lang => (
+								<TouchableOpacity
+									key={lang.code}
+									className={`px-4 py-2 rounded-xl border ${
+										language === lang.code
+											? 'border-primary bg-primary/10'
+											: 'border-border dark:border-border-dark'
+									}`}
+									onPress={() => setLanguage(lang.code)}
+								>
+									<Text
+										className={`text-sm ${
 											language === lang.code
-												? 'border-primary bg-primary/10'
-												: 'border-border dark:border-border-dark'
+												? 'text-primary font-semibold'
+												: 'text-muted dark:text-muted-dark'
 										}`}
-										onPress={() => setLanguage(lang.code)}
 									>
-										<Text
-											className={`text-sm ${
-												language === lang.code
-													? 'text-primary font-semibold'
-													: 'text-muted dark:text-muted-dark'
-											}`}
-										>
-											{lang.label}
+										{lang.label}
+									</Text>
+								</TouchableOpacity>
+							))}
+						</View>
+					</View>
+
+					{/* Subscription */}
+					<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
+						<View className="flex-row items-center gap-2">
+							<Ionicons name="card-outline" size={18} color={mutedColor} />
+							<Text className="font-semibold text-text dark:text-text-dark">
+								Subscription
+							</Text>
+						</View>
+						<Text className="text-xs text-muted dark:text-muted-dark">
+							Manage your plan from the profile tab.
+						</Text>
+						<View className="gap-2 p-4 border border-border dark:border-border-dark rounded-xl bg-surface dark:bg-surface-dark">
+							<View className="flex-row items-center justify-between">
+								<View>
+									<Text className="text-xs text-muted dark:text-muted-dark">
+										Current plan
+									</Text>
+									<Text className="text-lg font-semibold text-text dark:text-text-dark">
+										{subscription?.isPro ? 'Pro' : 'Free'}
+									</Text>
+								</View>
+								<View className="items-end">
+									<Text className="text-xs text-muted dark:text-muted-dark">
+										Status
+									</Text>
+									<Text className="text-sm font-medium capitalize text-text dark:text-text-dark">
+										{subscription?.cancelAtPeriodEnd && subscription.isPro
+											? 'canceling'
+											: (subscription?.status.replace('_', ' ') ?? 'inactive')}
+									</Text>
+								</View>
+							</View>
+							{subscription?.currentPeriodEnd && (
+								<Text className="text-xs text-muted dark:text-muted-dark">
+									{subscription.cancelAtPeriodEnd
+										? `Your Pro access ends on ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}.`
+										: `Your current billing period renews on ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}.`}
+								</Text>
+							)}
+							{subscription?.isPro ? (
+								<View className="flex-row items-center gap-2 px-3 py-2 rounded-lg bg-primary/10">
+									<Ionicons name="flash-outline" size={16} color="#3b82f6" />
+									<Text className="text-sm text-text dark:text-text-dark">
+										Your account currently has Pro access.
+									</Text>
+								</View>
+							) : (
+								<View className="gap-3">
+									<Text className="text-xs text-muted dark:text-muted-dark">
+										Upgrade to Pro for €8.99/month when you are ready.
+									</Text>
+									<TouchableOpacity
+										className={`rounded-xl py-3 items-center ${checkoutLoading ? 'opacity-60' : ''}`}
+										style={{backgroundColor: '#7c3aed'}}
+										onPress={handleUpgrade}
+										disabled={checkoutLoading}
+									>
+										<Text className="text-sm font-semibold text-white">
+											{checkoutLoading
+												? 'Opening Checkout...'
+												: 'Upgrade to Pro'}
 										</Text>
 									</TouchableOpacity>
-								))}
-							</View>
-						</View>
-
-						{/* Subscription */}
-						<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
-							<View className="flex-row items-center gap-2">
-								<Ionicons name="card-outline" size={18} color={mutedColor} />
-								<Text className="font-semibold text-text dark:text-text-dark">
-									Subscription
-								</Text>
-							</View>
-							<Text className="text-xs text-muted dark:text-muted-dark">
-								Manage your plan from the profile tab.
-							</Text>
-							<View className="gap-2 p-4 border border-border dark:border-border-dark rounded-xl bg-surface dark:bg-surface-dark">
-								<View className="flex-row items-center justify-between">
-									<View>
-										<Text className="text-xs text-muted dark:text-muted-dark">
-											Current plan
-										</Text>
-										<Text className="text-lg font-semibold text-text dark:text-text-dark">
-											{subscription?.isPro ? 'Pro' : 'Free'}
-										</Text>
-									</View>
-									<View className="items-end">
-										<Text className="text-xs text-muted dark:text-muted-dark">
-											Status
-										</Text>
-										<Text className="text-sm font-medium capitalize text-text dark:text-text-dark">
-											{subscription?.cancelAtPeriodEnd && subscription.isPro
-												? 'canceling'
-												: (subscription?.status.replace('_', ' ') ??
-													'inactive')}
-										</Text>
-									</View>
 								</View>
-								{subscription?.currentPeriodEnd && (
-									<Text className="text-xs text-muted dark:text-muted-dark">
-										{subscription.cancelAtPeriodEnd
-											? `Your Pro access ends on ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}.`
-											: `Your current billing period renews on ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}.`}
-									</Text>
-								)}
-								{subscription?.isPro ? (
-									<View className="flex-row items-center gap-2 px-3 py-2 rounded-lg bg-primary/10">
-										<Ionicons name="flash-outline" size={16} color="#3b82f6" />
-										<Text className="text-sm text-text dark:text-text-dark">
-											Your account currently has Pro access.
-										</Text>
-									</View>
-								) : (
-									<View className="gap-3">
-										<Text className="text-xs text-muted dark:text-muted-dark">
-											Upgrade to Pro for €8.99/month when you are ready.
-										</Text>
-										<TouchableOpacity
-											className={`rounded-xl py-3 items-center ${checkoutLoading ? 'opacity-60' : ''}`}
-											style={{backgroundColor: '#7c3aed'}}
-											onPress={handleUpgrade}
-											disabled={checkoutLoading}
-										>
-											<Text className="text-sm font-semibold text-white">
-												{checkoutLoading
-													? 'Opening Checkout...'
-													: 'Upgrade to Pro'}
-											</Text>
-										</TouchableOpacity>
-									</View>
-								)}
-							</View>
+							)}
 						</View>
+					</View>
 
-						{/* Save Button */}
-						<TouchableOpacity
-							className={`rounded-xl py-3 items-center ${saving ? 'opacity-60' : ''}`}
-							style={{backgroundColor: '#7c3aed'}}
-							onPress={handleSave}
-							disabled={saving}
-						>
-							<Text className="font-semibold text-white">
-								{saving ? 'Saving...' : 'Save Changes'}
-							</Text>
-						</TouchableOpacity>
+					{/* Save Button */}
+					<TouchableOpacity
+						className={`rounded-xl py-3 items-center ${saving ? 'opacity-60' : ''}`}
+						style={{backgroundColor: '#7c3aed'}}
+						onPress={handleSave}
+						disabled={saving}
+					>
+						<Text className="font-semibold text-white">
+							{saving ? 'Saving...' : 'Save Changes'}
+						</Text>
+					</TouchableOpacity>
 
-						{/* Bottom spacing */}
-						<View className="h-8" />
-					</ScrollView>
-				</KeyboardAvoidingView>
-			</View>
+					{/* Bottom spacing */}
+					<View className="h-8" />
+				</ScrollView>
+			</KeyboardAvoidingView>
 		</SafeAreaView>
 	)
 }

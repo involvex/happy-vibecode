@@ -81,8 +81,8 @@ export default function HistoryScreen() {
 
 	if (!isAuthed) {
 		return (
-			<SafeAreaView className="flex-1 bg-surface items-center justify-center">
-				<Text className="text-muted text-center px-6">
+			<SafeAreaView className="flex-1 items-center justify-center bg-surface dark:bg-surface-dark">
+				<Text className="text-muted dark:text-muted-dark text-center px-6">
 					Sign in via Settings to view your history
 				</Text>
 			</SafeAreaView>
@@ -90,16 +90,18 @@ export default function HistoryScreen() {
 	}
 
 	return (
-		<SafeAreaView className="flex-1 bg-surface">
-			<View className="px-4 py-3 border-b border-border">
-				<Text className="text-text text-lg font-semibold">History</Text>
+		<SafeAreaView className="flex-1 bg-surface dark:bg-surface-dark">
+			<View className="px-4 py-3 border-b border-border dark:border-border-dark">
+				<Text className="text-text dark:text-text-dark text-lg font-semibold">
+					History
+				</Text>
 			</View>
 
 			<View className="px-4 pt-3 pb-2">
-				<View className="flex-row items-center bg-card border border-border rounded-xl px-3 gap-2">
+				<View className="flex-row items-center bg-card dark:bg-card-dark border border-border dark:border-border-dark rounded-xl px-3 gap-2">
 					<Ionicons name="search-outline" size={16} color="#94a3b8" />
 					<TextInput
-						className="flex-1 py-2.5 text-text text-sm"
+						className="flex-1 py-2.5 text-text dark:text-text-dark text-sm"
 						placeholder="Search sessions…"
 						placeholderTextColor="#94a3b8"
 						value={query}
@@ -115,7 +117,7 @@ export default function HistoryScreen() {
 			) : filtered.length === 0 ? (
 				<View className="flex-1 items-center justify-center px-6 gap-3">
 					<Ionicons name="time-outline" size={40} color="#94a3b8" />
-					<Text className="text-muted text-center">
+					<Text className="text-muted dark:text-muted-dark text-center">
 						{query ? 'No sessions match your search' : 'No past sessions yet'}
 					</Text>
 				</View>
@@ -133,14 +135,17 @@ export default function HistoryScreen() {
 					}}
 					renderItem={({item}) => (
 						<TouchableOpacity
-							className="bg-card border border-border rounded-xl p-3 flex-row items-center justify-between"
+							className="bg-card dark:bg-card-dark border border-border dark:border-border-dark rounded-xl p-3 flex-row items-center justify-between"
 							onPress={() => router.push(`/session/${item.id}`)}
 						>
 							<View className="flex-1 mr-3">
-								<Text className="text-text font-medium" numberOfLines={1}>
+								<Text
+									className="text-text dark:text-text-dark font-medium"
+									numberOfLines={1}
+								>
 									{item.agentType ?? 'Session'}
 								</Text>
-								<Text className="text-muted text-xs mt-0.5">
+								<Text className="text-muted dark:text-muted-dark text-xs mt-0.5">
 									{formatDate(item.createdAt)}
 								</Text>
 							</View>

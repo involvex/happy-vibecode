@@ -141,21 +141,24 @@ export default function SessionScreen() {
 	}
 
 	return (
-		<SafeAreaView className="flex-1 bg-surface">
+		<SafeAreaView className="flex-1 bg-surface dark:bg-surface-dark">
 			{/* Header */}
-			<View className="flex-row items-center gap-3 px-4 py-3 border-b border-border">
+			<View className="flex-row items-center gap-3 px-4 py-3 border-b border-border dark:border-border-dark">
 				<TouchableOpacity onPress={() => router.back()}>
 					<Ionicons name="arrow-back" size={22} color="#7c3aed" />
 				</TouchableOpacity>
 				<View className="flex-1">
-					<Text className="font-semibold text-text" numberOfLines={1}>
+					<Text
+						className="text-text dark:text-text-dark font-semibold"
+						numberOfLines={1}
+					>
 						Session {roomId.slice(0, 8)}…
 					</Text>
 					<View className="flex-row items-center gap-1.5 mt-0.5">
 						<View
 							className={`w-1.5 h-1.5 rounded-full ${connected ? (cliConnected ? 'bg-success' : 'bg-warning') : 'bg-error'}`}
 						/>
-						<Text className="text-xs text-muted">
+						<Text className="text-xs text-muted dark:text-muted-dark">
 							{connected
 								? cliConnected
 									? 'Agent connected'
@@ -182,32 +185,38 @@ export default function SessionScreen() {
 								item.role === 'user'
 									? 'self-end bg-primary'
 									: item.role === 'system'
-										? 'self-center bg-border'
-										: 'self-start bg-card border border-border'
+										? 'self-center bg-border dark:bg-border-dark'
+										: 'self-start bg-card dark:bg-card-dark border border-border dark:border-border-dark'
 							}`}
 						>
 							<Text
-								className={item.role === 'user' ? 'text-white' : 'text-text'}
+								className={
+									item.role === 'user'
+										? 'text-white'
+										: 'text-text dark:text-text-dark'
+								}
 							>
 								{item.content}
 							</Text>
 							{item.role === 'assistant' && !item.done && (
-								<Text className="mt-1 text-xs text-muted">●</Text>
+								<Text className="mt-1 text-xs text-muted dark:text-muted-dark">
+									●
+								</Text>
 							)}
 						</View>
 					)}
 					ListEmptyComponent={
 						<View className="items-center py-12">
-							<Text className="text-sm text-center text-muted">
+							<Text className="text-sm text-center text-muted dark:text-muted-dark">
 								No messages yet
 							</Text>
 						</View>
 					}
 				/>
 
-				<View className="flex-row items-end gap-2 px-4 py-3 border-t border-border">
+				<View className="flex-row items-end gap-2 px-4 py-3 border-t border-border dark:border-border-dark">
 					<TextInput
-						className="flex-1 px-4 py-3 text-sm border bg-card border-border rounded-2xl text-text"
+						className="flex-1 px-4 py-3 text-sm border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl text-text dark:text-text-dark"
 						placeholder="Type a message…"
 						placeholderTextColor="#94a3b8"
 						value={input}
@@ -216,7 +225,7 @@ export default function SessionScreen() {
 						maxLength={4000}
 					/>
 					<TouchableOpacity
-						className={`w-10 h-10 rounded-full items-center justify-center ${input.trim() ? 'bg-primary' : 'bg-border'}`}
+						className={`w-10 h-10 rounded-full items-center justify-center ${input.trim() ? 'bg-primary' : 'bg-border dark:bg-border-dark'}`}
 						onPress={send}
 						disabled={!input.trim()}
 					>
