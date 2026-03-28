@@ -7,8 +7,8 @@ import {
 	ClockCounterClockwiseIcon,
 	CircleIcon,
 } from '@phosphor-icons/react'
-import {SkeletonCards} from './components/Skeletons'
-import {StatCard} from './components/StatCard'
+import {SkeletonCards} from '../components/LoadingSkeletons'
+import {StatCard} from '../components/StatCard'
 import {useEffect, useState} from 'react'
 import {useAuth} from '../hooks/useAuth'
 

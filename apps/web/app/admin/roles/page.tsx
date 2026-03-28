@@ -7,8 +7,8 @@ import {
 	ShieldCheckIcon,
 	UsersIcon,
 } from '@phosphor-icons/react'
-import {ToastContainer, useToasts} from '../components/Toast'
-import {ConfirmModal} from '../components/ConfirmModal'
+import {ToastContainer, useToasts} from '../../components/Toast'
+import {ConfirmModal} from '../../components/ConfirmModal'
 import {RoleForm} from '../components/RoleForm'
 import {useAuth} from '../../hooks/useAuth'
 import {useEffect, useState} from 'react'

@@ -7,8 +7,8 @@ import {
 	PauseIcon,
 	PlayIcon,
 } from '@phosphor-icons/react'
-import {ToastContainer, useToasts} from '../components/Toast'
-import {ConfirmModal} from '../components/ConfirmModal'
+import {ToastContainer, useToasts} from '../../components/Toast'
+import {ConfirmModal} from '../../components/ConfirmModal'
 import {DataTable} from '../components/DataTable'
 import {UserForm} from '../components/UserForm'
 import {useAuth} from '../../hooks/useAuth'
