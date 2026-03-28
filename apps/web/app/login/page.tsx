@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import {useRouter, useSearchParams} from 'next/navigation'
 import {authClient} from '../../lib/auth-client'
 // import {CloudIcon} from '@phosphor-icons/react'
