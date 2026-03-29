@@ -1,5 +1,5 @@
 'use client'
-import {PaypalLogoIcon} from '@phosphor-icons/react'
+import {BookOpenIcon, PaypalLogoIcon} from '@phosphor-icons/react'
 import Link from 'next/link'
 
 export default function Footer() {
@@ -24,6 +24,15 @@ export default function Footer() {
 				<Link href="/funding" className="hover:underline">
 					<PaypalLogoIcon size={16} weight="duotone" /> Funding
 				</Link>
+				<span className="mx-1">|</span>
+				<a
+					href="https://involvex.github.io/happy-vibecode/"
+					target="_blank"
+					rel="noopener noreferrer"
+					className="hover:underline"
+				>
+					<BookOpenIcon size={16} weight="duotone" /> Docs
+				</a>
 			</div>
 		</footer>
 	)

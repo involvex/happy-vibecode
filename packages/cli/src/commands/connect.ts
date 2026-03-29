@@ -23,6 +23,18 @@ const ANSI_RE =
 // Unicode ranges: Box Drawing U+2500–U+257F, Block Elements U+2580–U+259F
 const BOX_RE = /[\u2500-\u259F]/g
 
+/** Reject arguments containing shell metacharacters that could break out of quoting. */
+function validateShellArgs(args: string[]): void {
+	for (const arg of args) {
+		if (/[`$\\]/.test(arg)) {
+			throw new Error(
+				`Argument contains shell metacharacters (backtick, $, or backslash) that cannot be safely escaped. ` +
+					`Remove these characters, or run without the --shell flag to spawn the agent directly.`,
+			)
+		}
+	}
+}
+
 /**
  * Remove TUI decoration artifacts from raw agent output.
  * Strips ANSI codes then filters lines that consist only of box-drawing
@@ -158,11 +170,11 @@ function findAgent(
 }
 
 async function checkCommandExists(command: string): Promise<boolean> {
-	const {execSync} = await import('child_process')
+	const {execFileSync} = await import('child_process')
 	const isWindows = process.platform === 'win32'
-	const cmd = isWindows ? `where ${command}` : `which ${command}`
+	const cmd = isWindows ? 'where' : 'which'
 	try {
-		execSync(cmd, {stdio: 'ignore'})
+		execFileSync(cmd, [command], {stdio: 'ignore'})
 		return true
 	} catch {
 		return false
@@ -227,6 +239,7 @@ async function runAgent(
 		const isCmd = shellBase === 'cmd'
 
 		if (isPs) {
+			validateShellArgs([agent.command, ...fullArgs])
 			// PowerShell: prefix with & so the first token is a command invocation,
 			// not a string expression. Single-quote all args; '' escapes a literal '.
 			const commandStr =
@@ -239,6 +252,7 @@ async function runAgent(
 				stdio: ['pipe', 'pipe', 'pipe'],
 			})
 		} else if (isCmd) {
+			validateShellArgs([agent.command, ...fullArgs])
 			// cmd.exe: /d /s /c with double-quoted args; "" escapes a literal "
 			const commandStr = [agent.command, ...fullArgs]
 				.map(a => `"${a.replace(/"/g, '""')}"`)
@@ -249,6 +263,7 @@ async function runAgent(
 			})
 		} else {
 			// POSIX shells (bash, zsh, sh…): -c with single-quoted args.
+			validateShellArgs([agent.command, ...fullArgs])
 			// '\'' is the POSIX escape for a literal single-quote inside '…'.
 			const commandStr = [agent.command, ...fullArgs]
 				.map(a => `'${a.replace(/'/g, "'\\''")}'`)
@@ -259,27 +274,13 @@ async function runAgent(
 			})
 		}
 	} else {
-		// No shell specified – construct a properly-quoted command string so that
-		// prompts containing spaces are not split into separate arguments.
-		if (process.platform === 'win32') {
-			// Windows: route through cmd.exe; "" escapes a literal "
-			const commandStr = [agent.command, ...fullArgs]
-				.map(a => `"${a.replace(/"/g, '""')}"`)
-				.join(' ')
-			proc = spawn('cmd', ['/d', '/s', '/c', commandStr], {
-				cwd: workspace,
-				stdio: ['pipe', 'pipe', 'pipe'],
-			})
-		} else {
-			// POSIX: route through /bin/sh; '\'' escapes a literal single-quote
-			const commandStr = [agent.command, ...fullArgs]
-				.map(a => `'${a.replace(/'/g, "'\\''")}'`)
-				.join(' ')
-			proc = spawn('/bin/sh', ['-c', commandStr], {
-				cwd: workspace,
-				stdio: ['pipe', 'pipe', 'pipe'],
-			})
-		}
+		// No shell specified — spawn agent directly with argument array.
+		// This avoids shell interpretation entirely, preventing command injection
+		// and correctly handling prompts with spaces or special characters.
+		proc = spawn(agent.command, fullArgs, {
+			cwd: workspace,
+			stdio: ['pipe', 'pipe', 'pipe'],
+		})
 	}
 
 	onProcSpawned?.(proc)

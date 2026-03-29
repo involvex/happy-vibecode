@@ -160,3 +160,4 @@ node_modules
 */*/.turbo
 packages/cli/.npmrc
 .kilo
+firebase-debug.log
