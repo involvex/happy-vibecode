@@ -289,3 +289,53 @@ export const offlineSyncQueue = sqliteTable('offline_sync_queue', {
 	processedAt: integer('processed_at', {mode: 'timestamp_ms'}),
 	error: text('error'),
 })
+
+// ── GitHub Integration ─────────────────────────────────────────────────
+
+export const linkedRepos = sqliteTable('linked_repos', {
+	id: text('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => users.id),
+	githubRepoId: integer('github_repo_id').notNull(),
+	owner: text('owner').notNull(),
+	name: text('name').notNull(),
+	fullName: text('full_name').notNull(),
+	defaultBranch: text('default_branch').notNull().default('main'),
+	private: integer('private', {mode: 'boolean'}).notNull().default(false),
+	lastSyncedAt: integer('last_synced_at', {mode: 'timestamp_ms'}),
+	syncStatus: text('sync_status', {
+		enum: ['pending', 'syncing', 'synced', 'error'],
+	})
+		.notNull()
+		.default('pending'),
+	syncError: text('sync_error'),
+	webhookId: integer('webhook_id'),
+	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
+	updatedAt: integer('updated_at', {mode: 'timestamp_ms'}).notNull(),
+})
+
+export const repoFiles = sqliteTable('repo_files', {
+	id: text('id').primaryKey(),
+	repoId: text('repo_id')
+		.notNull()
+		.references(() => linkedRepos.id, {onDelete: 'cascade'}),
+	path: text('path').notNull(),
+	sha: text('sha').notNull(),
+	size: integer('size').notNull(),
+	language: text('language'),
+	summary: text('summary'),
+	lastIndexedAt: integer('last_indexed_at', {mode: 'timestamp_ms'}).notNull(),
+})
+
+export const repoEmbeddings = sqliteTable('repo_embeddings', {
+	id: text('id').primaryKey(),
+	repoId: text('repo_id')
+		.notNull()
+		.references(() => linkedRepos.id, {onDelete: 'cascade'}),
+	filePath: text('file_path').notNull(),
+	chunkIndex: integer('chunk_index').notNull(),
+	content: text('content').notNull(),
+	embedding: text('embedding').notNull(), // JSON array
+	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
+})

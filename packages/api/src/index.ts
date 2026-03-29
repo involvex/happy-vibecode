@@ -1,3 +1,7 @@
+import {
+	rateLimitMiddleware,
+	dailyQuotaMiddleware,
+} from './middleware/rate-limit.js'
 import {agentTemplatesRouter} from './routes/agent-templates.js'
 import {adminAnalyticsRouter} from './routes/admin-analytics.js'
 import {notificationsRouter} from './routes/notifications.js'
@@ -13,6 +17,7 @@ import {billingRouter} from './routes/billing.js'
 import type {ApiEnv} from './middleware/auth.js'
 import {bridgeRouter} from './routes/bridge.js'
 import {agentsRouter} from './routes/agents.js'
+import {reposRouter} from './routes/repos.js'
 import {userRouter} from './routes/user.js'
 import {syncRouter} from './routes/sync.js'
 import {authRouter} from './routes/auth.js'
@@ -32,6 +37,9 @@ api.get('/health', c =>
 	c.json({status: 'ok', timestamp: new Date().toISOString()}),
 )
 
+api.use('*', dailyQuotaMiddleware)
+api.use('*', rateLimitMiddleware)
+
 api.route('/auth', authRouter)
 api.route('/billing', billingRouter)
 api.route('/sessions', sessionsRouter)
@@ -44,6 +52,7 @@ api.route('/tickets', ticketsRouter)
 api.route('/notifications', notificationsRouter)
 api.route('/templates', agentTemplatesRouter)
 api.route('/sync', syncRouter)
+api.route('/repos', reposRouter)
 api.route('/admin/users', adminUsersRouter)
 api.route('/admin/roles', adminRolesRouter)
 api.route('/admin/analytics', adminAnalyticsRouter)

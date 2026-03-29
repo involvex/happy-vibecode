@@ -9,8 +9,13 @@ import {
 	ShieldCheckIcon,
 	TrashIcon,
 	EnvelopeSimpleIcon,
+	GitBranchIcon,
+	PlusIcon,
+	SpinnerIcon,
+	GearIcon,
 } from '@phosphor-icons/react'
 import {WorkspaceSelector} from '../components/WorkspaceSelector'
+import {providerCapabilities} from '@happy-vibecode/shared'
 import {useWorkspaces} from '../hooks/useWorkspaces'
 import {zodResolver} from '@hookform/resolvers/zod'
 import {Button, Link, Text} from '@cloudflare/kumo'
@@ -90,6 +95,30 @@ export default function SettingsPage() {
 	const [passwordSuccess, setPasswordSuccess] = useState('')
 	const [passwordError, setPasswordError] = useState('')
 
+	// GitHub Repos state
+	const [linkedRepos, setLinkedRepos] = useState<
+		Array<{
+			id: string
+			fullName: string
+			syncStatus: string
+			owner: string
+			name: string
+		}>
+	>([])
+	const [reposLoading, setReposLoading] = useState(false)
+	const [reposError, setReposError] = useState('')
+	const [reposSuccess, setReposSuccess] = useState('')
+	const [showPatForm, setShowPatForm] = useState(false)
+	const [patToken, setPatToken] = useState('')
+	const [linkRepoInput, setLinkRepoInput] = useState('')
+	const [linkingRepo, setLinkingRepo] = useState(false)
+	const [unlinkingRepoId, setUnlinkingRepoId] = useState<string | null>(null)
+
+	// LLM Provider Config state
+	const [selectedProvider, setSelectedProvider] = useState<string>('')
+	const [selectedModel, setSelectedModel] = useState<string>('')
+	const [providerSaved, setProviderSaved] = useState(false)
+
 	const linkEmailForm = useForm<LinkEmailForm>({
 		resolver: zodResolver(linkEmailSchema),
 		defaultValues: {email: ''},
@@ -125,6 +154,36 @@ export default function SettingsPage() {
 				.finally(() => setProfileLoading(false))
 		}
 	}, [apiToken, isAuthed])
+
+	// Fetch linked repos
+	useEffect(() => {
+		if (apiToken && isAuthed) {
+			setReposLoading(true)
+			fetch('/api/repos', {
+				headers: {Authorization: `Bearer ${apiToken}`},
+			})
+				.then(res => res.json() as Promise<{repos: typeof linkedRepos}>)
+				.then(data => {
+					setLinkedRepos(data.repos ?? [])
+				})
+				.catch(err => setReposError((err as Error).message))
+				.finally(() => setReposLoading(false))
+		}
+	}, [apiToken, isAuthed])
+
+	// Load saved provider config from active workspace
+	useEffect(() => {
+		if (workspaces.length > 0) {
+			const active =
+				workspaces.find(w => w.id === activeWorkspaceId) ?? workspaces[0]
+			if (active?.defaultProvider) {
+				setSelectedProvider(active.defaultProvider)
+			}
+			if (active?.defaultModel) {
+				setSelectedModel(active.defaultModel)
+			}
+		}
+	}, [workspaces, activeWorkspaceId])
 
 	const handleCopy = () => {
 		if (!apiToken) return
@@ -243,6 +302,112 @@ export default function SettingsPage() {
 	const handleLogout = () => {
 		logout()
 		router.replace('/login')
+	}
+
+	const handleSavePat = async () => {
+		if (!apiToken || !patToken.trim()) return
+		setReposError('')
+		try {
+			const res = await fetch('/api/repos/auth/pat', {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${apiToken}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({token: patToken.trim()}),
+			})
+			if (!res.ok) {
+				const err = (await res.json()) as {error?: string}
+				throw new Error(err.error ?? 'Failed to save token')
+			}
+			setShowPatForm(false)
+			setPatToken('')
+			setReposSuccess('GitHub token saved!')
+			setTimeout(() => setReposSuccess(''), 3000)
+		} catch (err) {
+			setReposError((err as Error).message)
+		}
+	}
+
+	const handleLinkRepo = async () => {
+		if (!apiToken || !linkRepoInput.trim()) return
+		const parts = linkRepoInput.trim().split('/')
+		if (parts.length !== 2 || !parts[0] || !parts[1]) {
+			setReposError('Use format: owner/repo')
+			return
+		}
+		setLinkingRepo(true)
+		setReposError('')
+		try {
+			const res = await fetch('/api/repos', {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${apiToken}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({owner: parts[0], name: parts[1]}),
+			})
+			if (!res.ok) {
+				const err = (await res.json()) as {error?: string}
+				throw new Error(err.error ?? 'Failed to link repo')
+			}
+			const result = (await res.json()) as {
+				id: string
+				fullName: string
+			}
+			setLinkedRepos(prev => [
+				...prev,
+				{
+					id: result.id,
+					fullName: result.fullName,
+					syncStatus: 'pending',
+					owner: parts[0],
+					name: parts[1],
+				},
+			])
+			setLinkRepoInput('')
+			setReposSuccess(`Linked ${result.fullName}`)
+			setTimeout(() => setReposSuccess(''), 3000)
+		} catch (err) {
+			setReposError((err as Error).message)
+		} finally {
+			setLinkingRepo(false)
+		}
+	}
+
+	const handleUnlinkRepo = async (repoId: string) => {
+		if (!apiToken) return
+		setUnlinkingRepoId(repoId)
+		setReposError('')
+		try {
+			const res = await fetch(`/api/repos/${repoId}`, {
+				method: 'DELETE',
+				headers: {Authorization: `Bearer ${apiToken}`},
+			})
+			if (!res.ok) {
+				const err = (await res.json()) as {error?: string}
+				throw new Error(err.error ?? 'Failed to unlink repo')
+			}
+			setLinkedRepos(prev => prev.filter(r => r.id !== repoId))
+		} catch (err) {
+			setReposError((err as Error).message)
+		} finally {
+			setUnlinkingRepoId(null)
+		}
+	}
+
+	const handleSaveProvider = () => {
+		if (!selectedProvider || !activeWorkspaceId) return
+		const activeIdx = workspaces.findIndex(w => w.id === activeWorkspaceId)
+		if (activeIdx === -1) return
+		workspaces[activeIdx] = {
+			...workspaces[activeIdx],
+			defaultProvider: selectedProvider,
+			defaultModel: selectedModel || undefined,
+		}
+		localStorage.setItem('happy-workspaces', JSON.stringify(workspaces))
+		setProviderSaved(true)
+		setTimeout(() => setProviderSaved(false), 3000)
 	}
 
 	if (!isLoaded || !isAuthed) {
@@ -622,6 +787,237 @@ export default function SettingsPage() {
 						onAdd={addWorkspace}
 						onRemove={removeWorkspace}
 					/>
+				</section>
+
+				{/* GitHub Repositories */}
+				<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
+					<div className="flex items-center gap-2 font-semibold text-kumo-default">
+						<GitBranchIcon size={18} weight="duotone" />
+						GitHub Repositories
+					</div>
+
+					{reposSuccess && (
+						<div className="px-3 py-2 text-sm border rounded-lg text-kumo-success bg-kumo-success/10 border-kumo-success/20">
+							{reposSuccess}
+						</div>
+					)}
+
+					{reposError && (
+						<div className="px-3 py-2 text-sm border rounded-lg text-kumo-danger bg-kumo-danger/10 border-kumo-danger/20">
+							{reposError}
+						</div>
+					)}
+
+					{/* PAT Form */}
+					{!showPatForm ? (
+						<Button
+							variant="secondary"
+							size="sm"
+							onClick={() => setShowPatForm(true)}
+						>
+							Set GitHub Token (PAT)
+						</Button>
+					) : (
+						<div className="space-y-2">
+							<input
+								type="password"
+								value={patToken}
+								onChange={e => setPatToken(e.target.value)}
+								placeholder="ghp_xxxxxxxxxxxx"
+								className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
+							/>
+							<div className="flex gap-2">
+								<Button
+									variant="primary"
+									size="sm"
+									onClick={handleSavePat}
+									disabled={!patToken.trim()}
+								>
+									Save Token
+								</Button>
+								<Button
+									variant="secondary"
+									size="sm"
+									onClick={() => {
+										setShowPatForm(false)
+										setPatToken('')
+									}}
+								>
+									Cancel
+								</Button>
+							</div>
+						</div>
+					)}
+
+					{/* Link Repo */}
+					<div className="flex gap-2">
+						<input
+							type="text"
+							value={linkRepoInput}
+							onChange={e => setLinkRepoInput(e.target.value)}
+							onKeyDown={e => {
+								if (e.key === 'Enter') handleLinkRepo()
+							}}
+							placeholder="owner/repo"
+							className="flex-1 px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
+						/>
+						<Button
+							variant="primary"
+							size="sm"
+							onClick={handleLinkRepo}
+							disabled={linkingRepo || !linkRepoInput.trim()}
+							icon={
+								linkingRepo ? (
+									<SpinnerIcon size={14} className="animate-spin" />
+								) : (
+									<PlusIcon size={14} />
+								)
+							}
+						>
+							Link
+						</Button>
+					</div>
+
+					{/* Linked Repos List */}
+					{reposLoading ? (
+						<div className="flex items-center gap-2 text-sm text-kumo-inactive">
+							<CircleIcon size={14} weight="duotone" className="animate-spin" />
+							Loading repos...
+						</div>
+					) : linkedRepos.length === 0 ? (
+						<Text size="sm" variant="secondary">
+							No repositories linked yet. Add a GitHub token and link a repo
+							above.
+						</Text>
+					) : (
+						<div className="space-y-2">
+							{linkedRepos.map(repo => (
+								<div
+									key={repo.id}
+									className="flex items-center justify-between px-3 py-2 rounded-lg bg-kumo-control"
+								>
+									<div className="flex items-center gap-2">
+										<GitBranchIcon size={14} className="text-kumo-inactive" />
+										<span className="text-sm text-kumo-default">
+											{repo.fullName}
+										</span>
+										<span
+											className={`text-xs px-1.5 py-0.5 rounded ${
+												repo.syncStatus === 'synced'
+													? 'bg-kumo-success/10 text-kumo-success'
+													: repo.syncStatus === 'error'
+														? 'bg-kumo-danger/10 text-kumo-danger'
+														: 'bg-kumo-warning/10 text-kumo-warning'
+											}`}
+										>
+											{repo.syncStatus}
+										</span>
+									</div>
+									<button
+										type="button"
+										onClick={() => handleUnlinkRepo(repo.id)}
+										disabled={unlinkingRepoId === repo.id}
+										className="p-1.5 transition-colors rounded-lg hover:bg-kumo-hover text-kumo-danger"
+										title="Unlink"
+									>
+										{unlinkingRepoId === repo.id ? (
+											<SpinnerIcon size={14} className="animate-spin" />
+										) : (
+											<TrashIcon size={14} />
+										)}
+									</button>
+								</div>
+							))}
+						</div>
+					)}
+				</section>
+
+				{/* LLM Provider Config */}
+				<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
+					<div className="flex items-center gap-2 font-semibold text-kumo-default">
+						<GearIcon size={18} weight="duotone" />
+						LLM Provider
+					</div>
+
+					{providerSaved && (
+						<div className="px-3 py-2 text-sm border rounded-lg text-kumo-success bg-kumo-success/10 border-kumo-success/20">
+							Provider configuration saved!
+						</div>
+					)}
+
+					<Text size="sm" variant="secondary">
+						Select the default LLM provider and model for agent sessions.
+					</Text>
+
+					<div className="space-y-3">
+						<div>
+							<label
+								htmlFor="provider-select"
+								className="block mb-1 text-sm text-kumo-secondary"
+							>
+								Provider
+							</label>
+							<select
+								id="provider-select"
+								value={selectedProvider}
+								onChange={e => {
+									setSelectedProvider(e.target.value)
+									const caps =
+										providerCapabilities[
+											e.target.value as keyof typeof providerCapabilities
+										]
+									if (caps?.models[0]) {
+										setSelectedModel(caps.models[0])
+									}
+								}}
+								className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
+							>
+								<option value="">Select a provider</option>
+								{Object.entries(providerCapabilities).map(([id, caps]) => (
+									<option key={id} value={id}>
+										{caps.displayName}
+									</option>
+								))}
+							</select>
+						</div>
+
+						{selectedProvider &&
+							providerCapabilities[
+								selectedProvider as keyof typeof providerCapabilities
+							] && (
+								<div>
+									<label
+										htmlFor="model-select"
+										className="block mb-1 text-sm text-kumo-secondary"
+									>
+										Model
+									</label>
+									<select
+										id="model-select"
+										value={selectedModel}
+										onChange={e => setSelectedModel(e.target.value)}
+										className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
+									>
+										{providerCapabilities[
+											selectedProvider as keyof typeof providerCapabilities
+										].models.map(model => (
+											<option key={model} value={model}>
+												{model}
+											</option>
+										))}
+									</select>
+								</div>
+							)}
+
+						<Button
+							variant="primary"
+							size="sm"
+							onClick={handleSaveProvider}
+							disabled={!selectedProvider || !activeWorkspaceId}
+						>
+							Save Provider
+						</Button>
+					</div>
 				</section>
 
 				{/* Danger zone */}

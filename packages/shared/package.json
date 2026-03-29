@@ -7,7 +7,9 @@
 		"./crypto": "./src/crypto.ts",
 		"./schema/user": "./src/schema/user.ts",
 		"./schema/ticket": "./src/schema/ticket.ts",
-		"./schema/admin": "./src/schema/admin.ts"
+		"./schema/admin": "./src/schema/admin.ts",
+		"./schema/github-repo": "./src/schema/github-repo.ts",
+		"./schema/provider-capabilities": "./src/schema/provider-capabilities.ts"
 	},
 	"scripts": {
 		"lint": "oxlint src",

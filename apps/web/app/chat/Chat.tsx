@@ -83,6 +83,7 @@ type BridgeStatus =
 	| 'connected'
 	| 'cli_connected'
 	| 'cli_disconnected'
+	| 'reconnecting'
 
 // ── Bridge code helpers ────────────────────────────────────────────────
 
@@ -104,22 +105,62 @@ function useBridgeAgent(roomId: string) {
 	const [isStreaming, setIsStreaming] = useState(false)
 	const wsRef = useRef<WebSocket | null>(null)
 	const streamingIdRef = useRef<string | null>(null)
+	const reconnectAttemptsRef = useRef(0)
+	const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const intentionalCloseRef = useRef(false)
+	const pendingMessagesRef = useRef<Array<{content: string}>>([])
+	const roomIdRef = useRef(roomId)
 
-	useEffect(() => {
-		if (!roomId) return
+	roomIdRef.current = roomId
+
+	const MAX_RECONNECT = 5
+
+	const connectWs = useCallback(() => {
+		if (!roomIdRef.current) return
 		const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
 		const apiToken = localStorage.getItem('happy-api-token')
 		const tokenParam = apiToken ? `&token=${encodeURIComponent(apiToken)}` : ''
-		const url = `${proto}://${window.location.host}/agents/BridgeAgent/${roomId}?type=web${tokenParam}`
+		const url = `${proto}://${window.location.host}/agents/BridgeAgent/${roomIdRef.current}?type=web${tokenParam}`
 		const ws = new WebSocket(url)
 		wsRef.current = ws
+		intentionalCloseRef.current = false
 
-		ws.onopen = () => setWsStatus('connected')
-		ws.onclose = () => {
-			setWsStatus('disconnected')
-			setIsStreaming(false)
+		ws.onopen = () => {
+			reconnectAttemptsRef.current = 0
+			setWsStatus('connected')
+
+			// Flush pending messages
+			while (pendingMessagesRef.current.length > 0) {
+				const pending = pendingMessagesRef.current.shift()
+				if (pending && ws.readyState === WebSocket.OPEN) {
+					ws.send(JSON.stringify({type: 'prompt', content: pending.content}))
+				}
+			}
 		}
-		ws.onerror = e => console.error('BridgeAgent WS error:', e)
+
+		ws.onclose = (_ev: CloseEvent) => {
+			setIsStreaming(false)
+			streamingIdRef.current = null
+
+			if (intentionalCloseRef.current) {
+				setWsStatus('disconnected')
+				return
+			}
+
+			if (reconnectAttemptsRef.current < MAX_RECONNECT) {
+				const delay = Math.min(1000 * 2 ** reconnectAttemptsRef.current, 30_000)
+				reconnectAttemptsRef.current++
+				setWsStatus('reconnecting')
+				if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
+				reconnectTimerRef.current = setTimeout(() => connectWs(), delay)
+			} else {
+				setWsStatus('disconnected')
+			}
+		}
+
+		ws.onerror = () => {
+			// Error will trigger close, which handles reconnection
+		}
 
 		ws.onmessage = (ev: MessageEvent) => {
 			try {
@@ -171,12 +212,32 @@ function useBridgeAgent(roomId: string) {
 				// ignore non-JSON
 			}
 		}
+	}, [])
 
-		return () => ws.close()
-	}, [roomId])
+	useEffect(() => {
+		if (!roomId) return
+		// Reset reconnect on room change
+		reconnectAttemptsRef.current = 0
+		connectWs()
+
+		return () => {
+			intentionalCloseRef.current = true
+			if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
+			wsRef.current?.close()
+		}
+	}, [roomId, connectWs])
 
 	const sendMessage = useCallback((content: string) => {
-		if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return
+		if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+			// Queue message for when connection is restored
+			pendingMessagesRef.current.push({content})
+			// Optimistically add user message
+			setMessages(prev => [
+				...prev,
+				{id: crypto.randomUUID(), role: 'user' as const, content},
+			])
+			return
+		}
 		// Optimistically add user message
 		setMessages(prev => [
 			...prev,
@@ -296,7 +357,9 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 										: wsStatus === 'connected' ||
 											  wsStatus === 'cli_disconnected'
 											? 'text-yellow-400'
-											: 'text-kumo-danger'
+											: wsStatus === 'reconnecting'
+												? 'text-yellow-400 animate-pulse'
+												: 'text-kumo-danger'
 								}
 							/>
 							<Text size="xs" variant="secondary">
@@ -306,7 +369,9 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 										? 'Waiting for CLI'
 										: wsStatus === 'connected'
 											? 'Bridge connected'
-											: 'Disconnected'}
+											: wsStatus === 'reconnecting'
+												? 'Reconnecting...'
+												: 'Disconnected'}
 							</Text>
 						</div>
 						<div className="flex items-center gap-1.5">

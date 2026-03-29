@@ -1,0 +1,76 @@
+{
+	"version": "6",
+	"dialect": "sqlite",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "6",
+			"when": 1709251200000,
+			"tag": "0000_initial",
+			"breakpoints": false
+		},
+		{
+			"idx": 1,
+			"version": "6",
+			"when": 1709251201000,
+			"tag": "0001_github_oauth",
+			"breakpoints": false
+		},
+		{
+			"idx": 2,
+			"version": "6",
+			"when": 1709251202000,
+			"tag": "0002_user_profile",
+			"breakpoints": false
+		},
+		{
+			"idx": 3,
+			"version": "6",
+			"when": 1709251203000,
+			"tag": "0003_user_roles_and_tickets",
+			"breakpoints": false
+		},
+		{
+			"idx": 4,
+			"version": "6",
+			"when": 1709251204000,
+			"tag": "0004_admin_dashboard",
+			"breakpoints": false
+		},
+		{
+			"idx": 5,
+			"version": "6",
+			"when": 1709251205000,
+			"tag": "0005_agents_table",
+			"breakpoints": false
+		},
+		{
+			"idx": 6,
+			"version": "6",
+			"when": 1709251206000,
+			"tag": "0006_better_auth",
+			"breakpoints": false
+		},
+		{
+			"idx": 7,
+			"version": "6",
+			"when": 1709251207000,
+			"tag": "0007_seed_agents",
+			"breakpoints": false
+		},
+		{
+			"idx": 8,
+			"version": "6",
+			"when": 1709251208000,
+			"tag": "0008_subscriptions",
+			"breakpoints": false
+		},
+		{
+			"idx": 9,
+			"version": "6",
+			"when": 1774770566051,
+			"tag": "0009_nostalgic_dormammu",
+			"breakpoints": true
+		}
+	]
+}
