@@ -91,18 +91,18 @@ export default function DashboardPage() {
 	const router = useRouter()
 	const [sessions, setSessions] = useState<Session[]>([])
 	const [fetching, setFetching] = useState(true)
-	const [error, setError] = useState<string | null>(null)
+	const [_error, set_Error] = useState<string | null>(null)
 
 	const loadSessions = useCallback(async () => {
 		if (!apiToken) {
 			setSessions([])
 			setFetching(false)
-			setError(null)
+			set_Error(null)
 			return
 		}
 
 		setFetching(true)
-		setError(null)
+		set_Error(null)
 
 		try {
 			const res = await fetch('/api/sessions', {
@@ -111,7 +111,7 @@ export default function DashboardPage() {
 
 			if (!res.ok) {
 				setSessions([])
-				setError(`Failed to load sessions (status ${res.status})`)
+				set_Error(`Failed to load sessions (status ${res.status})`)
 				return
 			}
 
@@ -120,7 +120,7 @@ export default function DashboardPage() {
 		} catch (err) {
 			console.error('Error loading sessions', err)
 			setSessions([])
-			setError('Failed to load sessions')
+			set_Error('Failed to load sessions')
 		} finally {
 			setFetching(false)
 		}

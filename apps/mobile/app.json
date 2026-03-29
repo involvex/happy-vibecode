@@ -4,7 +4,7 @@
 		"slug": "happy-vibecode",
 		"version": "0.0.5",
 		"orientation": "portrait",
-		"icon": "assets/icon.png",
+		"icon": "assets/icon512x512.png",
 		"userInterfaceStyle": "automatic",
 		"githubUrl": "https://github.com/involvex/happy-vibecode.git",
 		"platforms": ["android", "web"],
@@ -43,7 +43,7 @@
 			[
 				"expo-notifications",
 				{
-					"icon": "assets/icon.png",
+					"icon": "assets/icon512x512.png",
 					"color": "#7c3aed",
 					"defaultChannel": "default",
 					"projectId": "f7854379-1f74-4e83-9f30-ade960bbc420"

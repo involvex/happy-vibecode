@@ -1,6 +1,6 @@
 import {View, Text, ActivityIndicator} from 'react-native'
+import {useCallback, useEffect, useState} from 'react'
 import {useBiometric} from '../hooks/useBiometric'
-import {useEffect, useState} from 'react'
 
 interface BiometricGateProps {
 	isLocked: boolean
@@ -19,13 +19,8 @@ export function BiometricGate({
 	const [unlocking, setUnlocking] = useState(false)
 	const [failed, setFailed] = useState(false)
 
-	useEffect(() => {
-		if (isLocked && isAvailable && !unlocking) {
-			handleUnlock()
-		}
-	}, [isLocked, isAvailable])
-
-	const handleUnlock = async () => {
+	const handleUnlock = useCallback(async () => {
+		if (unlocking) return
 		setUnlocking(true)
 		setFailed(false)
 		const success = await unlock()
@@ -33,7 +28,13 @@ export function BiometricGate({
 			setFailed(true)
 		}
 		setUnlocking(false)
-	}
+	}, [unlocking, unlock])
+
+	useEffect(() => {
+		if (isLocked && isAvailable && !unlocking) {
+			handleUnlock()
+		}
+	}, [isLocked, isAvailable, unlocking, handleUnlock])
 
 	if (isLoading) {
 		return (

@@ -58,7 +58,7 @@ interface UserProfile {
 }
 
 export default function ProfileScreen() {
-	const {apiToken, serverUrl, userId} = useAuth()
+	const {apiToken, serverUrl} = useAuth()
 	const {colorScheme} = useColorScheme()
 	const isDark = colorScheme === 'dark'
 

@@ -44,13 +44,13 @@ export default function TemplateDetailScreen() {
 	const [loading, setLoading] = useState(true)
 
 	const baseUrl = serverUrl ?? DEFAULT_URL
-	const headers = {
-		'Content-Type': 'application/json',
-		...(apiToken ? {Authorization: `Bearer ${apiToken}`} : {}),
-	}
 
 	useEffect(() => {
 		if (!apiToken || !id) return
+		const headers = {
+			'Content-Type': 'application/json',
+			...(apiToken ? {Authorization: `Bearer ${apiToken}`} : {}),
+		}
 		Promise.all([
 			fetch(`${baseUrl}/api/templates/${id}`, {headers}).then(
 				r =>
@@ -66,7 +66,7 @@ export default function TemplateDetailScreen() {
 			})
 			.catch(() => router.back())
 			.finally(() => setLoading(false))
-	}, [apiToken, id])
+	}, [apiToken, baseUrl, id, router])
 
 	const handleInstantiate = () => {
 		if (!template) return
