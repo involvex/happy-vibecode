@@ -2,7 +2,7 @@
 	"expo": {
 		"name": "Happy Vibecode",
 		"slug": "happy-vibecode",
-		"version": "0.0.4",
+		"version": "0.0.5",
 		"orientation": "portrait",
 		"icon": "assets/icon.png",
 		"userInterfaceStyle": "automatic",
@@ -25,7 +25,7 @@
 				"backgroundColor": "#0f0f0f"
 			},
 			"icon": "assets/icon512x512.png",
-			"versionCode": 4,
+			"versionCode": 5,
 			"userInterfaceStyle": "automatic",
 			"package": "com.happyvibecode.app"
 		},
