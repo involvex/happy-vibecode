@@ -966,7 +966,7 @@ export default function SettingsPage() {
 										providerCapabilities[
 											e.target.value as keyof typeof providerCapabilities
 										]
-									if (caps?.models[0]) {
+									if (caps) {
 										setSelectedModel(caps.models[0])
 									}
 								}}
