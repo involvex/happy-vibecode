@@ -184,7 +184,7 @@ export default function SessionScreen() {
 				</TouchableOpacity>
 				<View className="flex-1">
 					<Text
-						className="text-text dark:text-text-dark font-semibold"
+						className="text-base font-semibold text-text dark:text-text-dark"
 						numberOfLines={1}
 					>
 						Session {roomId.slice(0, 8)}…
@@ -216,19 +216,21 @@ export default function SessionScreen() {
 					contentContainerStyle={{paddingVertical: 12, gap: 8}}
 					renderItem={({item}) => (
 						<View
-							className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+							className={`max-w-[85%] rounded-2xl px-4 py-3 ${
 								item.role === 'user'
 									? 'self-end bg-primary'
 									: item.role === 'system'
-										? 'self-center bg-border dark:bg-border-dark'
+										? 'self-center bg-warning/20 border border-warning/30'
 										: 'self-start bg-card dark:bg-card-dark border border-border dark:border-border-dark'
 							}`}
 						>
 							<Text
 								className={
 									item.role === 'user'
-										? 'text-white'
-										: 'text-text dark:text-text-dark'
+										? 'text-white text-sm leading-5'
+										: item.role === 'system'
+											? 'text-xs text-warning text-center'
+											: 'text-text dark:text-text-dark text-sm leading-5'
 								}
 							>
 								{item.content}
@@ -270,11 +272,14 @@ export default function SessionScreen() {
 						onChangeText={setInput}
 						multiline
 						maxLength={4000}
+						style={{maxHeight: 120}}
+						accessibilityLabel="Message input"
 					/>
 					<TouchableOpacity
 						className={`w-10 h-10 rounded-full items-center justify-center ${input.trim() ? 'bg-primary' : 'bg-border dark:bg-border-dark'}`}
 						onPress={send}
 						disabled={!input.trim()}
+						accessibilityLabel="Send message"
 					>
 						<Ionicons name="arrow-up" size={18} color="white" />
 					</TouchableOpacity>

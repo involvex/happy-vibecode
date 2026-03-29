@@ -82,7 +82,7 @@ export default function HistoryScreen() {
 	if (!isAuthed) {
 		return (
 			<SafeAreaView className="flex-1 items-center justify-center bg-surface dark:bg-surface-dark">
-				<Text className="text-muted dark:text-muted-dark text-center px-6">
+				<Text className="text-sm text-muted dark:text-muted-dark text-center px-6">
 					Sign in via Settings to view your history
 				</Text>
 			</SafeAreaView>
@@ -92,8 +92,11 @@ export default function HistoryScreen() {
 	return (
 		<SafeAreaView className="flex-1 bg-surface dark:bg-surface-dark">
 			<View className="px-4 py-3 border-b border-border dark:border-border-dark">
-				<Text className="text-text dark:text-text-dark text-lg font-semibold">
+				<Text className="text-xl font-bold text-text dark:text-text-dark">
 					History
+				</Text>
+				<Text className="text-sm text-muted dark:text-muted-dark mt-0.5">
+					Past sessions
 				</Text>
 			</View>
 
@@ -117,7 +120,7 @@ export default function HistoryScreen() {
 			) : filtered.length === 0 ? (
 				<View className="flex-1 items-center justify-center px-6 gap-3">
 					<Ionicons name="time-outline" size={40} color="#94a3b8" />
-					<Text className="text-muted dark:text-muted-dark text-center">
+					<Text className="text-sm text-muted dark:text-muted-dark text-center">
 						{query ? 'No sessions match your search' : 'No past sessions yet'}
 					</Text>
 				</View>

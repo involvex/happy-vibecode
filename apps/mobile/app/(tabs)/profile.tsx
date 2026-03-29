@@ -183,7 +183,7 @@ export default function ProfileScreen() {
 			edges={['top']}
 		>
 			<View className="px-4 py-3 border-b border-border dark:border-border-dark">
-				<Text className="text-lg font-semibold text-text dark:text-text-dark">
+				<Text className="text-xl font-bold text-text dark:text-text-dark">
 					Profile
 				</Text>
 			</View>
@@ -202,7 +202,7 @@ export default function ProfileScreen() {
 					<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
 						<View className="flex-row items-center gap-2">
 							<Ionicons name="person-outline" size={18} color={mutedColor} />
-							<Text className="font-semibold text-text dark:text-text-dark">
+							<Text className="text-base font-semibold text-text dark:text-text-dark">
 								Nickname
 							</Text>
 						</View>
@@ -227,7 +227,7 @@ export default function ProfileScreen() {
 								size={18}
 								color={mutedColor}
 							/>
-							<Text className="font-semibold text-text dark:text-text-dark">
+							<Text className="text-base font-semibold text-text dark:text-text-dark">
 								Theme
 							</Text>
 						</View>
@@ -267,7 +267,7 @@ export default function ProfileScreen() {
 								size={18}
 								color={mutedColor}
 							/>
-							<Text className="font-semibold text-text dark:text-text-dark">
+							<Text className="text-base font-semibold text-text dark:text-text-dark">
 								Notifications
 							</Text>
 						</View>
@@ -281,7 +281,10 @@ export default function ProfileScreen() {
 							<Switch
 								value={notifications}
 								onValueChange={setNotifications}
-								trackColor={{false: '#e2e8f0', true: '#3b82f6'}}
+								trackColor={{
+									false: isDark ? '#2a2a4a' : '#e2e8f0',
+									true: '#7c3aed',
+								}}
 								thumbColor="#ffffff"
 							/>
 						</View>
@@ -291,7 +294,7 @@ export default function ProfileScreen() {
 					<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
 						<View className="flex-row items-center gap-2">
 							<Ionicons name="language-outline" size={18} color={mutedColor} />
-							<Text className="font-semibold text-text dark:text-text-dark">
+							<Text className="text-base font-semibold text-text dark:text-text-dark">
 								Language
 							</Text>
 						</View>
@@ -327,7 +330,7 @@ export default function ProfileScreen() {
 					<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
 						<View className="flex-row items-center gap-2">
 							<Ionicons name="card-outline" size={18} color={mutedColor} />
-							<Text className="font-semibold text-text dark:text-text-dark">
+							<Text className="text-base font-semibold text-text dark:text-text-dark">
 								Subscription
 							</Text>
 						</View>
@@ -364,7 +367,7 @@ export default function ProfileScreen() {
 							)}
 							{subscription?.isPro ? (
 								<View className="flex-row items-center gap-2 px-3 py-2 rounded-lg bg-primary/10">
-									<Ionicons name="flash-outline" size={16} color="#3b82f6" />
+									<Ionicons name="flash-outline" size={16} color="#7c3aed" />
 									<Text className="text-sm text-text dark:text-text-dark">
 										Your account currently has Pro access.
 									</Text>
@@ -393,12 +396,15 @@ export default function ProfileScreen() {
 
 					{/* Save Button */}
 					<TouchableOpacity
-						className={`rounded-xl py-3 items-center ${saving ? 'opacity-60' : ''}`}
+						className={`rounded-xl py-3 items-center mt-2 ${saving ? 'opacity-60' : ''}`}
 						style={{backgroundColor: '#7c3aed'}}
 						onPress={handleSave}
 						disabled={saving}
+						accessibilityLabel={
+							saving ? 'Saving changes' : 'Save profile changes'
+						}
 					>
-						<Text className="font-semibold text-white">
+						<Text className="text-sm font-semibold text-white">
 							{saving ? 'Saving...' : 'Save Changes'}
 						</Text>
 					</TouchableOpacity>

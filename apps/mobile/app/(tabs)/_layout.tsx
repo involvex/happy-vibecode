@@ -20,8 +20,8 @@ export default function TabLayout() {
 				tabBarStyle: {
 					backgroundColor: isDark ? '#1a1a2e' : '#ffffff',
 					borderTopColor: isDark ? '#2a2a4a' : '#e2e8f0',
-					height: 60,
-					paddingBottom: 8,
+					height: 64,
+					paddingBottom: 12,
 				},
 				tabBarActiveTintColor: '#7c3aed',
 				tabBarInactiveTintColor: isDark ? '#94a3b8' : '#64748b',

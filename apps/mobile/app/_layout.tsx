@@ -18,10 +18,8 @@ export default function RootLayout() {
 
 	useEffect(() => {
 		AsyncStorage.getItem(THEME_KEY).then(saved => {
-			if (saved === 'light') {
-				setColorScheme('light')
-			} else {
-				setColorScheme('dark')
+			if (saved === 'light' || saved === 'dark') {
+				setColorScheme(saved)
 			}
 		})
 	}, [setColorScheme])

@@ -15,6 +15,7 @@ import {usePromptPresets} from '../../hooks/usePromptPresets'
 import {SafeAreaView} from 'react-native-safe-area-context'
 import * as SecureStore from 'expo-secure-store'
 import {useAuth} from '../../hooks/useAuth'
+import {Ionicons} from '@expo/vector-icons'
 import {useColorScheme} from 'nativewind'
 import {useRouter} from 'expo-router'
 
@@ -401,7 +402,11 @@ export default function ChatTab() {
 					</View>
 				</View>
 				<View className="flex-row items-center gap-3">
-					<TouchableOpacity onPress={clearBridgeCode}>
+					<TouchableOpacity
+						onPress={clearBridgeCode}
+						className="px-3 py-2"
+						accessibilityLabel="Disconnect from CLI bridge"
+					>
 						<Text className="text-xs text-muted dark:text-muted-dark">
 							Unpair
 						</Text>
@@ -482,7 +487,7 @@ export default function ChatTab() {
 					<ScrollView
 						horizontal
 						showsHorizontalScrollIndicator={false}
-						className="border-t border-border dark:border-border-dark max-h-12"
+						className="border-t border-border dark:border-border-dark max-h-14"
 						contentContainerStyle={{
 							paddingHorizontal: 12,
 							paddingVertical: 8,
@@ -514,6 +519,8 @@ export default function ChatTab() {
 						multiline
 						maxLength={4000}
 						blurOnSubmit={false}
+						style={{maxHeight: 120}}
+						accessibilityLabel="Message input"
 					/>
 					<TouchableOpacity
 						className={`w-10 h-10 rounded-full items-center justify-center ${
@@ -521,8 +528,9 @@ export default function ChatTab() {
 						}`}
 						onPress={() => sendMessage()}
 						disabled={!input.trim()}
+						accessibilityLabel="Send message"
 					>
-						<Text className="text-base text-white">↑</Text>
+						<Ionicons name="arrow-up" size={18} color="white" />
 					</TouchableOpacity>
 				</View>
 			</KeyboardAvoidingView>

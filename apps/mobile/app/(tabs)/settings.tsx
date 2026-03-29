@@ -217,7 +217,7 @@ export default function SettingsScreen() {
 			edges={['top']}
 		>
 			<View className="px-4 py-3 border-b border-border dark:border-border-dark">
-				<Text className="text-text dark:text-text-dark text-lg font-semibold">
+				<Text className="text-xl font-bold text-text dark:text-text-dark">
 					Settings
 				</Text>
 			</View>
@@ -264,7 +264,7 @@ export default function SettingsScreen() {
 
 					{/* Appearance */}
 					<View className="gap-3">
-						<Text className="text-text dark:text-text-dark font-semibold text-sm uppercase tracking-wide">
+						<Text className="text-xs font-bold text-muted dark:text-muted-dark uppercase tracking-widest">
 							Appearance
 						</Text>
 						<View className="bg-card dark:bg-card-dark border border-border dark:border-border-dark rounded-2xl px-4 py-3 flex-row items-center justify-between">
@@ -282,7 +282,10 @@ export default function SettingsScreen() {
 							<Switch
 								value={isDark}
 								onValueChange={handleThemeToggle}
-								trackColor={{false: '#e2e8f0', true: '#3b82f6'}}
+								trackColor={{
+									false: isDark ? '#2a2a4a' : '#e2e8f0',
+									true: '#7c3aed',
+								}}
 								thumbColor="#ffffff"
 							/>
 						</View>
@@ -290,7 +293,7 @@ export default function SettingsScreen() {
 
 					{/* Security */}
 					<View className="gap-3">
-						<Text className="text-text dark:text-text-dark font-semibold text-sm uppercase tracking-wide">
+						<Text className="text-xs font-bold text-muted dark:text-muted-dark uppercase tracking-widest">
 							Security
 						</Text>
 						{biometricAvailable && (
@@ -311,7 +314,10 @@ export default function SettingsScreen() {
 								<Switch
 									value={biometricEnabled}
 									onValueChange={setBiometricEnabled}
-									trackColor={{false: '#e2e8f0', true: '#3b82f6'}}
+									trackColor={{
+										false: isDark ? '#2a2a4a' : '#e2e8f0',
+										true: '#7c3aed',
+									}}
 									thumbColor="#ffffff"
 								/>
 							</View>
@@ -348,7 +354,7 @@ export default function SettingsScreen() {
 					{/* Templates link */}
 					{isAuthed && (
 						<View className="gap-3">
-							<Text className="text-text dark:text-text-dark font-semibold text-sm uppercase tracking-wide">
+							<Text className="text-xs font-bold text-muted dark:text-muted-dark uppercase tracking-widest">
 								Templates
 							</Text>
 							<TouchableOpacity
@@ -374,7 +380,7 @@ export default function SettingsScreen() {
 					{/* Prompt Presets */}
 					<View className="gap-3">
 						<View className="flex-row items-center justify-between">
-							<Text className="text-text dark:text-text-dark font-semibold text-sm uppercase tracking-wide">
+							<Text className="text-xs font-bold text-muted dark:text-muted-dark uppercase tracking-widest">
 								Prompt Presets
 							</Text>
 							<View className="flex-row gap-3">
@@ -453,7 +459,7 @@ export default function SettingsScreen() {
 					{/* GitHub Sign In */}
 					{!isAuthed && (
 						<View className="gap-3">
-							<Text className="text-text dark:text-text-dark font-semibold text-sm uppercase tracking-wide">
+							<Text className="text-xs font-bold text-muted dark:text-muted-dark uppercase tracking-widest">
 								Quick Sign In
 							</Text>
 							<TouchableOpacity
@@ -475,7 +481,7 @@ export default function SettingsScreen() {
 					{/* Credentials */}
 					<View className="gap-3">
 						<View className="flex-row items-center justify-between">
-							<Text className="text-text dark:text-text-dark font-semibold text-sm uppercase tracking-wide">
+							<Text className="text-xs font-bold text-muted dark:text-muted-dark uppercase tracking-widest">
 								Credentials
 							</Text>
 							<TouchableOpacity
@@ -603,7 +609,7 @@ export default function SettingsScreen() {
 
 					{/* Server URL */}
 					<View className="gap-3">
-						<Text className="text-text dark:text-text-dark font-semibold text-sm uppercase tracking-wide">
+						<Text className="text-xs font-bold text-muted dark:text-muted-dark uppercase tracking-widest">
 							Server
 						</Text>
 						<View>
@@ -632,7 +638,7 @@ export default function SettingsScreen() {
 					{/* Workspaces */}
 					<View className="gap-3">
 						<View className="flex-row items-center justify-between">
-							<Text className="text-text dark:text-text-dark font-semibold text-sm uppercase tracking-wide">
+							<Text className="text-xs font-bold text-muted dark:text-muted-dark uppercase tracking-widest">
 								Workspaces
 							</Text>
 							<TouchableOpacity onPress={() => setShowAddWorkspace(v => !v)}>
@@ -719,7 +725,7 @@ export default function SettingsScreen() {
 													<Ionicons
 														name="checkmark-circle"
 														size={14}
-														color="#3b82f6"
+														color="#7c3aed"
 													/>
 												)}
 											</View>
