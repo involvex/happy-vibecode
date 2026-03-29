@@ -246,6 +246,13 @@ function useBridgeAgent(roomId: string) {
 		wsRef.current.send(JSON.stringify({type: 'prompt', content}))
 	}, [])
 
+	const sendInput = useCallback((content: string) => {
+		if (wsRef.current?.readyState !== WebSocket.OPEN) return
+		wsRef.current.send(
+			JSON.stringify({type: 'input', content, sessionId: roomIdRef.current}),
+		)
+	}, [])
+
 	const stop = useCallback(() => {
 		if (wsRef.current?.readyState === WebSocket.OPEN) {
 			wsRef.current.send(JSON.stringify({type: 'stop'}))
@@ -260,7 +267,15 @@ function useBridgeAgent(roomId: string) {
 		setIsStreaming(false)
 	}, [])
 
-	return {messages, wsStatus, isStreaming, sendMessage, stop, clearHistory}
+	return {
+		messages,
+		wsStatus,
+		isStreaming,
+		sendMessage,
+		sendInput,
+		stop,
+		clearHistory,
+	}
 }
 
 // ── Main chat ─────────────────────────────────────────────────────────
@@ -276,8 +291,15 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 	)
 	const roomId = bridgeCode ?? ''
 
-	const {messages, wsStatus, isStreaming, sendMessage, stop, clearHistory} =
-		useBridgeAgent(roomId)
+	const {
+		messages,
+		wsStatus,
+		isStreaming,
+		sendMessage,
+		sendInput,
+		stop,
+		clearHistory,
+	} = useBridgeAgent(roomId)
 
 	const connected = wsStatus !== 'disconnected'
 	const showPairing = !bridgeCode
@@ -318,13 +340,17 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 
 	const send = useCallback(() => {
 		const text = input.trim()
-		if (!text || isStreaming) return
+		if (!text) return
 		setInput('')
-		sendMessage(text)
+		if (isStreaming) {
+			sendInput(text)
+		} else {
+			sendMessage(text)
+		}
 		if (textareaRef.current) {
 			textareaRef.current.style.height = 'auto'
 		}
-	}, [input, isStreaming, sendMessage])
+	}, [input, isStreaming, sendMessage, sendInput])
 
 	return (
 		<div className="flex flex-col h-full bg-kumo-elevated">
@@ -538,8 +564,10 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 										el.style.height = 'auto'
 										el.style.height = `${el.scrollHeight}px`
 									}}
-									placeholder="Send a message..."
-									disabled={!connected || isStreaming}
+									placeholder={
+										isStreaming ? 'Reply to agent...' : 'Send a message...'
+									}
+									disabled={!connected}
 									rows={1}
 									className="flex-1 ring-0! focus:ring-0! shadow-none! bg-transparent! outline-none! resize-none max-h-40"
 								/>

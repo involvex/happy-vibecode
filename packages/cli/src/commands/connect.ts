@@ -65,7 +65,19 @@ interface WsModel {
 	model: string
 }
 
-type IncomingMsg = WsPrompt | WsPing | WsWorkspace | WsModel | {type: string}
+interface WsInput {
+	type: 'input'
+	content: string
+	sessionId: string
+}
+
+type IncomingMsg =
+	| WsPrompt
+	| WsPing
+	| WsWorkspace
+	| WsModel
+	| WsInput
+	| {type: string}
 
 const AGENTS_FILE = join(homedir(), '.happy', 'agents.json')
 
@@ -183,6 +195,7 @@ async function runAgent(
 	onDone: () => void,
 	onError: (err: string) => void,
 	onProcSpawned?: (proc: ReturnType<typeof spawn>) => void,
+	onStdinReady?: (write: (text: string) => void) => void,
 ): Promise<void> {
 	const args: string[] = []
 
@@ -223,7 +236,7 @@ async function runAgent(
 					.join(' ')
 			proc = spawn(shell, ['-Command', commandStr], {
 				cwd: workspace,
-				stdio: ['ignore', 'pipe', 'pipe'],
+				stdio: ['pipe', 'pipe', 'pipe'],
 			})
 		} else if (isCmd) {
 			// cmd.exe: /d /s /c with double-quoted args; "" escapes a literal "
@@ -232,7 +245,7 @@ async function runAgent(
 				.join(' ')
 			proc = spawn(shell, ['/d', '/s', '/c', commandStr], {
 				cwd: workspace,
-				stdio: ['ignore', 'pipe', 'pipe'],
+				stdio: ['pipe', 'pipe', 'pipe'],
 			})
 		} else {
 			// POSIX shells (bash, zsh, sh…): -c with single-quoted args.
@@ -242,7 +255,7 @@ async function runAgent(
 				.join(' ')
 			proc = spawn(shell, ['-c', commandStr], {
 				cwd: workspace,
-				stdio: ['ignore', 'pipe', 'pipe'],
+				stdio: ['pipe', 'pipe', 'pipe'],
 			})
 		}
 	} else {
@@ -255,7 +268,7 @@ async function runAgent(
 				.join(' ')
 			proc = spawn('cmd', ['/d', '/s', '/c', commandStr], {
 				cwd: workspace,
-				stdio: ['ignore', 'pipe', 'pipe'],
+				stdio: ['pipe', 'pipe', 'pipe'],
 			})
 		} else {
 			// POSIX: route through /bin/sh; '\'' escapes a literal single-quote
@@ -264,12 +277,20 @@ async function runAgent(
 				.join(' ')
 			proc = spawn('/bin/sh', ['-c', commandStr], {
 				cwd: workspace,
-				stdio: ['ignore', 'pipe', 'pipe'],
+				stdio: ['pipe', 'pipe', 'pipe'],
 			})
 		}
 	}
 
 	onProcSpawned?.(proc)
+
+	if (proc.stdin && onStdinReady) {
+		onStdinReady((text: string) => {
+			if (proc.stdin && !proc.stdin.destroyed) {
+				proc.stdin.write(text + '\n', 'utf8')
+			}
+		})
+	}
 
 	// 60-second no-output watchdog: kills the process if nothing is written to
 	// stdout/stderr within the first minute (catches VS Code extensions that
@@ -302,7 +323,8 @@ async function runAgent(
 		gotOutput = true
 		clearTimeout(watchdog)
 		spinner.stop()
-		onChunk(cleanAgentOutput(chunk))
+		const cleaned = cleanAgentOutput(chunk)
+		if (cleaned) onChunk(cleaned)
 	})
 
 	stderr.setEncoding('utf8')
@@ -310,7 +332,8 @@ async function runAgent(
 		gotOutput = true
 		clearTimeout(watchdog)
 		spinner.stop()
-		onChunk(cleanAgentOutput(chunk))
+		const cleaned = cleanAgentOutput(chunk)
+		if (cleaned) onChunk(cleaned)
 	})
 
 	proc.on('close', code => {
@@ -613,6 +636,7 @@ export const connectCommand = new Command('connect')
 			if (!opts.prompt) {
 				let agentRunning = false
 				let currentAgentProc: ReturnType<typeof spawn> | null = null
+				let currentStdinWrite: ((text: string) => void) | null = null
 
 				socket.on('message', data => {
 					let msg: IncomingMsg
@@ -635,6 +659,7 @@ export const connectCommand = new Command('connect')
 							currentAgentProc.kill()
 							currentAgentProc = null
 						}
+						currentStdinWrite = null
 						agentRunning = false
 						return
 					}
@@ -651,6 +676,28 @@ export const connectCommand = new Command('connect')
 					if (msg.type === 'model') {
 						const wsMsg = msg as WsModel
 						log('Model updated:', wsMsg.model)
+						return
+					}
+
+					if (msg.type === 'input') {
+						const inputMsg = msg as WsInput
+						if (currentStdinWrite) {
+							currentStdinWrite(inputMsg.content)
+							console.log(
+								`  ↩ Input [${inputMsg.sessionId}]: ${inputMsg.content.slice(0, 40)}`,
+							)
+						}
+						return
+					}
+
+					if (msg.type === 'input') {
+						const inputMsg = msg as WsInput
+						if (currentStdinWrite) {
+							currentStdinWrite(inputMsg.content)
+							console.log(
+								`  ↩ Input [${inputMsg.sessionId}]: ${inputMsg.content.slice(0, 40)}`,
+							)
+						}
 						return
 					}
 
@@ -704,6 +751,7 @@ export const connectCommand = new Command('connect')
 						() => {
 							agentRunning = false
 							currentAgentProc = null
+							currentStdinWrite = null
 							console.log(`\n← Done [${sessionId}]`)
 							const response: WsResponse = {
 								type: 'response',
@@ -718,6 +766,7 @@ export const connectCommand = new Command('connect')
 						err => {
 							agentRunning = false
 							currentAgentProc = null
+							currentStdinWrite = null
 							console.error(`\n✗ Agent error [${sessionId}]: ${err}`)
 							if (socket.readyState === WebSocket.OPEN) {
 								socket.send(
@@ -728,6 +777,9 @@ export const connectCommand = new Command('connect')
 						proc => {
 							currentAgentProc = proc
 						},
+						write => {
+							currentStdinWrite = write
+						},
 					)
 				})
 
@@ -736,6 +788,7 @@ export const connectCommand = new Command('connect')
 						currentAgentProc.kill()
 						currentAgentProc = null
 					}
+					currentStdinWrite = null
 					agentRunning = false
 				})
 			}

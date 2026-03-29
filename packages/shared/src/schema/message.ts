@@ -88,6 +88,11 @@ export const wsMessageSchema = z.discriminatedUnion('type', [
 		]),
 		details: z.string().optional(),
 	}),
+	z.object({
+		type: z.literal('input'),
+		content: z.string(),
+		sessionId: z.string(),
+	}),
 ])
 
 export type MessageRole = z.infer<typeof messageRoleSchema>

@@ -202,6 +202,28 @@ export class BridgeAgent extends DurableObject<Env> {
 			return
 		}
 
+		// web/mobile → CLI: relay stdin input for interactive agents
+		if (
+			(senderSession.type === 'web' || senderSession.type === 'mobile') &&
+			msg.type === 'input'
+		) {
+			const cliSession = this.findCli()
+			if (cliSession) {
+				try {
+					cliSession.ws.send(data)
+				} catch {
+					sender.send(
+						JSON.stringify({
+							type: 'error',
+							message: 'CLI connection lost. Please reconnect.',
+						}),
+					)
+					this.sessions.delete(cliSession.ws)
+				}
+			}
+			return
+		}
+
 		// web/mobile → CLI: agent control messages
 		if (
 			(senderSession.type === 'web' || senderSession.type === 'mobile') &&
