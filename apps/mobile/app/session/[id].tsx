@@ -1,7 +1,6 @@
 import {
 	FlatList,
 	KeyboardAvoidingView,
-	Platform,
 	Text,
 	TextInput,
 	TouchableOpacity,
@@ -204,10 +203,7 @@ export default function SessionScreen() {
 				</View>
 			</View>
 
-			<KeyboardAvoidingView
-				className="flex-1"
-				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-			>
+			<KeyboardAvoidingView className="flex-1" behavior="padding">
 				<FlatList
 					ref={flatListRef}
 					data={messages}

@@ -2,7 +2,6 @@ import {
 	Animated,
 	FlatList,
 	KeyboardAvoidingView,
-	Platform,
 	RefreshControl,
 	ScrollView,
 	Text,
@@ -317,10 +316,7 @@ export default function ChatTab() {
 
 	if (!bridgeCode) {
 		return (
-			<KeyboardAvoidingView
-				className="flex-1"
-				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-			>
+			<KeyboardAvoidingView className="flex-1" behavior="padding">
 				<SafeAreaView
 					className="flex-1 items-center justify-center px-6 bg-surface dark:bg-surface-dark"
 					edges={['top']}
@@ -422,10 +418,7 @@ export default function ChatTab() {
 				</View>
 			</View>
 
-			<KeyboardAvoidingView
-				className="flex-1"
-				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-			>
+			<KeyboardAvoidingView className="flex-1" behavior="padding">
 				{/* Messages */}
 				<FlatList
 					ref={flatListRef}

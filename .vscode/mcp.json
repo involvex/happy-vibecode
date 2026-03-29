@@ -1,0 +1,20 @@
+{
+	"servers": {
+		"firebase": {
+			"type": "stdio",
+			"command": "npx",
+			"args": ["-y", "firebase-tools@latest", "mcp"]
+		},
+		"com.figma.mcp/mcp": {
+			"type": "http",
+			"url": "https://mcp.figma.com/mcp",
+			"gallery": "https://api.mcp.github.com",
+			"version": "1.0.3"
+		},
+		"observability cloudflare": {
+			"url": "https://observability.mcp.cloudflare.com/mcp",
+			"type": "http"
+		}
+	},
+	"inputs": []
+}

@@ -4,3 +4,7 @@
 
 expo-env.d.ts
 # @end expo-cli
+# Firebase credentials (download from Firebase Console)
+google-services.json
+
+firebase-sa.json

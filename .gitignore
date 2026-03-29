@@ -156,7 +156,6 @@ node_modules
 */*/.deta
 */*/.heroku
 */*/wrangler.toml
-.vscode/mcp.json
 .turbo/
 */*/.turbo
 packages/cli/.npmrc

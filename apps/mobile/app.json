@@ -27,7 +27,8 @@
 			"icon": "assets/icon512x512.png",
 			"versionCode": 5,
 			"userInterfaceStyle": "automatic",
-			"package": "com.happyvibecode.app"
+			"package": "com.happyvibecode.app",
+			"googleServicesFile": "./google-services.json"
 		},
 		"web": {
 			"bundler": "metro",
