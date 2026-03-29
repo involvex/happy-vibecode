@@ -7,6 +7,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native'
+import {AgentControls} from '../../components/AgentControls'
 import {SafeAreaView} from 'react-native-safe-area-context'
 import {useLocalSearchParams, useRouter} from 'expo-router'
 import {useEffect, useRef, useState} from 'react'
@@ -28,6 +29,12 @@ interface Message {
 	done?: boolean
 }
 
+interface LogEntry {
+	id: string
+	content: string
+	level: string
+}
+
 export default function SessionScreen() {
 	const {id} = useLocalSearchParams<{id: string}>()
 	const router = useRouter()
@@ -38,6 +45,8 @@ export default function SessionScreen() {
 	const [connected, setConnected] = useState(false)
 	const [cliConnected, setCliConnected] = useState(false)
 	const [bridgeCode, setBridgeCode] = useState<string | null>(null)
+	const [logs, setLogs] = useState<LogEntry[]>([])
+	const [agentStatus, setAgentStatus] = useState<string | null>(null)
 	const wsRef = useRef<WebSocket | null>(null)
 	const flatListRef = useRef<FlatList>(null)
 
@@ -77,11 +86,16 @@ export default function SessionScreen() {
 					done?: boolean
 					status?: string
 					message?: string
+					level?: string
+					sessionId?: string
 				}
 
 				if (msg.type === 'status') {
 					setCliConnected(msg.status === 'cli_connected')
-					if (msg.status === 'cli_disconnected') setCliConnected(false)
+					if (msg.status === 'cli_disconnected') {
+						setCliConnected(false)
+						setAgentStatus(null)
+					}
 					return
 				}
 
@@ -120,6 +134,21 @@ export default function SessionScreen() {
 						},
 					])
 				}
+
+				if (msg.type === 'agent_logs' && msg.content) {
+					setLogs(prev => [
+						...prev,
+						{
+							id: uniqueId(),
+							content: msg.content ?? '',
+							level: msg.level ?? 'info',
+						},
+					])
+				}
+
+				if (msg.type === 'agent_status_update' && msg.status) {
+					setAgentStatus(msg.status)
+				}
 			} catch {
 				// ignore
 			}
@@ -127,6 +156,12 @@ export default function SessionScreen() {
 
 		return () => ws.close()
 	}, [roomId, apiToken, serverUrl])
+
+	const sendWsMessage = (msg: object) => {
+		if (wsRef.current?.readyState === WebSocket.OPEN) {
+			wsRef.current.send(JSON.stringify(msg))
+		}
+	}
 
 	const send = () => {
 		const content = input.trim()
@@ -213,6 +248,18 @@ export default function SessionScreen() {
 						</View>
 					}
 				/>
+
+				{/* Agent controls */}
+				{cliConnected && (
+					<AgentControls
+						connected={connected}
+						cliConnected={cliConnected}
+						sessionId={roomId}
+						onSend={sendWsMessage}
+						logs={logs}
+						agentStatus={agentStatus}
+					/>
+				)}
 
 				<View className="flex-row items-end gap-2 px-4 py-3 border-t border-border dark:border-border-dark">
 					<TextInput

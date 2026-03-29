@@ -108,3 +108,29 @@ sessionsRouter.patch('/:id/status', async c => {
 
 	return c.json({ok: true})
 })
+
+sessionsRouter.patch('/:id/control', async c => {
+	const userId = c.get('userId')
+	const {id} = c.req.param()
+	const body = await c.req.json<{
+		action: string
+		parameters?: Record<string, unknown>
+	}>()
+	const db = createDb(c.env.DB)
+
+	const session = await db.query.agentSessions.findFirst({
+		where: (s, {and, eq}) => and(eq(s.id, id), eq(s.userId, userId)),
+	})
+	if (!session) return c.json({error: 'Session not found'}, 404)
+
+	const bridgeId = c.env.BridgeAgent.idFromName(session.roomId)
+	const bridge = c.env.BridgeAgent.get(bridgeId)
+	const statusRes = await bridge.fetch(new Request(`http://bridge/status`))
+	const status = (await statusRes.json()) as {cliConnected: boolean}
+
+	if (!status.cliConnected) {
+		return c.json({error: 'No CLI connected to this bridge'}, 400)
+	}
+
+	return c.json({ok: true, action: body.action, cliConnected: true})
+})

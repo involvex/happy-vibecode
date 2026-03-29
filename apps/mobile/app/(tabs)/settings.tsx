@@ -9,14 +9,18 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native'
+import {usePushNotifications} from '../../hooks/usePushNotifications'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {usePromptPresets} from '../../hooks/usePromptPresets'
 import {SafeAreaView} from 'react-native-safe-area-context'
 import {useWorkspaces} from '../../hooks/useWorkspaces'
+import {useBiometric} from '../../hooks/useBiometric'
+import {useAppLock} from '../../hooks/useAppLock'
 import {authClient} from '../../lib/auth-client'
 import {useAuth} from '../../hooks/useAuth'
 import {Ionicons} from '@expo/vector-icons'
 import {useColorScheme} from 'nativewind'
+import {useRouter} from 'expo-router'
 import {useState} from 'react'
 
 const DEFAULT_URL = 'https://happy-vibecode.involvex.workers.dev'
@@ -33,6 +37,10 @@ export default function SettingsScreen() {
 	} = useWorkspaces()
 	const {presets, addPreset, removePreset, resetToDefaults} = usePromptPresets()
 	const {colorScheme, setColorScheme} = useColorScheme()
+	const {isAvailable: biometricAvailable} = useBiometric()
+	const {biometricEnabled, setBiometricEnabled} = useAppLock()
+	const {requestPermissions, permissionStatus} = usePushNotifications()
+	const router = useRouter()
 	const isDark = colorScheme === 'dark'
 
 	const iconColor = isDark ? '#e2e8f0' : '#1e293b'
@@ -279,6 +287,89 @@ export default function SettingsScreen() {
 							/>
 						</View>
 					</View>
+
+					{/* Security */}
+					<View className="gap-3">
+						<Text className="text-text dark:text-text-dark font-semibold text-sm uppercase tracking-wide">
+							Security
+						</Text>
+						{biometricAvailable && (
+							<View className="bg-card dark:bg-card-dark border border-border dark:border-border-dark rounded-2xl px-4 py-3 flex-row items-center justify-between">
+								<View className="flex-row items-center gap-3">
+									<Text className="text-xl">🔐</Text>
+									<View>
+										<Text className="text-text dark:text-text-dark font-medium text-sm">
+											Biometric Lock
+										</Text>
+										<Text className="text-muted dark:text-muted-dark text-xs">
+											{biometricEnabled
+												? 'App requires biometric to unlock'
+												: 'Unlock with biometrics'}
+										</Text>
+									</View>
+								</View>
+								<Switch
+									value={biometricEnabled}
+									onValueChange={setBiometricEnabled}
+									trackColor={{false: '#e2e8f0', true: '#3b82f6'}}
+									thumbColor="#ffffff"
+								/>
+							</View>
+						)}
+						<View className="bg-card dark:bg-card-dark border border-border dark:border-border-dark rounded-2xl px-4 py-3 flex-row items-center justify-between">
+							<View className="flex-row items-center gap-3">
+								<Text className="text-xl">🔔</Text>
+								<View>
+									<Text className="text-text dark:text-text-dark font-medium text-sm">
+										Push Notifications
+									</Text>
+									<Text className="text-muted dark:text-muted-dark text-xs">
+										{permissionStatus === 'granted'
+											? 'Enabled'
+											: permissionStatus === 'denied'
+												? 'Denied — enable in system settings'
+												: 'Not configured'}
+									</Text>
+								</View>
+							</View>
+							{permissionStatus !== 'granted' && (
+								<TouchableOpacity
+									className="bg-primary rounded-lg px-3 py-1.5"
+									onPress={requestPermissions}
+								>
+									<Text className="text-white text-xs font-semibold">
+										Enable
+									</Text>
+								</TouchableOpacity>
+							)}
+						</View>
+					</View>
+
+					{/* Templates link */}
+					{isAuthed && (
+						<View className="gap-3">
+							<Text className="text-text dark:text-text-dark font-semibold text-sm uppercase tracking-wide">
+								Templates
+							</Text>
+							<TouchableOpacity
+								className="bg-card dark:bg-card-dark border border-border dark:border-border-dark rounded-2xl px-4 py-3 flex-row items-center justify-between"
+								onPress={() => router.push('/templates' as never)}
+							>
+								<View className="flex-row items-center gap-3">
+									<Text className="text-xl">📋</Text>
+									<View>
+										<Text className="text-text dark:text-text-dark font-medium text-sm">
+											Agent Templates
+										</Text>
+										<Text className="text-muted dark:text-muted-dark text-xs">
+											Create and manage reusable agent configs
+										</Text>
+									</View>
+								</View>
+								<Ionicons name="chevron-forward" size={18} color="#94a3b8" />
+							</TouchableOpacity>
+						</View>
+					)}
 
 					{/* Prompt Presets */}
 					<View className="gap-3">

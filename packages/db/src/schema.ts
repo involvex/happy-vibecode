@@ -222,3 +222,70 @@ export const authVerification = sqliteTable('auth_verification', {
 	createdAt: integer('created_at', {mode: 'timestamp_ms'}),
 	updatedAt: integer('updated_at', {mode: 'timestamp_ms'}),
 })
+
+export const agentTemplates = sqliteTable('agent_templates', {
+	id: text('id').primaryKey(), // UUID
+	userId: text('user_id')
+		.notNull()
+		.references(() => users.id),
+	name: text('name').notNull(),
+	description: text('description'),
+	tags: text('tags').notNull().default('[]'), // JSON array
+	isPublic: integer('is_public', {mode: 'boolean'}).notNull().default(false),
+	latestVersionId: text('latest_version_id'),
+	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
+	updatedAt: integer('updated_at', {mode: 'timestamp_ms'}).notNull(),
+})
+
+export const agentTemplateVersions = sqliteTable('agent_template_versions', {
+	id: text('id').primaryKey(), // UUID
+	templateId: text('template_id')
+		.notNull()
+		.references(() => agentTemplates.id, {onDelete: 'cascade'}),
+	version: integer('version').notNull(),
+	promptTemplate: text('prompt_template').notNull(),
+	defaultModel: text('default_model'),
+	defaultProvider: text('default_provider'),
+	tools: text('tools').notNull().default('[]'), // JSON array
+	parameters: text('parameters').notNull().default('{}'), // JSON object
+	changeNotes: text('change_notes'),
+	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
+})
+
+export const notificationPreferences = sqliteTable('notification_preferences', {
+	id: text('id').primaryKey(), // UUID
+	userId: text('user_id')
+		.notNull()
+		.references(() => users.id)
+		.unique(),
+	agentCompleted: integer('agent_completed', {mode: 'boolean'})
+		.notNull()
+		.default(true),
+	agentError: integer('agent_error', {mode: 'boolean'}).notNull().default(true),
+	agentRequiresInput: integer('agent_requires_input', {mode: 'boolean'})
+		.notNull()
+		.default(true),
+	quietHoursStart: integer('quiet_hours_start'),
+	quietHoursEnd: integer('quiet_hours_end'),
+	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
+	updatedAt: integer('updated_at', {mode: 'timestamp_ms'}).notNull(),
+})
+
+export const offlineSyncQueue = sqliteTable('offline_sync_queue', {
+	id: text('id').primaryKey(), // UUID
+	userId: text('user_id')
+		.notNull()
+		.references(() => users.id),
+	action: text('action', {
+		enum: ['prompt', 'update_preferences', 'toggle_template_public'],
+	}).notNull(),
+	payload: text('payload').notNull(), // JSON object
+	status: text('status', {
+		enum: ['pending', 'processing', 'completed', 'failed'],
+	})
+		.notNull()
+		.default('pending'),
+	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
+	processedAt: integer('processed_at', {mode: 'timestamp_ms'}),
+	error: text('error'),
+})

@@ -121,6 +121,18 @@ export class BridgeAgent extends DurableObject<Env> {
 				this.broadcast(data, 'cli')
 				return
 			}
+			if (msg.type === 'agent_logs' || msg.type === 'agent_status_update') {
+				this.broadcast(data, 'cli')
+				if (msg.type === 'agent_status_update') {
+					this.notifyStatusChange(
+						senderSession.userId,
+						msg.sessionId,
+						msg.status,
+						msg.details,
+					).catch(() => {})
+				}
+				return
+			}
 			if (
 				msg.type === 'response' ||
 				msg.type === 'error' ||
@@ -133,6 +145,17 @@ export class BridgeAgent extends DurableObject<Env> {
 						senderSession.userId,
 						'assistant',
 						msg.content,
+					).catch(() => {})
+					this.notifyAgentCompleted(
+						senderSession.userId,
+						msg.sessionId ?? senderSession.userId,
+					).catch(() => {})
+				}
+				if (msg.type === 'error') {
+					this.notifyAgentError(
+						senderSession.userId,
+						msg.sessionId ?? senderSession.userId,
+						msg.message,
 					).catch(() => {})
 				}
 			}
@@ -177,6 +200,181 @@ export class BridgeAgent extends DurableObject<Env> {
 				)
 			}
 			return
+		}
+
+		// web/mobile → CLI: agent control messages
+		if (
+			(senderSession.type === 'web' || senderSession.type === 'mobile') &&
+			(msg.type === 'agent_start' ||
+				msg.type === 'agent_stop' ||
+				msg.type === 'agent_params')
+		) {
+			const cliSession = this.findCli()
+			if (cliSession) {
+				try {
+					cliSession.ws.send(data)
+				} catch {
+					sender.send(
+						JSON.stringify({
+							type: 'error',
+							message: 'CLI connection lost. Please reconnect.',
+						}),
+					)
+					this.sessions.delete(cliSession.ws)
+				}
+			} else {
+				sender.send(
+					JSON.stringify({
+						type: 'error',
+						message: 'No CLI connected to this bridge',
+					}),
+				)
+			}
+			return
+		}
+	}
+
+	private async notifyAgentCompleted(userId: string, sessionId: string) {
+		try {
+			const session = await this.env.DB.prepare(
+				`SELECT metadata FROM agent_sessions WHERE id = ?`,
+			)
+				.bind(sessionId)
+				.first<{metadata: string | null}>()
+
+			let templateName: string | undefined
+			if (session?.metadata) {
+				try {
+					const meta = JSON.parse(session.metadata) as Record<string, unknown>
+					templateName = meta.templateName as string | undefined
+				} catch {}
+			}
+
+			const body = templateName
+				? `Agent task from "${templateName}" has completed.`
+				: 'Your agent task has completed.'
+
+			await this.sendPushNotification(userId, {
+				title: 'Task Complete',
+				body,
+				data: {
+					type: 'agent_completed',
+					sessionId,
+					...(templateName ? {templateName} : {}),
+				},
+			})
+		} catch {}
+	}
+
+	private async notifyAgentError(
+		userId: string,
+		sessionId: string,
+		error: string,
+	) {
+		try {
+			await this.sendPushNotification(userId, {
+				title: 'Task Error',
+				body: `Agent task encountered an error: ${error.slice(0, 100)}`,
+				data: {type: 'agent_error', sessionId},
+			})
+		} catch {}
+	}
+
+	private async notifyStatusChange(
+		userId: string,
+		sessionId: string,
+		status: string,
+		details?: string,
+	) {
+		try {
+			if (status === 'requires_input') {
+				await this.sendPushNotification(userId, {
+					title: 'Input Required',
+					body: details ?? 'Your agent task requires your input.',
+					data: {type: 'agent_requires_input', sessionId},
+				})
+			}
+		} catch {}
+	}
+
+	private async sendPushNotification(
+		userId: string,
+		payload: {title: string; body: string; data?: Record<string, string>},
+	) {
+		try {
+			const devices = await this.env.DB.prepare(
+				`SELECT token, platform FROM device_tokens WHERE user_id = ?`,
+			)
+				.bind(userId)
+				.all<{token: string; platform: string}>()
+
+			if (!devices.results || devices.results.length === 0) return
+
+			// Check notification preferences
+			const prefs = await this.env.DB.prepare(
+				`SELECT agent_completed, agent_error, agent_requires_input, quiet_hours_start, quiet_hours_end
+				 FROM notification_preferences WHERE user_id = ?`,
+			)
+				.bind(userId)
+				.first<{
+					agent_completed: number
+					agent_error: number
+					agent_requires_input: number
+					quiet_hours_start: number | null
+					quiet_hours_end: number | null
+				}>()
+
+			if (prefs) {
+				const type = payload.data?.type
+				if (type === 'agent_completed' && !prefs.agent_completed) return
+				if (type === 'agent_error' && !prefs.agent_error) return
+				if (type === 'agent_requires_input' && !prefs.agent_requires_input)
+					return
+
+				if (
+					prefs.quiet_hours_start !== null &&
+					prefs.quiet_hours_end !== null
+				) {
+					const hour = new Date().getUTCHours()
+					const start = prefs.quiet_hours_start
+					const end = prefs.quiet_hours_end
+					const inQuietHours =
+						start < end
+							? hour >= start && hour < end
+							: hour >= start || hour < end
+					if (inQuietHours) return
+				}
+			}
+
+			// Import push service dynamically to avoid circular deps
+			const fcmKey = (this.env as any).FCM_SERVICE_ACCOUNT_KEY as
+				| string
+				| undefined
+			const _apnsKey = (this.env as any).APNS_AUTH_KEY as string | undefined
+			const _apnsKeyId = (this.env as any).APNS_KEY_ID as string | undefined
+			const _apnsTeamId = (this.env as any).APNS_TEAM_ID as string | undefined
+			void _apnsKey
+			void _apnsKeyId
+			void _apnsTeamId
+
+			for (const device of devices.results) {
+				if (device.platform === 'android' && fcmKey) {
+					const {sendFcmNotification} =
+						await import('@happy-vibecode/api/services/push-notifications')
+					await sendFcmNotification(
+						device.token,
+						{
+							title: payload.title,
+							body: payload.body,
+							data: payload.data,
+							sound: 'default',
+						},
+						fcmKey,
+					)
+				}
+			}
+		} catch {
+			// Push notification failure should not break the bridge
 		}
 	}
 

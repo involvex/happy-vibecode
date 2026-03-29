@@ -39,7 +39,17 @@
 			"expo-secure-store",
 			"expo-font",
 			"expo-dev-client",
-			"expo-web-browser"
+			"expo-web-browser",
+			[
+				"expo-notifications",
+				{
+					"icon": "assets/icon.png",
+					"color": "#7c3aed",
+					"defaultChannel": "default",
+					"projectId": "f7854379-1f74-4e83-9f30-ade960bbc420"
+				}
+			],
+			"expo-local-authentication"
 		],
 		"experiments": {
 			"typedRoutes": true

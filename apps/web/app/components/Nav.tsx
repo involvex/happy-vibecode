@@ -10,6 +10,7 @@ import {
 	ListIcon,
 	XIcon,
 	ShieldCheckIcon,
+	FileTextIcon,
 } from '@phosphor-icons/react'
 import {usePathname} from 'next/navigation'
 import {useAuth} from '../hooks/useAuth'
@@ -28,6 +29,7 @@ const NAV_ITEMS: NavItem[] = [
 	{href: '/dashboard', label: 'Dashboard', icon: <HouseIcon size={18} />},
 	{href: '/chat', label: 'Chat', icon: <ChatCircleDotsIcon size={18} />},
 	{href: '/history', label: 'History', icon: <ClockIcon size={18} />},
+	{href: '/templates', label: 'Templates', icon: <FileTextIcon size={18} />},
 	{href: '/contact', label: 'Contact', icon: <EnvelopeSimpleIcon size={18} />},
 	{href: '/profile', label: 'Profile', icon: <UserIcon size={18} />},
 	{href: '/settings', label: 'Settings', icon: <GearSixIcon size={18} />},

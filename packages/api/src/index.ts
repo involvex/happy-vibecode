@@ -1,4 +1,6 @@
+import {agentTemplatesRouter} from './routes/agent-templates.js'
 import {adminAnalyticsRouter} from './routes/admin-analytics.js'
+import {notificationsRouter} from './routes/notifications.js'
 import {adminAgentsRouter} from './routes/admin-agents.js'
 import {adminUsersRouter} from './routes/admin-users.js'
 import {adminRolesRouter} from './routes/admin-roles.js'
@@ -12,6 +14,7 @@ import type {ApiEnv} from './middleware/auth.js'
 import {bridgeRouter} from './routes/bridge.js'
 import {agentsRouter} from './routes/agents.js'
 import {userRouter} from './routes/user.js'
+import {syncRouter} from './routes/sync.js'
 import {authRouter} from './routes/auth.js'
 import {logger} from 'hono/logger'
 import {cors} from 'hono/cors'
@@ -38,6 +41,9 @@ api.route('/workspaces', workspacesRouter)
 api.route('/agents', agentsRouter)
 api.route('/bridge', bridgeRouter)
 api.route('/tickets', ticketsRouter)
+api.route('/notifications', notificationsRouter)
+api.route('/templates', agentTemplatesRouter)
+api.route('/sync', syncRouter)
 api.route('/admin/users', adminUsersRouter)
 api.route('/admin/roles', adminRolesRouter)
 api.route('/admin/analytics', adminAnalyticsRouter)
