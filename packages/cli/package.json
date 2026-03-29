@@ -11,8 +11,8 @@
 	},
 	"type": "module",
 	"bin": {
-		"happy-vibecode": "./src/index.ts",
-		"vibe": "./src/index.ts"
+		"happy-vibecode": "src/index.ts",
+		"vibe": "src/index.ts"
 	},
 	"files": [
 		"dist/index.js",
