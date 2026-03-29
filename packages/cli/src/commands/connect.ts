@@ -206,19 +206,67 @@ async function runAgent(
 	let proc: ReturnType<typeof spawn>
 
 	if (shell) {
-		const commandStr = [agent.command, ...fullArgs]
-			.map(a => `"${a.replace(/"/g, '""')}"`)
-			.join(' ')
-		proc = spawn(shell, ['-c', commandStr], {
-			cwd: workspace,
-			stdio: ['ignore', 'pipe', 'pipe'],
-		})
+		const shellBase = shell
+			.toLowerCase()
+			.replace(/\.exe$/, '')
+			.replace(/^.*[\\/]/, '')
+		const isPs = shellBase === 'powershell' || shellBase === 'pwsh'
+		const isCmd = shellBase === 'cmd'
+
+		if (isPs) {
+			// PowerShell: prefix with & so the first token is a command invocation,
+			// not a string expression. Single-quote all args; '' escapes a literal '.
+			const commandStr =
+				'& ' +
+				[agent.command, ...fullArgs]
+					.map(a => `'${a.replace(/'/g, "''")}'`)
+					.join(' ')
+			proc = spawn(shell, ['-Command', commandStr], {
+				cwd: workspace,
+				stdio: ['ignore', 'pipe', 'pipe'],
+			})
+		} else if (isCmd) {
+			// cmd.exe: /d /s /c with double-quoted args; "" escapes a literal "
+			const commandStr = [agent.command, ...fullArgs]
+				.map(a => `"${a.replace(/"/g, '""')}"`)
+				.join(' ')
+			proc = spawn(shell, ['/d', '/s', '/c', commandStr], {
+				cwd: workspace,
+				stdio: ['ignore', 'pipe', 'pipe'],
+			})
+		} else {
+			// POSIX shells (bash, zsh, sh…): -c with single-quoted args.
+			// '\'' is the POSIX escape for a literal single-quote inside '…'.
+			const commandStr = [agent.command, ...fullArgs]
+				.map(a => `'${a.replace(/'/g, "'\\''")}'`)
+				.join(' ')
+			proc = spawn(shell, ['-c', commandStr], {
+				cwd: workspace,
+				stdio: ['ignore', 'pipe', 'pipe'],
+			})
+		}
 	} else {
-		proc = spawn(agent.command, fullArgs, {
-			cwd: workspace,
-			stdio: ['ignore', 'pipe', 'pipe'],
-			shell: true,
-		})
+		// No shell specified – construct a properly-quoted command string so that
+		// prompts containing spaces are not split into separate arguments.
+		if (process.platform === 'win32') {
+			// Windows: route through cmd.exe; "" escapes a literal "
+			const commandStr = [agent.command, ...fullArgs]
+				.map(a => `"${a.replace(/"/g, '""')}"`)
+				.join(' ')
+			proc = spawn('cmd', ['/d', '/s', '/c', commandStr], {
+				cwd: workspace,
+				stdio: ['ignore', 'pipe', 'pipe'],
+			})
+		} else {
+			// POSIX: route through /bin/sh; '\'' escapes a literal single-quote
+			const commandStr = [agent.command, ...fullArgs]
+				.map(a => `'${a.replace(/'/g, "'\\''")}'`)
+				.join(' ')
+			proc = spawn('/bin/sh', ['-c', commandStr], {
+				cwd: workspace,
+				stdio: ['ignore', 'pipe', 'pipe'],
+			})
+		}
 	}
 
 	onProcSpawned?.(proc)
