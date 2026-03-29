@@ -2,7 +2,7 @@
 	"expo": {
 		"name": "Happy Vibecode",
 		"slug": "happy-vibecode",
-		"version": "0.0.6",
+		"version": "0.0.7",
 		"orientation": "portrait",
 		"icon": "assets/icon512x512.png",
 		"userInterfaceStyle": "automatic",
@@ -17,7 +17,10 @@
 		"ios": {
 			"supportsTablet": true,
 			"bundleIdentifier": "com.happyvibecode.app",
-			"buildNumber": "NaN"
+			"buildNumber": "NaN",
+			"runtimeVersion": {
+				"policy": "appVersion"
+			}
 		},
 		"android": {
 			"adaptiveIcon": {
@@ -25,10 +28,17 @@
 				"backgroundColor": "#0f0f0f"
 			},
 			"icon": "assets/icon512x512.png",
-			"versionCode": 6,
+			"versionCode": 7,
 			"userInterfaceStyle": "automatic",
 			"package": "com.happyvibecode.app",
-			"googleServicesFile": "./google-services.json"
+			"googleServicesFile": "./google-services.json",
+			"permissions": [
+				"android.permission.USE_BIOMETRIC",
+				"android.permission.USE_FINGERPRINT",
+				"android.permission.USE_BIOMETRIC",
+				"android.permission.USE_FINGERPRINT"
+			],
+			"runtimeVersion": "1.0.0"
 		},
 		"web": {
 			"bundler": "metro",
@@ -61,6 +71,9 @@
 			"eas": {
 				"projectId": "f7854379-1f74-4e83-9f30-ade960bbc420"
 			}
+		},
+		"updates": {
+			"url": "https://u.expo.dev/f7854379-1f74-4e83-9f30-ade960bbc420"
 		}
 	}
 }
