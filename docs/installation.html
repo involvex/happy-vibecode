@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta
+			name="description"
+			content="Install and configure Happy Vibecode for local development."
+		/>
+		<title>Installation & Setup | Happy Vibecode Docs</title>
+		<link rel="stylesheet" href="assets/css/docs.css" />
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css"
+			media="(prefers-color-scheme: dark)"
+		/>
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css"
+			media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)"
+		/>
+	</head>
+	<body>
+		<a href="#main-content" class="skip-to-content">Skip to content</a>
+
+		<div class="docs-layout">
+			<!-- Header -->
+			<header class="docs-header" role="banner">
+				<button
+					class="menu-toggle"
+					aria-label="Toggle navigation"
+					aria-expanded="false"
+					aria-controls="sidebar"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<line x1="3" y1="12" x2="21" y2="12" />
+						<line x1="3" y1="6" x2="21" y2="6" />
+						<line x1="3" y1="18" x2="21" y2="18" />
+					</svg>
+				</button>
+
+				<a
+					href="index.html"
+					class="docs-header__brand"
+					aria-label="Happy Vibecode Documentation Home"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<polyline points="16 18 22 12 16 6" />
+						<polyline points="8 6 2 12 8 18" />
+					</svg>
+					<span>Happy Vibecode</span>
+				</a>
+
+				<div class="search-container">
+					<svg
+						class="search-icon"
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<circle cx="11" cy="11" r="8" />
+						<line x1="21" y1="21" x2="16.65" y2="16.65" />
+					</svg>
+					<input
+						type="search"
+						class="search-input"
+						placeholder="Search docs... (press /)"
+						aria-label="Search documentation"
+					/>
+					<div
+						class="search-results"
+						role="listbox"
+						aria-label="Search results"
+					></div>
+				</div>
+
+				<div class="docs-header__actions">
+					<button
+						class="theme-toggle"
+						aria-label="Toggle dark mode"
+						aria-pressed="false"
+					>
+						<svg
+							class="icon-sun"
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<circle cx="12" cy="12" r="5" />
+							<line x1="12" y1="1" x2="12" y2="3" />
+							<line x1="12" y1="21" x2="12" y2="23" />
+							<line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+							<line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+							<line x1="1" y1="12" x2="3" y2="12" />
+							<line x1="21" y1="12" x2="23" y2="12" />
+							<line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+							<line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+						</svg>
+						<svg
+							class="icon-moon"
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+						</svg>
+					</button>
+				</div>
+			</header>
+
+			<!-- Sidebar (loaded via fetch) -->
+			<div id="sidebar-container"></div>
+
+			<!-- Main Content -->
+			<main id="main-content" class="docs-content" role="main">
+				<h1>Installation & Setup</h1>
+
+				<p>
+					This guide covers installing Happy Vibecode for local development.
+				</p>
+
+				<h2 id="prerequisites">Prerequisites</h2>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Requirement</th>
+							<th>Version</th>
+							<th>Notes</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><strong>Node.js</strong></td>
+							<td>&gt;= 18</td>
+							<td>Required for TypeScript tooling</td>
+						</tr>
+						<tr>
+							<td><strong>Bun</strong></td>
+							<td>1.3.x</td>
+							<td>Package manager and runtime (declared in package.json)</td>
+						</tr>
+						<tr>
+							<td><strong>Wrangler</strong></td>
+							<td>Latest</td>
+							<td>For Cloudflare Workers deployment</td>
+						</tr>
+						<tr>
+							<td><strong>Expo CLI</strong></td>
+							<td>Latest</td>
+							<td>Only needed for mobile development</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<div class="callout callout--info">
+					<div class="callout__title">Why Bun?</div>
+					<div class="callout__text">
+						This project uses Bun as the package manager and runtime (see
+						<code>package.json</code>:
+						<code>"packageManager": "bun@1.3.10"</code>). Bun provides fast
+						installs, native TypeScript execution, and integrated bundling.
+					</div>
+				</div>
+
+				<h2 id="quickstart">Quick Start</h2>
+
+				<div class="code-block-header">
+					<span>Terminal</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-bash"># Clone the repository
+git clone https://github.com/involvex/happy-vibecode.git
+cd happy-vibecode
+
+# Install dependencies
+bun install
+
+# Start the web app in development mode
+bun run dev:web</code></pre>
+
+				<p>
+					The web app will be available at
+					<a href="http://localhost:5173">http://localhost:5173</a>.
+				</p>
+
+				<h2 id="development-commands">Development Commands</h2>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Command</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>bun install</code></td>
+							<td>Install all workspace dependencies</td>
+						</tr>
+						<tr>
+							<td><code>bun run dev</code></td>
+							<td>Start all packages in development mode (via Turborepo)</td>
+						</tr>
+						<tr>
+							<td><code>bun run dev:web</code></td>
+							<td>
+								Start only the web app (Vite + vinext + Cloudflare plugin)
+							</td>
+						</tr>
+						<tr>
+							<td><code>bun run build</code></td>
+							<td>Build all packages</td>
+						</tr>
+						<tr>
+							<td><code>bun run build:web</code></td>
+							<td>Build only the web app</td>
+						</tr>
+						<tr>
+							<td><code>bun run typecheck</code></td>
+							<td>Run TypeScript type checking across all packages</td>
+						</tr>
+						<tr>
+							<td><code>bun run test</code></td>
+							<td>Run tests across all packages</td>
+						</tr>
+						<tr>
+							<td><code>bun run lint</code></td>
+							<td>Lint all packages</td>
+						</tr>
+						<tr>
+							<td><code>bun run lint:fix</code></td>
+							<td>Lint and auto-fix issues</td>
+						</tr>
+						<tr>
+							<td><code>bun run format</code></td>
+							<td>Format code with Prettier</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h3>Package-Scoped Commands</h3>
+
+				<p>Target a specific package using the <code>-F</code> flag:</p>
+
+				<div class="code-block-header">
+					<span>Terminal</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-bash"># Build only the API package
+bun run -F @happy-vibecode/api build
+
+# Run typecheck on the web app
+bun run -F @happy-vibecode/web typecheck
+
+# Generate Drizzle migrations
+bun run -F @happy-vibecode/db generate
+
+# Apply database migrations
+bun run -F @happy-vibecode/db migrate</code></pre>
+
+				<h2 id="cli">CLI</h2>
+
+				<p>
+					The <code>packages/cli</code> package provides developer commands for
+					interacting with the platform:
+				</p>
+
+				<div class="code-block-header">
+					<span>Terminal</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-bash"># Build the CLI
+bun run build:cli
+
+# Available commands
+node packages/cli/dist/index.js login     # Authenticate
+node packages/cli/dist/index.js whoami    # Show authenticated user
+node packages/cli/dist/index.js status    # Show connection status
+node packages/cli/dist/index.js config    # View/edit configuration
+node packages/cli/dist/index.js doctor    # Diagnose issues
+node packages/cli/dist/index.js init      # Initialize workspace
+node packages/cli/dist/index.js workspace # Manage workspaces
+node packages/cli/dist/index.js connect   # Connect to agent bridge</code></pre>
+
+				<h2 id="deployment">Deployment</h2>
+
+				<h3>Cloudflare Workers</h3>
+
+				<div class="code-block-header">
+					<span>Terminal</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-bash"># Deploy the web app to Cloudflare Workers
+bun run -F @happy-vibecode/web deploy
+
+# This runs: wrangler types -> vite build -> wrangler deploy</code></pre>
+
+				<div class="callout callout--warning">
+					<div class="callout__title">D1 and KV Bindings</div>
+					<div class="callout__text">
+						The <code>wrangler.jsonc</code> uses placeholder IDs for local
+						development. Before deploying to production, create real D1 and KV
+						resources and update the IDs. See
+						<a href="configuration.html">Configuration</a> for details.
+					</div>
+				</div>
+
+				<h3>Database Migrations</h3>
+
+				<div class="code-block-header">
+					<span>Terminal</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-bash"># Generate a new migration from schema changes
+bun run -F @happy-vibecode/db generate
+
+# Apply migrations to D1
+bun run -F @happy-vibecode/db migrate</code></pre>
+
+				<h2>Mobile Development</h2>
+
+				<div class="code-block-header">
+					<span>Terminal</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-bash"># Navigate to mobile app
+cd apps/mobile
+
+# Start Expo development server
+npx expo start
+
+# Build with EAS
+npx eas build --profile development</code></pre>
+			</main>
+		</div>
+
+		<script src="assets/js/search-index.js"></script>
+		<script src="assets/js/docs.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+		<script>
+			// Load sidebar
+			fetch('_sidebar.html')
+				.then(r => r.text())
+				.then(html => {
+					document.getElementById('sidebar-container').innerHTML = html
+					// Re-init sidebar nav after load
+					if (typeof initActiveNav === 'function') initActiveNav()
+				})
+		</script>
+	</body>
+</html>

@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta
+			name="description"
+			content="Configure Happy Vibecode for development and production deployment."
+		/>
+		<title>Configuration | Happy Vibecode Docs</title>
+		<link rel="stylesheet" href="assets/css/docs.css" />
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css"
+			media="(prefers-color-scheme: dark)"
+		/>
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css"
+			media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)"
+		/>
+	</head>
+	<body>
+		<a href="#main-content" class="skip-to-content">Skip to content</a>
+		<div class="docs-layout">
+			<header class="docs-header" role="banner">
+				<button
+					class="menu-toggle"
+					aria-label="Toggle navigation"
+					aria-expanded="false"
+					aria-controls="sidebar"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<line x1="3" y1="12" x2="21" y2="12" />
+						<line x1="3" y1="6" x2="21" y2="6" />
+						<line x1="3" y1="18" x2="21" y2="18" />
+					</svg>
+				</button>
+				<a
+					href="index.html"
+					class="docs-header__brand"
+					aria-label="Happy Vibecode Documentation Home"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<polyline points="16 18 22 12 16 6" />
+						<polyline points="8 6 2 12 8 18" />
+					</svg>
+					<span>Happy Vibecode</span>
+				</a>
+				<div class="search-container">
+					<svg
+						class="search-icon"
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<circle cx="11" cy="11" r="8" />
+						<line x1="21" y1="21" x2="16.65" y2="16.65" />
+					</svg>
+					<input
+						type="search"
+						class="search-input"
+						placeholder="Search docs... (press /)"
+						aria-label="Search documentation"
+					/>
+					<div
+						class="search-results"
+						role="listbox"
+						aria-label="Search results"
+					></div>
+				</div>
+				<div class="docs-header__actions">
+					<button
+						class="theme-toggle"
+						aria-label="Toggle dark mode"
+						aria-pressed="false"
+					>
+						<svg
+							class="icon-sun"
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<circle cx="12" cy="12" r="5" />
+							<line x1="12" y1="1" x2="12" y2="3" />
+							<line x1="12" y1="21" x2="12" y2="23" />
+							<line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+							<line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+							<line x1="1" y1="12" x2="3" y2="12" />
+							<line x1="21" y1="12" x2="23" y2="12" />
+							<line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+							<line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+						</svg>
+						<svg
+							class="icon-moon"
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+						</svg>
+					</button>
+				</div>
+			</header>
+			<div id="sidebar-container"></div>
+			<main id="main-content" class="docs-content" role="main">
+				<h1>Configuration</h1>
+
+				<p>
+					This guide covers the configuration of Happy Vibecode for local
+					development and production deployment.
+				</p>
+
+				<h2 id="wrangler">Wrangler Configuration</h2>
+
+				<p>
+					The primary configuration file is
+					<code>apps/web/wrangler.jsonc</code>. It defines the Cloudflare Worker
+					settings, bindings, and environment variables.
+				</p>
+
+				<div class="code-block-header">
+					<span>wrangler.jsonc</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-json">{
+  "name": "happy-vibecode",
+  "compatibility_date": "2026-02-12",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "./worker/index.ts",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/agents/*"]
+  }
+}</code></pre>
+
+				<h2 id="d1-database">D1 Database</h2>
+
+				<p>
+					The application uses Cloudflare D1 (SQLite) for persistent storage.
+					The D1 binding is configured in <code>wrangler.jsonc</code>:
+				</p>
+
+				<div class="code-block-header">
+					<span>wrangler.jsonc</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-json">{
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "happy-vibecode-db",
+      "database_id": "2c49dfdf-ec4a-408c-b101-4793a1405cc3",
+      "migrations_dir": "../../packages/db/drizzle"
+    }
+  ]
+}</code></pre>
+
+				<h3>Creating D1 Database</h3>
+
+				<div class="code-block-header">
+					<span>Terminal</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-bash"># Create a new D1 database
+wrangler d1 create happy-vibecode-db
+
+# Update the database_id in wrangler.jsonc with the returned ID</code></pre>
+
+				<h3>Database Schema</h3>
+
+				<p>
+					The schema is defined in <code>packages/db/src/schema.ts</code> using
+					Drizzle ORM. Key tables:
+				</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Table</th>
+							<th>Purpose</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>users</code></td>
+							<td>
+								User accounts with subscription tiers and Stripe integration
+							</td>
+						</tr>
+						<tr>
+							<td><code>workspaces</code></td>
+							<td>User workspaces with LLM provider defaults</td>
+						</tr>
+						<tr>
+							<td><code>agent_sessions</code></td>
+							<td>Agent session tracking with connection status</td>
+						</tr>
+						<tr>
+							<td><code>message_logs</code></td>
+							<td>Chat message history per session</td>
+						</tr>
+						<tr>
+							<td><code>agents</code></td>
+							<td>Agent definitions (command, args, flags)</td>
+						</tr>
+						<tr>
+							<td><code>agent_templates</code></td>
+							<td>Reusable agent configuration templates</td>
+						</tr>
+						<tr>
+							<td><code>linked_repos</code></td>
+							<td>GitHub repositories linked to workspaces</td>
+						</tr>
+						<tr>
+							<td><code>repo_files</code></td>
+							<td>Indexed file metadata from linked repos</td>
+						</tr>
+						<tr>
+							<td><code>device_tokens</code></td>
+							<td>Push notification device tokens</td>
+						</tr>
+						<tr>
+							<td><code>offline_sync_queue</code></td>
+							<td>Queued actions for offline operation</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h2 id="kv-namespace">KV Namespace</h2>
+
+				<p>Cloudflare KV is used for rate limiting counters and caching:</p>
+
+				<div class="code-block-header">
+					<span>wrangler.jsonc</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-json">{
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "ba4e9794ba604de08ce3ceaf4ac3719f"
+    }
+  ]
+}</code></pre>
+
+				<div class="code-block-header">
+					<span>Terminal</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-bash"># Create KV namespace
+wrangler kv namespace create happy-vibecode-kv
+
+# Update the id in wrangler.jsonc</code></pre>
+
+				<h2 id="durable-objects">Durable Objects</h2>
+
+				<p>
+					The <code>BridgeAgent</code> Durable Object manages WebSocket
+					connections between clients and CLI agents:
+				</p>
+
+				<div class="code-block-header">
+					<span>wrangler.jsonc</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-json">{
+  "durable_objects": {
+    "bindings": [
+      {
+        "class_name": "BridgeAgent",
+        "name": "BridgeAgent"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "new_sqlite_classes": ["BridgeAgent"],
+      "tag": "v1"
+    }
+  ]
+}</code></pre>
+
+				<p>
+					The BridgeAgent is defined in
+					<code>apps/web/worker/bridge-agent.ts</code>. WebSocket connections
+					are routed at <code>/agents/BridgeAgent/&lt;roomId&gt;</code>.
+				</p>
+
+				<h2 id="environment-variables">Environment Variables &amp; Secrets</h2>
+
+				<h3>Public Variables (in wrangler.jsonc)</h3>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Variable</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>AUTH_GITHUB_ID</code></td>
+							<td>GitHub OAuth App Client ID</td>
+						</tr>
+						<tr>
+							<td><code>TURNSTILE_SITE_KEY</code></td>
+							<td>Cloudflare Turnstile site key for CAPTCHA</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h3>Secrets (set via wrangler)</h3>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Secret</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>AUTH_GITHUB_SECRET</code></td>
+							<td>GitHub OAuth App Client Secret</td>
+						</tr>
+						<tr>
+							<td><code>BETTER_AUTH_SECRET</code></td>
+							<td>Secret key for Better Auth session signing</td>
+						</tr>
+						<tr>
+							<td><code>TURNSTILE_SECRET_KEY</code></td>
+							<td>Cloudflare Turnstile secret key</td>
+						</tr>
+						<tr>
+							<td><code>STRIPE_API_KEY</code></td>
+							<td>Stripe API key (optional, for billing)</td>
+						</tr>
+						<tr>
+							<td><code>STRIPE_WEBHOOK_SECRET</code></td>
+							<td>Stripe webhook signing secret</td>
+						</tr>
+						<tr>
+							<td><code>STRIPE_PRO_PRICE_ID</code></td>
+							<td>Stripe Price ID for Pro subscription</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<div class="code-block-header">
+					<span>Terminal</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-bash"># Set secrets using wrangler
+wrangler secret put AUTH_GITHUB_SECRET
+wrangler secret put BETTER_AUTH_SECRET
+wrangler secret put STRIPE_API_KEY
+wrangler secret put STRIPE_WEBHOOK_SECRET
+wrangler secret put TURNSTILE_SECRET_KEY</code></pre>
+
+				<h2 id="rate-limiting-config">Rate Limiting</h2>
+
+				<p>
+					Rate limiting is enforced globally via middleware
+					(<code>packages/api/src/middleware/rate-limit.ts</code>):
+				</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Tier</th>
+							<th>Requests/min</th>
+							<th>Daily Quota</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><strong>Free</strong></td>
+							<td>30</td>
+							<td>500</td>
+						</tr>
+						<tr>
+							<td><strong>Pro</strong></td>
+							<td>120</td>
+							<td>5,000</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<p>Per-endpoint overrides exist for sensitive routes:</p>
+
+				<ul>
+					<li><code>/api/repos</code> — 20 requests/min</li>
+					<li><code>/api/sessions</code> — 10 requests/min</li>
+					<li><code>/api/billing</code> — 5 requests/min</li>
+				</ul>
+
+				<h2 id="llm-providers">LLM Provider Configuration</h2>
+
+				<p>
+					Supported LLM providers are defined in
+					<code>packages/shared/src/schema/llm-provider.ts</code>:
+				</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Provider</th>
+							<th>Identifier</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>Google Gemini</td>
+							<td><code>gemini</code></td>
+						</tr>
+						<tr>
+							<td>Anthropic Claude</td>
+							<td><code>claude</code></td>
+						</tr>
+						<tr>
+							<td>OpenAI Codex</td>
+							<td><code>codex</code></td>
+						</tr>
+						<tr>
+							<td>OpenCode AI</td>
+							<td><code>opencode-ai</code></td>
+						</tr>
+						<tr>
+							<td>GitHub Copilot</td>
+							<td><code>copilot</code></td>
+						</tr>
+						<tr>
+							<td>Kilo</td>
+							<td><code>kilo</code></td>
+						</tr>
+						<tr>
+							<td>Cline</td>
+							<td><code>cline</code></td>
+						</tr>
+						<tr>
+							<td>Custom</td>
+							<td><code>custom</code></td>
+						</tr>
+					</tbody>
+				</table>
+
+				<p>
+					Set the default provider per workspace via the
+					<code>defaultProvider</code> field or through the Settings UI.
+				</p>
+			</main>
+		</div>
+		<script src="assets/js/search-index.js"></script>
+		<script src="assets/js/docs.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+		<script>
+			fetch('_sidebar.html')
+				.then(r => r.text())
+				.then(html => {
+					document.getElementById('sidebar-container').innerHTML = html
+				})
+		</script>
+	</body>
+</html>

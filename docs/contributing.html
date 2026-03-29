@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta
+			name="description"
+			content="Guidelines for contributing to Happy Vibecode."
+		/>
+		<title>Contributing | Happy Vibecode Docs</title>
+		<link rel="stylesheet" href="assets/css/docs.css" />
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css"
+			media="(prefers-color-scheme: dark)"
+		/>
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css"
+			media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)"
+		/>
+	</head>
+	<body>
+		<a href="#main-content" class="skip-to-content">Skip to content</a>
+		<div class="docs-layout">
+			<header class="docs-header" role="banner">
+				<button
+					class="menu-toggle"
+					aria-label="Toggle navigation"
+					aria-expanded="false"
+					aria-controls="sidebar"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<line x1="3" y1="12" x2="21" y2="12" />
+						<line x1="3" y1="6" x2="21" y2="6" />
+						<line x1="3" y1="18" x2="21" y2="18" />
+					</svg>
+				</button>
+				<a
+					href="index.html"
+					class="docs-header__brand"
+					aria-label="Happy Vibecode Documentation Home"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<polyline points="16 18 22 12 16 6" />
+						<polyline points="8 6 2 12 8 18" />
+					</svg>
+					<span>Happy Vibecode</span>
+				</a>
+				<div class="search-container">
+					<svg
+						class="search-icon"
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<circle cx="11" cy="11" r="8" />
+						<line x1="21" y1="21" x2="16.65" y2="16.65" />
+					</svg>
+					<input
+						type="search"
+						class="search-input"
+						placeholder="Search docs... (press /)"
+						aria-label="Search documentation"
+					/>
+					<div
+						class="search-results"
+						role="listbox"
+						aria-label="Search results"
+					></div>
+				</div>
+				<div class="docs-header__actions">
+					<button
+						class="theme-toggle"
+						aria-label="Toggle dark mode"
+						aria-pressed="false"
+					>
+						<svg
+							class="icon-sun"
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<circle cx="12" cy="12" r="5" />
+							<line x1="12" y1="1" x2="12" y2="3" />
+							<line x1="12" y1="21" x2="12" y2="23" />
+							<line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+							<line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+							<line x1="1" y1="12" x2="3" y2="12" />
+							<line x1="21" y1="12" x2="23" y2="12" />
+							<line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+							<line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+						</svg>
+						<svg
+							class="icon-moon"
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+						</svg>
+					</button>
+				</div>
+			</header>
+			<div id="sidebar-container"></div>
+			<main id="main-content" class="docs-content" role="main">
+				<h1>Contributing</h1>
+
+				<p>
+					Thank you for your interest in contributing to Happy Vibecode! This
+					guide covers the development workflow, coding standards, and best
+					practices.
+				</p>
+
+				<h2 id="getting-started">Getting Started</h2>
+
+				<ol>
+					<li>Fork the repository on GitHub</li>
+					<li>
+						Clone your fork locally:
+						<div class="code-block-header">
+							<span>Terminal</span><button class="copy-button">Copy</button>
+						</div>
+						<pre><code class="language-bash">git clone https://github.com/your-username/happy-vibecode.git
+cd happy-vibecode
+bun install</code></pre>
+					</li>
+					<li>
+						Create a feature branch from <code>main</code>:
+						<div class="code-block-header">
+							<span>Terminal</span><button class="copy-button">Copy</button>
+						</div>
+						<pre><code class="language-bash">git checkout -b feature/your-feature-name</code></pre>
+					</li>
+				</ol>
+
+				<h2 id="code-standards">Code Standards</h2>
+
+				<h3>TypeScript</h3>
+
+				<ul>
+					<li><strong>Strict mode</strong> is enabled across all packages</li>
+					<li>Always use proper types — no <code>any</code> or untyped code</li>
+					<li>
+						Use Zod schemas from <code>packages/shared</code> for runtime
+						validation
+					</li>
+					<li>
+						Prefer <code>interface</code> over <code>type</code> for object
+						shapes
+					</li>
+				</ul>
+
+				<h3>Formatting</h3>
+
+				<div class="code-block-header">
+					<span>Terminal</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-bash"># Format all code
+bun run format
+
+# Lint and auto-fix
+bun run lint:fix</code></pre>
+
+				<ul>
+					<li>Uses Prettier with <code>@involvex/prettier-config</code></li>
+					<li>Linter: oxlint (configured per package)</li>
+					<li>Run <code>bun run format</code> before committing</li>
+				</ul>
+
+				<h3>Path Aliases</h3>
+
+				<p>Use <code>@happy-vibecode/*</code> for cross-package imports:</p>
+
+				<div class="code-block-header">
+					<span>TypeScript</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-typescript">import {createDb} from '@happy-vibecode/db'
+import type {LLMProvider} from '@happy-vibecode/shared'
+import {api} from '@happy-vibecode/api'</code></pre>
+
+				<h2 id="architecture-patterns">Architecture Patterns</h2>
+
+				<h3>Adding an API Endpoint</h3>
+
+				<ol>
+					<li>Create a route file in <code>packages/api/src/routes/</code></li>
+					<li>Define the Hono router with typed bindings</li>
+					<li>Mount it in <code>packages/api/src/index.ts</code></li>
+					<li>Add Zod schemas in <code>packages/shared/src/schema/</code></li>
+				</ol>
+
+				<div class="code-block-header">
+					<span>Example Route</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-typescript">import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
+import {Hono} from 'hono'
+
+export const myRouter = new Hono&lt;{
+	Bindings: ApiEnv
+	Variables: {userId: string}
+}&gt;()
+
+myRouter.use('*', authMiddleware)
+
+myRouter.get('/', async c => {
+	const userId = c.get('userId')
+	// ... implementation
+	return c.json({data: []})
+})</code></pre>
+
+				<h3>Adding a Database Table</h3>
+
+				<ol>
+					<li>Define the table in <code>packages/db/src/schema.ts</code></li>
+					<li>
+						Generate migration:
+						<code>bun run -F @happy-vibecode/db generate</code>
+					</li>
+					<li>Review the migration in <code>packages/db/drizzle/</code></li>
+					<li>
+						Apply migration: <code>bun run -F @happy-vibecode/db migrate</code>
+					</li>
+					<li>Update <code>wrangler.jsonc</code> if adding new bindings</li>
+				</ol>
+
+				<h3>Adding a Frontend Route</h3>
+
+				<ol>
+					<li>
+						Create a page file in <code>apps/web/app/</code> (uses TanStack
+						Router via vinext)
+					</li>
+					<li>
+						Use existing components from <code>apps/web/app/components/</code>
+					</li>
+					<li>Fetch data via API hooks or vinext loaders</li>
+				</ol>
+
+				<h2 id="commit-conventions">Commit Conventions</h2>
+
+				<p>
+					We use
+					<a href="https://www.conventionalcommits.org/">Conventional Commits</a
+					>:
+				</p>
+
+				<div class="code-block-header">
+					<span>Commit Format</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-bash">type(scope): description
+
+# Examples:
+feat(auth): add GitHub OAuth callback handling
+fix(chat): resolve WebSocket reconnection loop
+docs(readme): update installation instructions
+refactor(api): extract rate limiting middleware
+test(db): add user CRUD tests</code></pre>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Type</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>feat</code></td>
+							<td>New feature</td>
+						</tr>
+						<tr>
+							<td><code>fix</code></td>
+							<td>Bug fix</td>
+						</tr>
+						<tr>
+							<td><code>docs</code></td>
+							<td>Documentation changes</td>
+						</tr>
+						<tr>
+							<td><code>refactor</code></td>
+							<td>Code refactoring (no behavior change)</td>
+						</tr>
+						<tr>
+							<td><code>test</code></td>
+							<td>Adding or updating tests</td>
+						</tr>
+						<tr>
+							<td><code>chore</code></td>
+							<td>Build, CI, or tooling changes</td>
+						</tr>
+						<tr>
+							<td><code>perf</code></td>
+							<td>Performance improvements</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h2 id="testing">Testing</h2>
+
+				<div class="code-block-header">
+					<span>Terminal</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-bash"># Run all tests
+bun run test
+
+# Run tests for a specific package
+bun run -F @happy-vibecode/api test
+
+# Run type checking
+bun run typecheck</code></pre>
+
+				<div class="callout callout--warning">
+					<div class="callout__title">Before Submitting a PR</div>
+					<div class="callout__text">
+						Always run these checks before opening a pull request: <br /><code
+							>bun run format</code
+						>
+						<br /><code>bun run lint:fix</code> <br /><code
+							>bun run typecheck</code
+						>
+						<br /><code>bun run test</code>
+					</div>
+				</div>
+
+				<h2 id="pull-requests">Pull Request Process</h2>
+
+				<ol>
+					<li>Ensure your branch is up to date with <code>main</code></li>
+					<li>Run all checks (format, lint, typecheck, test)</li>
+					<li>Write a clear PR description referencing any related issues</li>
+					<li>Keep changes focused — one feature or fix per PR</li>
+					<li>Update documentation if adding new features</li>
+					<li>Wait for CI checks to pass</li>
+				</ol>
+
+				<h2 id="project-structure">Project Structure Reference</h2>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Task</th>
+							<th>Key Files</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>Add API endpoint</td>
+							<td>
+								<code>packages/api/src/routes/</code>, mount in
+								<code>packages/api/src/index.ts</code>
+							</td>
+						</tr>
+						<tr>
+							<td>Add database table</td>
+							<td>
+								<code>packages/db/src/schema.ts</code>, migrations in
+								<code>packages/db/drizzle/</code>
+							</td>
+						</tr>
+						<tr>
+							<td>Add shared type</td>
+							<td>
+								<code>packages/shared/src/schema/</code>, export in
+								<code>packages/shared/src/index.ts</code>
+							</td>
+						</tr>
+						<tr>
+							<td>Modify worker routing</td>
+							<td><code>apps/web/worker/index.ts</code></td>
+						</tr>
+						<tr>
+							<td>Add Durable Object</td>
+							<td>
+								<code>apps/web/worker/</code>, register in
+								<code>wrangler.jsonc</code>
+							</td>
+						</tr>
+						<tr>
+							<td>Add frontend route</td>
+							<td><code>apps/web/app/</code> (vinext + TanStack Router)</td>
+						</tr>
+						<tr>
+							<td>Add mobile screen</td>
+							<td><code>apps/mobile/app/</code> (Expo Router)</td>
+						</tr>
+						<tr>
+							<td>Add styling</td>
+							<td><code>apps/web/app/globals.css</code>, Tailwind config</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h2 id="security">Security</h2>
+
+				<ul>
+					<li>Never commit secrets, API keys, or tokens to the repository</li>
+					<li>Use <code>wrangler secret put</code> for production secrets</li>
+					<li>Validate all external input with Zod schemas</li>
+					<li>Follow the principle of least privilege for API endpoints</li>
+					<li>
+						See
+						<a
+							href="https://github.com/involvex/happy-vibecode/blob/main/SECURITY.md"
+							>SECURITY.md</a
+						>
+						for vulnerability reporting
+					</li>
+				</ul>
+
+				<h2 id="getting-help">Getting Help</h2>
+
+				<ul>
+					<li>
+						Open an issue on
+						<a href="https://github.com/involvex/happy-vibecode/issues"
+							>GitHub Issues</a
+						>
+					</li>
+					<li>Check existing documentation in <code>Plans/</code> directory</li>
+					<li>Review <code>Agents.md</code> for AI agent guidelines</li>
+				</ul>
+			</main>
+		</div>
+		<script src="assets/js/search-index.js"></script>
+		<script src="assets/js/docs.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+		<script>
+			fetch('_sidebar.html')
+				.then(r => r.text())
+				.then(html => {
+					document.getElementById('sidebar-container').innerHTML = html
+				})
+		</script>
+	</body>
+</html>

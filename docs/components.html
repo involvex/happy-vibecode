@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta
+			name="description"
+			content="Documentation for web, mobile, and shared components plus the database schema."
+		/>
+		<title>Components &amp; Schema | Happy Vibecode Docs</title>
+		<link rel="stylesheet" href="assets/css/docs.css" />
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css"
+			media="(prefers-color-scheme: dark)"
+		/>
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css"
+			media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)"
+		/>
+	</head>
+	<body>
+		<a href="#main-content" class="skip-to-content">Skip to content</a>
+		<div class="docs-layout">
+			<header class="docs-header" role="banner">
+				<button
+					class="menu-toggle"
+					aria-label="Toggle navigation"
+					aria-expanded="false"
+					aria-controls="sidebar"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<line x1="3" y1="12" x2="21" y2="12" />
+						<line x1="3" y1="6" x2="21" y2="6" />
+						<line x1="3" y1="18" x2="21" y2="18" />
+					</svg>
+				</button>
+				<a
+					href="index.html"
+					class="docs-header__brand"
+					aria-label="Happy Vibecode Documentation Home"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<polyline points="16 18 22 12 16 6" />
+						<polyline points="8 6 2 12 8 18" />
+					</svg>
+					<span>Happy Vibecode</span>
+				</a>
+				<div class="search-container">
+					<svg
+						class="search-icon"
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<circle cx="11" cy="11" r="8" />
+						<line x1="21" y1="21" x2="16.65" y2="16.65" />
+					</svg>
+					<input
+						type="search"
+						class="search-input"
+						placeholder="Search docs... (press /)"
+						aria-label="Search documentation"
+					/>
+					<div
+						class="search-results"
+						role="listbox"
+						aria-label="Search results"
+					></div>
+				</div>
+				<div class="docs-header__actions">
+					<button
+						class="theme-toggle"
+						aria-label="Toggle dark mode"
+						aria-pressed="false"
+					>
+						<svg
+							class="icon-sun"
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<circle cx="12" cy="12" r="5" />
+							<line x1="12" y1="1" x2="12" y2="3" />
+							<line x1="12" y1="21" x2="12" y2="23" />
+							<line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+							<line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+							<line x1="1" y1="12" x2="3" y2="12" />
+							<line x1="21" y1="12" x2="23" y2="12" />
+							<line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+							<line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+						</svg>
+						<svg
+							class="icon-moon"
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+						</svg>
+					</button>
+				</div>
+			</header>
+			<div id="sidebar-container"></div>
+			<main id="main-content" class="docs-content" role="main">
+				<h1>Components &amp; Schema</h1>
+
+				<p>
+					This page documents the shared components across web and mobile
+					applications, as well as the database schema.
+				</p>
+
+				<h2 id="web-components">Web Components</h2>
+
+				<p>
+					Located in <code>apps/web/app/components/</code>. These are React
+					components used across the web application.
+				</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Component</th>
+							<th>File</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>Nav</code></td>
+							<td><code>Nav.tsx</code></td>
+							<td>Primary navigation bar with responsive hamburger menu</td>
+						</tr>
+						<tr>
+							<td><code>Footer</code></td>
+							<td><code>Footer.tsx</code></td>
+							<td>
+								Site footer with links to privacy, terms, contact, funding
+							</td>
+						</tr>
+						<tr>
+							<td><code>Toast</code></td>
+							<td><code>Toast.tsx</code></td>
+							<td>Notification toast with success/error/info variants</td>
+						</tr>
+						<tr>
+							<td><code>ConfirmModal</code></td>
+							<td><code>ConfirmModal.tsx</code></td>
+							<td>Confirmation dialog for destructive actions</td>
+						</tr>
+						<tr>
+							<td><code>LoadingSkeletons</code></td>
+							<td><code>LoadingSkeletons.tsx</code></td>
+							<td>Loading placeholder animations</td>
+						</tr>
+						<tr>
+							<td><code>StatCard</code></td>
+							<td><code>StatCard.tsx</code></td>
+							<td>Dashboard statistics card with trend indicators</td>
+						</tr>
+						<tr>
+							<td><code>WorkspaceSelector</code></td>
+							<td><code>WorkspaceSelector.tsx</code></td>
+							<td>Dropdown for switching active workspace</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h3 id="admin-components">Admin Components</h3>
+
+				<p>
+					Located in <code>apps/web/app/admin/components/</code>. Used in the
+					admin dashboard.
+				</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Component</th>
+							<th>File</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>AdminSidebar</code></td>
+							<td><code>AdminSidebar.tsx</code></td>
+							<td>Admin panel sidebar navigation</td>
+						</tr>
+						<tr>
+							<td><code>AdminBreadcrumb</code></td>
+							<td><code>AdminBreadcrumb.tsx</code></td>
+							<td>Breadcrumb navigation for admin pages</td>
+						</tr>
+						<tr>
+							<td><code>DataTable</code></td>
+							<td><code>DataTable.tsx</code></td>
+							<td>Sortable, paginated data table</td>
+						</tr>
+						<tr>
+							<td><code>DateRangePicker</code></td>
+							<td><code>DateRangePicker.tsx</code></td>
+							<td>Date range filter for analytics</td>
+						</tr>
+						<tr>
+							<td><code>ExportButton</code></td>
+							<td><code>ExportButton.tsx</code></td>
+							<td>Export data to CSV</td>
+						</tr>
+						<tr>
+							<td><code>RoleForm</code></td>
+							<td><code>RoleForm.tsx</code></td>
+							<td>Role creation/editing form</td>
+						</tr>
+						<tr>
+							<td><code>UserForm</code></td>
+							<td><code>UserForm.tsx</code></td>
+							<td>User management form</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h2 id="mobile-components">Mobile Components</h2>
+
+				<p>
+					Located in <code>apps/mobile/components/</code>. React Native
+					components using NativeWind (Tailwind CSS).
+				</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Component</th>
+							<th>File</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>AgentControls</code></td>
+							<td><code>AgentControls.tsx</code></td>
+							<td>Agent start/stop/pause controls</td>
+						</tr>
+						<tr>
+							<td><code>Badge</code></td>
+							<td><code>Badge.tsx</code></td>
+							<td>Status badge with color variants</td>
+						</tr>
+						<tr>
+							<td><code>BiometricGate</code></td>
+							<td><code>BiometricGate.tsx</code></td>
+							<td>Biometric authentication gate (Face ID / fingerprint)</td>
+						</tr>
+						<tr>
+							<td><code>Button</code></td>
+							<td><code>Button.tsx</code></td>
+							<td>Primary/secondary/ghost button with loading state</td>
+						</tr>
+						<tr>
+							<td><code>Card</code></td>
+							<td><code>Card.tsx</code></td>
+							<td>Content card with shadow and border radius</td>
+						</tr>
+						<tr>
+							<td><code>EmptyState</code></td>
+							<td><code>EmptyState.tsx</code></td>
+							<td>Empty list placeholder with CTA</td>
+						</tr>
+						<tr>
+							<td><code>HeaderBar</code></td>
+							<td><code>HeaderBar.tsx</code></td>
+							<td>Screen header with back button and actions</td>
+						</tr>
+						<tr>
+							<td><code>Input</code></td>
+							<td><code>Input.tsx</code></td>
+							<td>Text input with label and error state</td>
+						</tr>
+						<tr>
+							<td><code>LoadingSkeleton</code></td>
+							<td><code>LoadingSkeleton.tsx</code></td>
+							<td>Loading placeholder animation</td>
+						</tr>
+						<tr>
+							<td><code>OfflineBanner</code></td>
+							<td><code>OfflineBanner.tsx</code></td>
+							<td>Network connectivity status banner</td>
+						</tr>
+						<tr>
+							<td><code>TemplateForm</code></td>
+							<td><code>TemplateForm.tsx</code></td>
+							<td>Agent template creation form</td>
+						</tr>
+						<tr>
+							<td><code>Toast</code></td>
+							<td><code>Toast.tsx</code></td>
+							<td>Mobile notification toast</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h3 id="mobile-hooks">Mobile Hooks</h3>
+
+				<p>Located in <code>apps/mobile/hooks/</code>.</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Hook</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>useAuth</code></td>
+							<td>Authentication state and GitHub OAuth flow</td>
+						</tr>
+						<tr>
+							<td><code>useBiometric</code></td>
+							<td>Biometric hardware detection and authentication</td>
+						</tr>
+						<tr>
+							<td><code>useAppLock</code></td>
+							<td>App lock with biometric gate on foreground</td>
+						</tr>
+						<tr>
+							<td><code>useNetworkStatus</code></td>
+							<td>Network connectivity monitoring</td>
+						</tr>
+						<tr>
+							<td><code>useOfflineSync</code></td>
+							<td>Offline action queue with sync on reconnect</td>
+						</tr>
+						<tr>
+							<td><code>usePushNotifications</code></td>
+							<td>FCM/APNs push notification registration</td>
+						</tr>
+						<tr>
+							<td><code>useTemplates</code></td>
+							<td>Agent template CRUD operations</td>
+						</tr>
+						<tr>
+							<td><code>useWorkspaces</code></td>
+							<td>Workspace management</td>
+						</tr>
+						<tr>
+							<td><code>usePromptPresets</code></td>
+							<td>Saved prompt presets</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h2 id="shared-schemas">Shared Schemas</h2>
+
+				<p>
+					Located in <code>packages/shared/src/schema/</code>. Zod schemas for
+					runtime validation shared across all packages.
+				</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Module</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>user.ts</code></td>
+							<td>User types and validation schemas</td>
+						</tr>
+						<tr>
+							<td><code>agent-session.ts</code></td>
+							<td>Agent session types and status enums</td>
+						</tr>
+						<tr>
+							<td><code>message.ts</code></td>
+							<td>Chat message types (user, assistant, system, tool)</td>
+						</tr>
+						<tr>
+							<td><code>agent-template.ts</code></td>
+							<td>Template CRUD schemas with versioning</td>
+						</tr>
+						<tr>
+							<td><code>llm-provider.ts</code></td>
+							<td>LLM provider enum and configuration schemas</td>
+						</tr>
+						<tr>
+							<td><code>provider-capabilities.ts</code></td>
+							<td>Provider feature metadata (max tokens, pricing)</td>
+						</tr>
+						<tr>
+							<td><code>github-repo.ts</code></td>
+							<td>Linked repository schemas</td>
+						</tr>
+						<tr>
+							<td><code>device-token.ts</code></td>
+							<td>Push notification device token schemas</td>
+						</tr>
+						<tr>
+							<td><code>notification.ts</code></td>
+							<td>Notification preference schemas</td>
+						</tr>
+						<tr>
+							<td><code>offline-sync.ts</code></td>
+							<td>Offline sync queue action schemas</td>
+						</tr>
+						<tr>
+							<td><code>ticket.ts</code></td>
+							<td>Support ticket schemas</td>
+						</tr>
+						<tr>
+							<td><code>admin.ts</code></td>
+							<td>Admin analytics and role schemas</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h2 id="database-schema">Database Schema</h2>
+
+				<p>
+					The database schema is defined in
+					<code>packages/db/src/schema.ts</code> using Drizzle ORM for
+					Cloudflare D1 (SQLite). Migrations are stored in
+					<code>packages/db/drizzle/</code>.
+				</p>
+
+				<h3>Core Tables</h3>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Table</th>
+							<th>Description</th>
+							<th>Key Fields</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>users</code></td>
+							<td>User accounts</td>
+							<td>id, email, role, planTier, subscriptionStatus</td>
+						</tr>
+						<tr>
+							<td><code>workspaces</code></td>
+							<td>User workspaces</td>
+							<td>id, userId, name, path, defaultProvider</td>
+						</tr>
+						<tr>
+							<td><code>agent_sessions</code></td>
+							<td>Agent connections</td>
+							<td>id, userId, agentType, connectionStatus, roomId</td>
+						</tr>
+						<tr>
+							<td><code>message_logs</code></td>
+							<td>Chat history</td>
+							<td>id, sessionId, role, content, timestamp</td>
+						</tr>
+						<tr>
+							<td><code>agents</code></td>
+							<td>Agent definitions</td>
+							<td>id, name, command, args, promptFlag, modelFlag</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h3>Auth Tables (Better Auth)</h3>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Table</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>auth_user</code></td>
+							<td>Better Auth user records</td>
+						</tr>
+						<tr>
+							<td><code>auth_session</code></td>
+							<td>Session tokens and expiration</td>
+						</tr>
+						<tr>
+							<td><code>auth_account</code></td>
+							<td>OAuth accounts (GitHub) and credentials</td>
+						</tr>
+						<tr>
+							<td><code>auth_verification</code></td>
+							<td>Email verification tokens</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h3>Feature Tables</h3>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Table</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>agent_templates</code></td>
+							<td>Reusable agent configuration templates</td>
+						</tr>
+						<tr>
+							<td><code>agent_template_versions</code></td>
+							<td>Versioned template configurations</td>
+						</tr>
+						<tr>
+							<td><code>linked_repos</code></td>
+							<td>GitHub repositories linked to workspaces</td>
+						</tr>
+						<tr>
+							<td><code>repo_files</code></td>
+							<td>Indexed file metadata from repos</td>
+						</tr>
+						<tr>
+							<td><code>repo_embeddings</code></td>
+							<td>File content chunks with embeddings</td>
+						</tr>
+						<tr>
+							<td><code>device_tokens</code></td>
+							<td>Push notification device registrations</td>
+						</tr>
+						<tr>
+							<td><code>notification_preferences</code></td>
+							<td>Per-user notification settings</td>
+						</tr>
+						<tr>
+							<td><code>offline_sync_queue</code></td>
+							<td>Queued actions for offline operation</td>
+						</tr>
+						<tr>
+							<td><code>tickets</code></td>
+							<td>Support tickets</td>
+						</tr>
+						<tr>
+							<td><code>ticket_responses</code></td>
+							<td>Ticket reply messages</td>
+						</tr>
+						<tr>
+							<td><code>roles</code></td>
+							<td>User roles with JSON permissions</td>
+						</tr>
+						<tr>
+							<td><code>audit_logs</code></td>
+							<td>Audit trail of admin actions</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h2 id="durable-object">BridgeAgent Durable Object</h2>
+
+				<p>
+					The <code>BridgeAgent</code> (defined in
+					<code>apps/web/worker/bridge-agent.ts</code>) is a Cloudflare Durable
+					Object that manages real-time WebSocket connections between clients
+					and CLI agents.
+				</p>
+
+				<h3>Responsibilities</h3>
+
+				<ul>
+					<li>WebSocket connection lifecycle (connect, message, disconnect)</li>
+					<li>Message relay between web/mobile clients and CLI agents</li>
+					<li>
+						Connection state tracking (connecting, connected, disconnected,
+						error)
+					</li>
+					<li>Per-room isolation (one agent session per roomId)</li>
+					<li>SQLite-backed state persistence</li>
+				</ul>
+
+				<h3>WebSocket Path</h3>
+
+				<div class="code-block-header">
+					<span>WebSocket URL</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-bash">wss://your-worker.workers.dev/agents/BridgeAgent/&lt;roomId&gt;?token=&lt;api-token&gt;</code></pre>
+
+				<div class="callout callout--info">
+					<div class="callout__title">Authentication</div>
+					<div class="callout__text">
+						WebSocket connections require a valid API token passed as a
+						<code>token</code> query parameter (for browser clients) or
+						<code>Authorization: Bearer &lt;token&gt;</code> header (for
+						CLI/mobile clients).
+					</div>
+				</div>
+			</main>
+		</div>
+		<script src="assets/js/search-index.js"></script>
+		<script src="assets/js/docs.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+		<script>
+			fetch('_sidebar.html')
+				.then(r => r.text())
+				.then(html => {
+					document.getElementById('sidebar-container').innerHTML = html
+				})
+		</script>
+	</body>
+</html>

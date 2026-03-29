@@ -1,0 +1,871 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta
+			name="description"
+			content="Complete API reference for Happy Vibecode REST endpoints."
+		/>
+		<title>API Reference | Happy Vibecode Docs</title>
+		<link rel="stylesheet" href="assets/css/docs.css" />
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css"
+			media="(prefers-color-scheme: dark)"
+		/>
+		<link
+			rel="stylesheet"
+			href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css"
+			media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)"
+		/>
+	</head>
+	<body>
+		<a href="#main-content" class="skip-to-content">Skip to content</a>
+		<div class="docs-layout">
+			<header class="docs-header" role="banner">
+				<button
+					class="menu-toggle"
+					aria-label="Toggle navigation"
+					aria-expanded="false"
+					aria-controls="sidebar"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<line x1="3" y1="12" x2="21" y2="12" />
+						<line x1="3" y1="6" x2="21" y2="6" />
+						<line x1="3" y1="18" x2="21" y2="18" />
+					</svg>
+				</button>
+				<a
+					href="index.html"
+					class="docs-header__brand"
+					aria-label="Happy Vibecode Documentation Home"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<polyline points="16 18 22 12 16 6" />
+						<polyline points="8 6 2 12 8 18" />
+					</svg>
+					<span>Happy Vibecode</span>
+				</a>
+				<div class="search-container">
+					<svg
+						class="search-icon"
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<circle cx="11" cy="11" r="8" />
+						<line x1="21" y1="21" x2="16.65" y2="16.65" />
+					</svg>
+					<input
+						type="search"
+						class="search-input"
+						placeholder="Search docs... (press /)"
+						aria-label="Search documentation"
+					/>
+					<div
+						class="search-results"
+						role="listbox"
+						aria-label="Search results"
+					></div>
+				</div>
+				<div class="docs-header__actions">
+					<button
+						class="theme-toggle"
+						aria-label="Toggle dark mode"
+						aria-pressed="false"
+					>
+						<svg
+							class="icon-sun"
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<circle cx="12" cy="12" r="5" />
+							<line x1="12" y1="1" x2="12" y2="3" />
+							<line x1="12" y1="21" x2="12" y2="23" />
+							<line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+							<line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+							<line x1="1" y1="12" x2="3" y2="12" />
+							<line x1="21" y1="12" x2="23" y2="12" />
+							<line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+							<line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+						</svg>
+						<svg
+							class="icon-moon"
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+						</svg>
+					</button>
+				</div>
+			</header>
+			<div id="sidebar-container"></div>
+			<main id="main-content" class="docs-content" role="main">
+				<h1>API Reference</h1>
+
+				<p>
+					The Happy Vibecode API is built with
+					<a href="https://hono.dev">Hono</a> and mounted at
+					<code>/api/*</code> in the Cloudflare Worker. All endpoints require
+					authentication unless otherwise noted.
+				</p>
+
+				<div class="callout callout--info">
+					<div class="callout__title">Authentication</div>
+					<div class="callout__text">
+						Most endpoints require a valid session token obtained via Better
+						Auth (OAuth or email/password). Include the token in the
+						<code>Authorization: Bearer &lt;token&gt;</code> header.
+					</div>
+				</div>
+
+				<h2 id="health">Health Check</h2>
+
+				<p>
+					<span class="badge badge--get">GET</span> <code>/api/health</code>
+				</p>
+				<p>Returns service health status. No authentication required.</p>
+
+				<div class="code-block-header">
+					<span>Response</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-json">{
+  "status": "ok",
+  "timestamp": "2026-03-29T10:00:00.000Z"
+}</code></pre>
+
+				<h2 id="auth">Authentication</h2>
+
+				<p>
+					All <code>/api/auth/*</code> routes are handled by Better Auth. See
+					the <code>apps/web/worker/auth.ts</code> configuration.
+				</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Method</th>
+							<th>Endpoint</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/auth/sign-in/email</code></td>
+							<td>Sign in with email/password</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/auth/sign-up/email</code></td>
+							<td>Register with email/password</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/auth/sign-in/social/github</code></td>
+							<td>Initiate GitHub OAuth</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/auth/sign-out</code></td>
+							<td>Sign out current session</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/auth/session</code></td>
+							<td>Get current session info</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h2 id="sessions">Sessions</h2>
+
+				<p>
+					Manage agent sessions — the connection between a user and an AI coding
+					agent.
+				</p>
+
+				<h3>List Sessions</h3>
+				<p>
+					<span class="badge badge--get">GET</span> <code>/api/sessions</code>
+				</p>
+				<p>
+					Returns all sessions for the authenticated user. Filter by status with
+					<code>?status=connected</code>.
+				</p>
+
+				<div class="code-block-header">
+					<span>Response</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-json">{
+  "sessions": [
+    {
+      "id": "uuid",
+      "userId": "user-id",
+      "agentType": "gemini",
+      "connectionStatus": "connected",
+      "roomId": "room-id",
+      "workspaceId": "workspace-id",
+      "model": "gemini-2.5-pro",
+      "startedAt": "2026-03-29T10:00:00.000Z",
+      "endedAt": null,
+      "metadata": "{}"
+    }
+  ]
+}</code></pre>
+
+				<h3>Create Session</h3>
+				<p>
+					<span class="badge badge--post">POST</span> <code>/api/sessions</code>
+				</p>
+
+				<div class="code-block-header">
+					<span>Request Body</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-json">{
+  "agentType": "gemini",
+  "roomId": "optional-custom-room-id",
+  "metadata": { "key": "value" }
+}</code></pre>
+
+				<h3>Get Session</h3>
+				<p>
+					<span class="badge badge--get">GET</span>
+					<code>/api/sessions/:id</code>
+				</p>
+
+				<h3>Get Session Messages</h3>
+				<p>
+					<span class="badge badge--get">GET</span>
+					<code>/api/sessions/:id/messages</code>
+				</p>
+				<p>Returns all messages for a session, ordered by timestamp.</p>
+
+				<h3>Update Session Status</h3>
+				<p>
+					<span class="badge badge--patch">PATCH</span>
+					<code>/api/sessions/:id/status</code>
+				</p>
+
+				<div class="code-block-header">
+					<span>Request Body</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-json">{
+  "status": "disconnected"
+}</code></pre>
+
+				<h3>Control Agent</h3>
+				<p>
+					<span class="badge badge--patch">PATCH</span>
+					<code>/api/sessions/:id/control</code>
+				</p>
+
+				<div class="code-block-header">
+					<span>Request Body</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-json">{
+  "action": "pause",
+  "parameters": {}
+}</code></pre>
+
+				<h2 id="agents">Agents</h2>
+
+				<p>
+					Manage available AI agent configurations (admin-only for write
+					operations).
+				</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Method</th>
+							<th>Endpoint</th>
+							<th>Description</th>
+							<th>Auth</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/agents</code></td>
+							<td>List active agents</td>
+							<td>User</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/agents/:id</code></td>
+							<td>Get agent details</td>
+							<td>User</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/agents</code></td>
+							<td>Create agent</td>
+							<td>Admin</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--put">PUT</span></td>
+							<td><code>/api/agents/:id</code></td>
+							<td>Update agent</td>
+							<td>Admin</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--delete">DELETE</span></td>
+							<td><code>/api/agents/:id</code></td>
+							<td>Delete agent</td>
+							<td>Admin</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<div class="code-block-header">
+					<span>Create Agent Request</span
+					><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-json">{
+  "name": "Gemini CLI",
+  "command": "gemini",
+  "args": ["--prompt"],
+  "promptFlag": "--prompt",
+  "modelFlag": "--model",
+  "description": "Google Gemini CLI agent"
+}</code></pre>
+
+				<h2 id="workspaces">Workspaces</h2>
+
+				<p>Manage user workspaces with LLM provider defaults.</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Method</th>
+							<th>Endpoint</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/workspaces</code></td>
+							<td>List user workspaces</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/workspaces</code></td>
+							<td>Create workspace</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/workspaces/:id</code></td>
+							<td>Get workspace details</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--put">PUT</span></td>
+							<td><code>/api/workspaces/:id</code></td>
+							<td>Update workspace</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--delete">DELETE</span></td>
+							<td><code>/api/workspaces/:id</code></td>
+							<td>Delete workspace</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/workspaces/:id/activate</code></td>
+							<td>Set as active workspace</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<div class="code-block-header">
+					<span>Create Workspace Request</span
+					><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-json">{
+  "name": "My Project",
+  "path": "/home/user/projects/my-project",
+  "defaultProvider": "gemini",
+  "defaultModel": "gemini-2.5-pro"
+}</code></pre>
+
+				<h2 id="templates">Templates</h2>
+
+				<p>Versioned, reusable agent configuration templates.</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Method</th>
+							<th>Endpoint</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/templates</code></td>
+							<td>List templates (public + own)</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/templates</code></td>
+							<td>Create template</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/templates/:id</code></td>
+							<td>Get template with versions</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--put">PUT</span></td>
+							<td><code>/api/templates/:id</code></td>
+							<td>Update template metadata</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--delete">DELETE</span></td>
+							<td><code>/api/templates/:id</code></td>
+							<td>Delete template and versions</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/templates/:id/versions</code></td>
+							<td>Add a new version</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/templates/:id/versions</code></td>
+							<td>List all versions</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/templates/:id/instantiate</code></td>
+							<td>Create session from template</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--patch">PATCH</span></td>
+							<td><code>/api/templates/:id/share</code></td>
+							<td>Toggle public/private</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/templates/:id/duplicate</code></td>
+							<td>Duplicate template</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h2 id="billing">Billing</h2>
+
+				<p>Stripe-powered subscription billing.</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Method</th>
+							<th>Endpoint</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/billing/checkout-session</code></td>
+							<td>Create Stripe checkout session</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/billing/webhook</code></td>
+							<td>Stripe webhook handler</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<div class="callout callout--info">
+					<div class="callout__title">Subscription Tiers</div>
+					<div class="callout__text">
+						Free tier: 30 req/min, 500 daily quota. Pro tier: 120 req/min, 5,000
+						daily quota. Subscription status is synced from Stripe webhooks.
+					</div>
+				</div>
+
+				<h2 id="repos">Repositories</h2>
+
+				<p>GitHub repository integration for contextual AI code awareness.</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Method</th>
+							<th>Endpoint</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/repos</code></td>
+							<td>List linked repositories</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/repos</code></td>
+							<td>Link a repository</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/repos/available</code></td>
+							<td>List user's GitHub repos</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/repos/:id</code></td>
+							<td>Get repo details</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--delete">DELETE</span></td>
+							<td><code>/api/repos/:id</code></td>
+							<td>Unlink repository</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/repos/:id/sync</code></td>
+							<td>Sync repository files</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/repos/:id/index</code></td>
+							<td>Index repository content</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/repos/:id/tree</code></td>
+							<td>Get repo file tree</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/repos/:id/files?path=...</code></td>
+							<td>Get file content</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/repos/:id/search?q=...</code></td>
+							<td>Search code in repo</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/repos/auth/pat</code></td>
+							<td>Store GitHub PAT</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h2 id="devices">Devices</h2>
+
+				<p>Push notification device token management.</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Method</th>
+							<th>Endpoint</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/devices</code></td>
+							<td>Register device token</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--delete">DELETE</span></td>
+							<td><code>/api/devices/:id</code></td>
+							<td>Remove device token</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h2 id="notifications">Notifications</h2>
+
+				<p>Push notification preferences and management.</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Method</th>
+							<th>Endpoint</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/notifications</code></td>
+							<td>Get notification preferences</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--put">PUT</span></td>
+							<td><code>/api/notifications</code></td>
+							<td>Update preferences</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h2 id="sync">Offline Sync</h2>
+
+				<p>Queue actions for offline operation.</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Method</th>
+							<th>Endpoint</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/sync</code></td>
+							<td>Queue offline action</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/sync</code></td>
+							<td>List pending actions</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h2 id="tickets">Tickets</h2>
+
+				<p>Support ticket system.</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Method</th>
+							<th>Endpoint</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/tickets</code></td>
+							<td>List user tickets</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/tickets</code></td>
+							<td>Create ticket</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/tickets/:id</code></td>
+							<td>Get ticket with responses</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/tickets/:id/responses</code></td>
+							<td>Add response</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h2 id="admin">Admin Routes</h2>
+
+				<p>All admin routes require the <code>admin</code> role.</p>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Method</th>
+							<th>Endpoint</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/admin/users</code></td>
+							<td>List all users</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--put">PUT</span></td>
+							<td><code>/api/admin/users/:id</code></td>
+							<td>Update user</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/admin/roles</code></td>
+							<td>List roles</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--post">POST</span></td>
+							<td><code>/api/admin/roles</code></td>
+							<td>Create role</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/admin/analytics/overview</code></td>
+							<td>Dashboard KPIs</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/admin/analytics/signups</code></td>
+							<td>Signup trends</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/admin/analytics/sessions</code></td>
+							<td>Session metrics</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/admin/analytics/activity</code></td>
+							<td>Login heatmap</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/admin/audit</code></td>
+							<td>Audit log</td>
+						</tr>
+						<tr>
+							<td><span class="badge badge--get">GET</span></td>
+							<td><code>/api/admin/agents</code></td>
+							<td>List all agents</td>
+						</tr>
+					</tbody>
+				</table>
+
+				<h2 id="rate-limiting">Rate Limiting</h2>
+
+				<p>
+					All authenticated endpoints are rate limited. Response headers
+					include:
+				</p>
+
+				<ul>
+					<li><code>X-RateLimit-Limit</code> — Maximum requests per window</li>
+					<li>
+						<code>X-RateLimit-Remaining</code> — Remaining requests in current
+						window
+					</li>
+					<li>
+						<code>X-RateLimit-Reset</code> — Unix timestamp when the window
+						resets
+					</li>
+					<li>
+						<code>Retry-After</code> — Seconds until retry (on 429 responses)
+					</li>
+				</ul>
+
+				<div class="code-block-header">
+					<span>429 Response</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-json">{
+  "error": "Rate limit exceeded",
+  "retryAfter": 45,
+  "limit": 30,
+  "window": 60
+}</code></pre>
+
+				<h2 id="error-handling">Error Handling</h2>
+
+				<p>All errors follow a consistent JSON format:</p>
+
+				<div class="code-block-header">
+					<span>Error Response</span><button class="copy-button">Copy</button>
+				</div>
+				<pre><code class="language-json">{
+  "error": "Human-readable error message",
+  "details": [] // Optional: validation error details
+}</code></pre>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Status</th>
+							<th>Meaning</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><code>400</code></td>
+							<td>Bad request (validation error)</td>
+						</tr>
+						<tr>
+							<td><code>401</code></td>
+							<td>Unauthorized (missing or invalid token)</td>
+						</tr>
+						<tr>
+							<td><code>403</code></td>
+							<td>Forbidden (insufficient role/permissions)</td>
+						</tr>
+						<tr>
+							<td><code>404</code></td>
+							<td>Resource not found</td>
+						</tr>
+						<tr>
+							<td><code>409</code></td>
+							<td>Conflict (e.g., already subscribed)</td>
+						</tr>
+						<tr>
+							<td><code>429</code></td>
+							<td>Rate limit exceeded</td>
+						</tr>
+						<tr>
+							<td><code>500</code></td>
+							<td>Internal server error</td>
+						</tr>
+					</tbody>
+				</table>
+			</main>
+		</div>
+		<script src="assets/js/search-index.js"></script>
+		<script src="assets/js/docs.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+		<script>
+			fetch('_sidebar.html')
+				.then(r => r.text())
+				.then(html => {
+					document.getElementById('sidebar-container').innerHTML = html
+				})
+		</script>
+	</body>
+</html>
