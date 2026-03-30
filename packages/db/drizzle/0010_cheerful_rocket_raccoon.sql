@@ -1,0 +1,1 @@
+ALTER TABLE `workspaces` ADD `fallback_chain` text;

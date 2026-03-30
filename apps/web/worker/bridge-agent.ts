@@ -121,6 +121,13 @@ export class BridgeAgent extends DurableObject<Env> {
 				this.broadcast(data, 'cli')
 				return
 			}
+			if (msg.type === 'model_switch_ack') {
+				if (msg.success) {
+					senderSession.model = msg.model
+				}
+				this.broadcast(data, 'cli')
+				return
+			}
 			if (msg.type === 'agent_logs' || msg.type === 'agent_status_update') {
 				this.broadcast(data, 'cli')
 				if (msg.type === 'agent_status_update') {
@@ -145,6 +152,7 @@ export class BridgeAgent extends DurableObject<Env> {
 						senderSession.userId,
 						'assistant',
 						msg.content,
+						senderSession.model,
 					).catch(() => {})
 					this.notifyAgentCompleted(
 						senderSession.userId,
@@ -157,6 +165,7 @@ export class BridgeAgent extends DurableObject<Env> {
 						msg.sessionId ?? senderSession.userId,
 						msg.message,
 					).catch(() => {})
+					this.handleProviderFallback(senderSession.userId, msg).catch(() => {})
 				}
 			}
 			return
@@ -249,6 +258,43 @@ export class BridgeAgent extends DurableObject<Env> {
 					JSON.stringify({
 						type: 'error',
 						message: 'No CLI connected to this bridge',
+					}),
+				)
+			}
+			return
+		}
+
+		// web/mobile → CLI: model switch request
+		if (
+			(senderSession.type === 'web' || senderSession.type === 'mobile') &&
+			msg.type === 'model_switch'
+		) {
+			const cliSession = this.findCli()
+			if (cliSession) {
+				try {
+					cliSession.ws.send(data)
+				} catch {
+					sender.send(
+						JSON.stringify({
+							type: 'model_switch_ack',
+							provider: msg.provider,
+							model: msg.model,
+							sessionId: msg.sessionId,
+							success: false,
+							error: 'CLI connection lost',
+						}),
+					)
+					this.sessions.delete(cliSession.ws)
+				}
+			} else {
+				sender.send(
+					JSON.stringify({
+						type: 'model_switch_ack',
+						provider: msg.provider,
+						model: msg.model,
+						sessionId: msg.sessionId,
+						success: false,
+						error: 'No CLI connected to this bridge',
 					}),
 				)
 			}
@@ -405,11 +451,13 @@ export class BridgeAgent extends DurableObject<Env> {
 		userId: string,
 		role: 'user' | 'assistant',
 		content: string,
+		model?: string,
 	) {
 		try {
+			const metadata = model ? JSON.stringify({model}) : null
 			await this.env.DB.prepare(
-				`INSERT INTO message_logs (id, session_id, user_id, role, content, created_at)
-				 VALUES (?, ?, ?, ?, ?, ?)`,
+				`INSERT INTO message_logs (id, session_id, user_id, role, content, timestamp, metadata)
+				 VALUES (?, ?, ?, ?, ?, ?, ?)`,
 			)
 				.bind(
 					crypto.randomUUID(),
@@ -417,11 +465,62 @@ export class BridgeAgent extends DurableObject<Env> {
 					userId,
 					role,
 					content,
-					new Date().toISOString(),
+					Date.now(),
+					metadata,
 				)
 				.run()
 		} catch {
 			// DB may not be available in local dev
+		}
+	}
+
+	private async handleProviderFallback(
+		userId: string,
+		errorMsg: WsMessage & {type: 'error'},
+	) {
+		try {
+			const session = await this.env.DB.prepare(
+				`SELECT fallback_chain FROM workspaces WHERE user_id = ? AND is_active = 1 LIMIT 1`,
+			)
+				.bind(userId)
+				.first<{fallback_chain: string | null}>()
+
+			if (!session?.fallback_chain) return
+
+			const chain = JSON.parse(session.fallback_chain) as Array<{
+				provider: string
+				model: string
+			}>
+			if (!chain.length) return
+
+			const cliSession = this.findCli()
+			if (!cliSession) return
+
+			const currentModel = cliSession.model
+			let nextEntry: {provider: string; model: string} | undefined
+
+			if (currentModel) {
+				const idx = chain.findIndex(e => e.model === currentModel)
+				if (idx >= 0 && idx < chain.length - 1) {
+					nextEntry = chain[idx + 1]
+				} else if (idx === -1) {
+					nextEntry = chain[0]
+				}
+			} else {
+				nextEntry = chain[0]
+			}
+
+			if (nextEntry) {
+				const switchMsg = JSON.stringify({
+					type: 'model_switch',
+					provider: nextEntry.provider,
+					model: nextEntry.model,
+					sessionId: errorMsg.sessionId ?? userId,
+				})
+				cliSession.ws.send(switchMsg)
+			}
+		} catch {
+			// Fallback chain not configured or parse error
 		}
 	}
 

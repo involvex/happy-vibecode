@@ -118,6 +118,10 @@ export default function SettingsPage() {
 	const [selectedProvider, setSelectedProvider] = useState<string>('')
 	const [selectedModel, setSelectedModel] = useState<string>('')
 	const [providerSaved, setProviderSaved] = useState(false)
+	const [fallbackChain, setFallbackChain] = useState<
+		Array<{provider: string; model: string}>
+	>([])
+	const [fallbackSaved, setFallbackSaved] = useState(false)
 
 	const linkEmailForm = useForm<LinkEmailForm>({
 		resolver: zodResolver(linkEmailSchema),
@@ -181,6 +185,11 @@ export default function SettingsPage() {
 			}
 			if (active?.defaultModel) {
 				setSelectedModel(active.defaultModel)
+			}
+			if (active?.fallbackChain) {
+				setFallbackChain(active.fallbackChain)
+			} else {
+				setFallbackChain([])
 			}
 		}
 	}, [workspaces, activeWorkspaceId])
@@ -408,6 +417,34 @@ export default function SettingsPage() {
 		localStorage.setItem('happy-workspaces', JSON.stringify(workspaces))
 		setProviderSaved(true)
 		setTimeout(() => setProviderSaved(false), 3000)
+	}
+
+	const handleSaveFallbackChain = () => {
+		if (!activeWorkspaceId) return
+		const activeIdx = workspaces.findIndex(w => w.id === activeWorkspaceId)
+		if (activeIdx === -1) return
+		workspaces[activeIdx] = {
+			...workspaces[activeIdx],
+			fallbackChain: fallbackChain.length > 0 ? fallbackChain : undefined,
+		}
+		localStorage.setItem('happy-workspaces', JSON.stringify(workspaces))
+		setFallbackSaved(true)
+		setTimeout(() => setFallbackSaved(false), 3000)
+	}
+
+	const handleAddFallback = () => {
+		const firstProvider = Object.keys(providerCapabilities)[0]
+		const firstModel =
+			providerCapabilities[firstProvider as keyof typeof providerCapabilities]
+				?.models[0] ?? 'default'
+		setFallbackChain(prev => [
+			...prev,
+			{provider: firstProvider, model: firstModel},
+		])
+	}
+
+	const handleRemoveFallback = (index: number) => {
+		setFallbackChain(prev => prev.filter((_, i) => i !== index))
 	}
 
 	if (!isLoaded || !isAuthed) {
@@ -1017,6 +1054,113 @@ export default function SettingsPage() {
 						>
 							Save Provider
 						</Button>
+					</div>
+				</section>
+
+				{/* Provider Fallback Chain */}
+				<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
+					<div className="flex items-center gap-2 font-semibold text-kumo-default">
+						<ShieldCheckIcon size={18} weight="duotone" />
+						Provider Fallback Chain
+					</div>
+
+					{fallbackSaved && (
+						<div className="px-3 py-2 text-sm border rounded-lg text-kumo-success bg-kumo-success/10 border-kumo-success/20">
+							Fallback chain saved!
+						</div>
+					)}
+
+					<Text size="sm" variant="secondary">
+						Configure automatic fallback to alternate providers when the primary
+						provider fails. The chain is tried in order.
+					</Text>
+
+					<div className="space-y-2">
+						{fallbackChain.map((entry, index) => (
+							<div
+								key={`${entry.provider}:${entry.model}:${index}`}
+								className="flex items-center gap-2 p-2 border rounded-lg border-kumo-line"
+							>
+								<span className="text-xs text-kumo-inactive font-mono w-5">
+									{index + 1}.
+								</span>
+								<select
+									value={entry.provider}
+									onChange={e => {
+										const newProvider = e.target.value
+										const caps =
+											providerCapabilities[
+												newProvider as keyof typeof providerCapabilities
+											]
+										const newModel = caps?.models[0] ?? 'default'
+										setFallbackChain(prev =>
+											prev.map((item, i) =>
+												i === index
+													? {provider: newProvider, model: newModel}
+													: item,
+											),
+										)
+									}}
+									className="flex-1 px-2 py-1.5 text-sm border rounded-lg border-kumo-line bg-kumo-base text-kumo-default"
+								>
+									{Object.entries(providerCapabilities).map(([id, caps]) => (
+										<option key={id} value={id}>
+											{caps.displayName}
+										</option>
+									))}
+								</select>
+								<select
+									value={entry.model}
+									onChange={e => {
+										setFallbackChain(prev =>
+											prev.map((item, i) =>
+												i === index ? {...item, model: e.target.value} : item,
+											),
+										)
+									}}
+									className="flex-1 px-2 py-1.5 text-sm border rounded-lg border-kumo-line bg-kumo-base text-kumo-default"
+								>
+									{(
+										providerCapabilities[
+											entry.provider as keyof typeof providerCapabilities
+										]?.models ?? ['default']
+									).map(model => (
+										<option key={model} value={model}>
+											{model}
+										</option>
+									))}
+								</select>
+								<Button
+									variant="secondary"
+									shape="square"
+									size="sm"
+									icon={<TrashIcon size={14} />}
+									onClick={() => handleRemoveFallback(index)}
+									aria-label="Remove fallback entry"
+								/>
+							</div>
+						))}
+
+						<div className="flex gap-2">
+							<Button
+								variant="outline"
+								size="sm"
+								icon={<PlusIcon size={14} />}
+								onClick={handleAddFallback}
+							>
+								Add Fallback
+							</Button>
+							{fallbackChain.length > 0 && (
+								<Button
+									variant="primary"
+									size="sm"
+									onClick={handleSaveFallbackChain}
+									disabled={!activeWorkspaceId}
+								>
+									Save Chain
+								</Button>
+							)}
+						</div>
 					</div>
 				</section>
 

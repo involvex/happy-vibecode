@@ -7,6 +7,7 @@ export interface Workspace {
 	path: string
 	defaultProvider?: string
 	defaultModel?: string
+	fallbackChain?: Array<{provider: string; model: string}>
 	isActive: boolean
 }
 

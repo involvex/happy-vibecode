@@ -49,6 +49,7 @@ export const workspaces = sqliteTable('workspaces', {
 	path: text('path').notNull(),
 	defaultProvider: text('default_provider'),
 	defaultModel: text('default_model'),
+	fallbackChain: text('fallback_chain'), // JSON array of {provider, model}
 	isActive: integer('is_active', {mode: 'boolean'}).default(false),
 	createdAt: integer('created_at', {mode: 'timestamp_ms'}).default(
 		sql`CURRENT_TIMESTAMP`,

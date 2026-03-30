@@ -11,12 +11,18 @@ export const llmProviderSchema = z.enum([
 	'custom',
 ])
 
+export const fallbackChainEntrySchema = z.object({
+	provider: llmProviderSchema,
+	model: z.string(),
+})
+
 export const workspaceSchema = z.object({
 	id: z.string(),
 	name: z.string().min(1),
 	path: z.string().min(1),
 	defaultProvider: llmProviderSchema.optional(),
 	defaultModel: z.string().optional(),
+	fallbackChain: z.array(fallbackChainEntrySchema).optional(),
 	isActive: z.boolean().optional(),
 	createdAt: z.string().optional(),
 	updatedAt: z.string().optional(),

@@ -12,6 +12,7 @@ import {
 } from '@phosphor-icons/react'
 import {Suspense, useCallback, useState, useEffect, useRef} from 'react'
 import {Button, Badge, InputArea, Empty, Text} from '@cloudflare/kumo'
+import {ModelSelector} from '../components/ModelSelector'
 import {Switch} from '@cloudflare/kumo'
 import {Streamdown} from 'streamdown'
 
@@ -76,6 +77,7 @@ interface ChatMessage {
 	id: string
 	role: 'user' | 'assistant'
 	content: string
+	model?: string
 }
 
 type BridgeStatus =
@@ -103,6 +105,11 @@ function useBridgeAgent(roomId: string) {
 	const [messages, setMessages] = useState<ChatMessage[]>([])
 	const [wsStatus, setWsStatus] = useState<BridgeStatus>('disconnected')
 	const [isStreaming, setIsStreaming] = useState(false)
+	const [currentModel, setCurrentModel] = useState<{
+		provider: string
+		model: string
+	} | null>(null)
+	const currentModelRef = useRef<{provider: string; model: string} | null>(null)
 	const wsRef = useRef<WebSocket | null>(null)
 	const streamingIdRef = useRef<string | null>(null)
 	const reconnectAttemptsRef = useRef(0)
@@ -170,6 +177,11 @@ function useBridgeAgent(roomId: string) {
 					done?: boolean
 					message?: string
 					status?: string
+					model?: string
+					provider?: string
+					success?: boolean
+					error?: string
+					sessionId?: string
 				}
 
 				if (msg.type === 'response') {
@@ -180,7 +192,12 @@ function useBridgeAgent(roomId: string) {
 						setIsStreaming(true)
 						setMessages(prev => [
 							...prev,
-							{id, role: 'assistant', content: chunk},
+							{
+								id,
+								role: 'assistant',
+								content: chunk,
+								model: currentModelRef.current?.model,
+							},
 						])
 					} else {
 						const id = streamingIdRef.current
@@ -207,6 +224,19 @@ function useBridgeAgent(roomId: string) {
 					])
 					setIsStreaming(false)
 					streamingIdRef.current = null
+				} else if (msg.type === 'model' && msg.model) {
+					const updated = {
+						provider: currentModelRef.current?.provider ?? 'unknown',
+						model: msg.model!,
+					}
+					setCurrentModel(updated)
+					currentModelRef.current = updated
+				} else if (msg.type === 'model_switch_ack') {
+					if (msg.success && msg.provider && msg.model) {
+						const updated = {provider: msg.provider, model: msg.model}
+						setCurrentModel(updated)
+						currentModelRef.current = updated
+					}
 				}
 			} catch {
 				// ignore non-JSON
@@ -267,14 +297,28 @@ function useBridgeAgent(roomId: string) {
 		setIsStreaming(false)
 	}, [])
 
+	const switchModel = useCallback((provider: string, model: string) => {
+		if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return
+		wsRef.current.send(
+			JSON.stringify({
+				type: 'model_switch',
+				provider,
+				model,
+				sessionId: roomIdRef.current,
+			}),
+		)
+	}, [])
+
 	return {
 		messages,
 		wsStatus,
 		isStreaming,
+		currentModel,
 		sendMessage,
 		sendInput,
 		stop,
 		clearHistory,
+		switchModel,
 	}
 }
 
@@ -295,10 +339,12 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 		messages,
 		wsStatus,
 		isStreaming,
+		currentModel,
 		sendMessage,
 		sendInput,
 		stop,
 		clearHistory,
+		switchModel,
 	} = useBridgeAgent(roomId)
 
 	const connected = wsStatus !== 'disconnected'
@@ -400,6 +446,13 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 												: 'Disconnected'}
 							</Text>
 						</div>
+						{wsStatus === 'cli_connected' && (
+							<ModelSelector
+								currentProvider={currentModel?.provider}
+								currentModel={currentModel?.model}
+								onSwitch={switchModel}
+							/>
+						)}
 						<div className="flex items-center gap-1.5">
 							<BugIcon size={14} className="text-kumo-inactive" />
 							<Switch
@@ -528,6 +581,11 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 													>
 														{message.content}
 													</Streamdown>
+													{message.model && (
+														<div className="px-3 pb-2">
+															<Badge variant="outline">{message.model}</Badge>
+														</div>
+													)}
 												</div>
 											</div>
 										)}
