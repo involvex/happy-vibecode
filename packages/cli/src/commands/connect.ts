@@ -3,51 +3,20 @@ import type {
 	AgentsConfig,
 	WorkspaceConfig,
 } from '../types/llm-provider.js'
+import {
+	ensureOpencodeServer,
+	type OpencodeServerInfo,
+} from '../utils/opencode-server.js'
 import {requireConfig, writeConfig, generateBridgeCode} from '../config.js'
+import {OpencodeBridgeAdapter} from '../bridge/opencode-adapter.js'
 import {DEFAULT_AGENTS} from '../utils/agents-config.js'
 import {debug, debugTime} from '../utils/log.js'
 import {existsSync, readFileSync} from 'fs'
-import {spawn} from 'child_process'
 import {Command} from 'commander'
 import WebSocket from 'ws'
 import {homedir} from 'os'
 import {join} from 'path'
 import ora from 'ora'
-
-// Strip ANSI escape codes so raw terminal output is sent as plain text
-const ANSI_RE =
-	// eslint-disable-next-line no-control-regex
-	/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><~]/g
-
-// Box-drawing and block-element characters used by TUI apps (Kilo, Cline, etc.)
-// Unicode ranges: Box Drawing U+2500–U+257F, Block Elements U+2580–U+259F
-const BOX_RE = /[\u2500-\u259F]/g
-
-/** Reject arguments containing shell metacharacters that could break out of quoting. */
-function validateShellArgs(args: string[]): void {
-	for (const arg of args) {
-		if (/[`$\\]/.test(arg)) {
-			throw new Error(
-				`Argument contains shell metacharacters (backtick, $, or backslash) that cannot be safely escaped. ` +
-					`Remove these characters, or run without the --shell flag to spawn the agent directly.`,
-			)
-		}
-	}
-}
-
-/**
- * Remove TUI decoration artifacts from raw agent output.
- * Strips ANSI codes then filters lines that consist only of box-drawing
- * characters or contain no word characters (TUI tab-bar / border fragments).
- */
-function cleanAgentOutput(raw: string): string {
-	const noAnsi = raw.replace(ANSI_RE, '').replace(/\r/g, '')
-	const lines = noAnsi.split('\n').filter(line => {
-		const stripped = line.replace(BOX_RE, '').trim()
-		return /\w/.test(stripped)
-	})
-	return lines.join('\n')
-}
 
 interface WsPrompt {
 	type: 'prompt'
@@ -169,191 +138,26 @@ function findAgent(
 	return agents.find(a => a.id === id || a.command === id)
 }
 
-async function checkCommandExists(command: string): Promise<boolean> {
-	const {execFileSync} = await import('child_process')
-	const isWindows = process.platform === 'win32'
-	const cmd = isWindows ? 'where' : 'which'
-	try {
-		execFileSync(cmd, [command], {stdio: 'ignore'})
-		return true
-	} catch {
-		return false
-	}
-}
-
-function getInstallHint(agentId: string): string {
-	const hints: Record<string, string> = {
-		gemini: 'npm install -g @google/gemini-cli',
-		claude:
-			'npm install -g @anthropic/claude-code or see https://www.anthropic.com/claude-code',
-		codex: 'npm install -g openai-codex or see https://openai.com/codex',
-		'opencode-ai': 'npm install -g opencode-ai or see https://opencode.ai',
-		copilot:
-			'gh extension install github/gh-copilot  (requires GitHub CLI: https://cli.github.com)',
-		cline:
-			'Install the Cline extension in VS Code (marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev). Note: Cline runs inside VS Code and does not stream output to the terminal.',
-		kilo: 'Install the Kilo extension in VS Code. Note: Kilo runs inside VS Code and does not stream output to the terminal.',
-	}
-	return hints[agentId] ?? ''
-}
-
-async function runAgent(
+/**
+ * Map an agent definition to an opencode provider/model pair.
+ * The agent's provider field maps directly to opencode's provider IDs.
+ */
+function agentToOpencodeModel(
 	agent: AgentDefinition,
-	prompt: string,
-	workspace: string | undefined,
-	model: string | undefined,
-	shell: string | undefined,
-	onChunk: (chunk: string) => void,
-	onDone: () => void,
-	onError: (err: string) => void,
-	onProcSpawned?: (proc: ReturnType<typeof spawn>) => void,
-	onStdinReady?: (write: (text: string) => void) => void,
-): Promise<void> {
-	const args: string[] = []
-
-	if (model && agent.modelFlag) {
-		args.push(agent.modelFlag, model)
+): {providerID: string; modelID: string} | undefined {
+	// Map agent provider to opencode provider ID
+	const providerMap: Record<string, string> = {
+		gemini: 'google',
+		claude: 'anthropic',
+		codex: 'openai',
+		'opencode-ai': 'opencode',
+		copilot: 'github',
+		kilo: 'anthropic',
+		cline: 'anthropic',
 	}
-
-	// Use ?? so an explicit empty string (positional-arg agents) is preserved
-	const promptFlag = agent.promptFlag !== undefined ? agent.promptFlag : '-p'
-	if (promptFlag) {
-		args.push(promptFlag, prompt)
-	} else {
-		// Positional arg — prompt goes last with no flag
-		args.push(prompt)
-	}
-
-	const fullArgs = [...agent.args, ...args]
-
-	const spinner = ora(`Running ${agent.name}...`).start()
-
-	let proc: ReturnType<typeof spawn>
-
-	if (shell) {
-		const shellBase = shell
-			.toLowerCase()
-			.replace(/\.exe$/, '')
-			.replace(/^.*[\\/]/, '')
-		const isPs = shellBase === 'powershell' || shellBase === 'pwsh'
-		const isCmd = shellBase === 'cmd'
-
-		if (isPs) {
-			validateShellArgs([agent.command, ...fullArgs])
-			// PowerShell: prefix with & so the first token is a command invocation,
-			// not a string expression. Single-quote all args; '' escapes a literal '.
-			const commandStr =
-				'& ' +
-				[agent.command, ...fullArgs]
-					.map(a => `'${a.replace(/'/g, "''")}'`)
-					.join(' ')
-			proc = spawn(shell, ['-Command', commandStr], {
-				cwd: workspace,
-				stdio: ['pipe', 'pipe', 'pipe'],
-			})
-		} else if (isCmd) {
-			validateShellArgs([agent.command, ...fullArgs])
-			// cmd.exe: /d /s /c with double-quoted args; "" escapes a literal "
-			const commandStr = [agent.command, ...fullArgs]
-				.map(a => `"${a.replace(/"/g, '""')}"`)
-				.join(' ')
-			proc = spawn(shell, ['/d', '/s', '/c', commandStr], {
-				cwd: workspace,
-				stdio: ['pipe', 'pipe', 'pipe'],
-			})
-		} else {
-			// POSIX shells (bash, zsh, sh…): -c with single-quoted args.
-			validateShellArgs([agent.command, ...fullArgs])
-			// '\'' is the POSIX escape for a literal single-quote inside '…'.
-			const commandStr = [agent.command, ...fullArgs]
-				.map(a => `'${a.replace(/'/g, "'\\''")}'`)
-				.join(' ')
-			proc = spawn(shell, ['-c', commandStr], {
-				cwd: workspace,
-				stdio: ['pipe', 'pipe', 'pipe'],
-			})
-		}
-	} else {
-		// No shell specified — spawn agent directly with argument array.
-		// This avoids shell interpretation entirely, preventing command injection
-		// and correctly handling prompts with spaces or special characters.
-		proc = spawn(agent.command, fullArgs, {
-			cwd: workspace,
-			stdio: ['pipe', 'pipe', 'pipe'],
-		})
-	}
-
-	onProcSpawned?.(proc)
-
-	if (proc.stdin && onStdinReady) {
-		onStdinReady((text: string) => {
-			if (proc.stdin && !proc.stdin.destroyed) {
-				proc.stdin.write(text + '\n', 'utf8')
-			}
-		})
-	}
-
-	// 60-second no-output watchdog: kills the process if nothing is written to
-	// stdout/stderr within the first minute (catches VS Code extensions that
-	// dispatch tasks to the IDE without writing to their own stdout).
-	const NO_OUTPUT_TIMEOUT_MS = 60_000
-	let gotOutput = false
-	const watchdog = setTimeout(() => {
-		if (!gotOutput) {
-			spinner.stop()
-			proc.kill()
-			onError(
-				`Agent produced no output within ${NO_OUTPUT_TIMEOUT_MS / 1000}s. ` +
-					`It may require an interactive terminal (e.g. VS Code extension).`,
-			)
-		}
-	}, NO_OUTPUT_TIMEOUT_MS)
-
-	const {stdout, stderr} = proc
-	if (!stdout || !stderr) {
-		clearTimeout(watchdog)
-		onError('Failed to create process streams')
-		spinner.stop()
-		return
-	}
-
-	let spawnFailed = false
-
-	stdout.setEncoding('utf8')
-	stdout.on('data', (chunk: string) => {
-		gotOutput = true
-		clearTimeout(watchdog)
-		spinner.stop()
-		const cleaned = cleanAgentOutput(chunk)
-		if (cleaned) onChunk(cleaned)
-	})
-
-	stderr.setEncoding('utf8')
-	stderr.on('data', (chunk: string) => {
-		gotOutput = true
-		clearTimeout(watchdog)
-		spinner.stop()
-		const cleaned = cleanAgentOutput(chunk)
-		if (cleaned) onChunk(cleaned)
-	})
-
-	proc.on('close', code => {
-		clearTimeout(watchdog)
-		spinner.stop()
-		if (spawnFailed) return
-		if (code !== 0 && code !== null) {
-			onError(`Agent exited with code ${code}`)
-		} else {
-			onDone()
-		}
-	})
-
-	proc.on('error', err => {
-		clearTimeout(watchdog)
-		spinner.stop()
-		spawnFailed = true
-		onError(`Failed to start agent: ${err.message}`)
-	})
+	const providerID = providerMap[agent.provider] ?? agent.provider
+	if (!providerID || providerID === 'custom') return undefined
+	return {providerID, modelID: 'default'}
 }
 
 export const connectCommand = new Command('connect')
@@ -378,8 +182,9 @@ export const connectCommand = new Command('connect')
 	)
 	.option('-i, --interactive', 'Force interactive mode')
 	.option(
-		'-s, --shell <shell>',
-		'Run agent through a specific shell (e.g. powershell, cmd, bash, zsh)',
+		'-s, --server <url>',
+		'opencode serve URL (auto-starts if not running)',
+		'http://127.0.0.1:4096',
 	)
 	.option('-v, --verbose', 'Verbose output')
 	.action(async (agentId: string, opts) => {
@@ -460,41 +265,47 @@ export const connectCommand = new Command('connect')
 			console.log(`  Or open: ${serverUrl}/chat?room=${roomId}\n`)
 		}
 
+		// Resolve the agent definition (for display name and model mapping)
 		const agents = await loadAgents(serverUrl, apiToken)
-		let agent: AgentDefinition | undefined = findAgent(agents, agentId)
-		if (!agent) {
-			agent = {
-				id: agentId,
-				name: agentId,
-				provider: 'custom' as const,
-				command: agentId,
-				args: [],
-				promptFlag: '-p',
-				description: `Custom agent: ${agentId}`,
-			}
-			if (verbose) {
-				console.log(`No config found for "${agentId}", using as raw command.`)
-			}
-			debug('No agent config found, using raw command:', agentId)
-		} else {
-			debug(
-				'Agent:',
-				agent.name,
-				'— command:',
-				agent.command,
-				'args:',
-				JSON.stringify(agent.args),
+		const agent: AgentDefinition | undefined = findAgent(agents, agentId) ?? {
+			id: agentId,
+			name: agentId,
+			provider: 'custom' as const,
+			command: agentId,
+			args: [],
+			promptFlag: '-p',
+			description: `Custom agent: ${agentId}`,
+		}
+		debug('Agent:', agent.name, 'provider:', agent.provider)
+
+		// Ensure opencode serve is running
+		const opencodeUrl = opts.server
+		const opencodePort = parseInt(new URL(opencodeUrl).port || '4096', 10)
+
+		const serverSpinner = ora('Connecting to opencode server...').start()
+		let opencodeServer: OpencodeServerInfo
+		try {
+			opencodeServer = await ensureOpencodeServer(opencodePort)
+			serverSpinner.succeed(`opencode server ready at ${opencodeServer.url}`)
+		} catch (err) {
+			serverSpinner.fail(
+				`Failed to start opencode server: ${(err as Error).message}`,
 			)
+			console.error(
+				'  Make sure opencode is installed: npm install -g opencode-ai',
+			)
+			process.exit(1)
 		}
 
-		if (!(await checkCommandExists(agent.command))) {
-			const installHint = getInstallHint(agent.id)
-			console.error(`✗ Error: "${agent.command}" not found in PATH.`)
-			if (installHint) {
-				console.error(`  To install: ${installHint}`)
-			}
-			console.error('  Or add a custom agent in ~/.happy/agents.json')
-			process.exit(1)
+		// Create the bridge adapter
+		const adapter = new OpencodeBridgeAdapter(opencodeServer.url)
+
+		// Resolve model from agent definition
+		const opencodeModel = agentToOpencodeModel(agent)
+		if (verbose && opencodeModel) {
+			console.log(
+				`  Model: ${opencodeModel.providerID}/${opencodeModel.modelID}`,
+			)
 		}
 
 		let workspace: string | undefined = opts.dir
@@ -510,14 +321,9 @@ export const connectCommand = new Command('connect')
 			process.exit(1)
 		}
 
-		const model = opts.model || undefined
-
 		console.log(`Connecting agent "${agent.name}" to bridge room: ${roomId}`)
 		if (workspace) {
 			console.log(`  Workspace: ${workspace}`)
-		}
-		if (model) {
-			console.log(`  Model: ${model}`)
 		}
 
 		const wsUrl = serverUrl
@@ -527,8 +333,7 @@ export const connectCommand = new Command('connect')
 		if (verbose) console.log(`WebSocket URL: ${wsUrl}`)
 		debug('WebSocket URL:', wsUrl)
 		debug('Workspace:', workspace ?? '(none)')
-		debug('Model:', model ?? '(default)')
-		debug('Shell:', opts.shell ?? '(default)')
+		debug('opencode URL:', opencodeServer.url)
 
 		const log = (...args: unknown[]) => {
 			if (verbose) console.log(...args)
@@ -567,9 +372,6 @@ export const connectCommand = new Command('connect')
 						JSON.stringify({type: 'workspace', workspacePath: workspace}),
 					)
 				}
-				if (model) {
-					socket.send(JSON.stringify({type: 'model', model}))
-				}
 
 				if (opts.prompt) {
 					log('Running in single prompt mode')
@@ -584,60 +386,67 @@ export const connectCommand = new Command('connect')
 						}),
 					)
 
-					runAgent(
-						agent!,
-						opts.prompt,
-						workspace,
-						model,
-						opts.shell,
-						chunk => {
-							process.stdout.write(chunk)
-							if (socket.readyState === WebSocket.OPEN) {
-								socket.send(
-									JSON.stringify({
-										type: 'response',
-										content: chunk,
-										sessionId,
-										done: false,
-									}),
-								)
-							}
-						},
-						() => {
-							console.log(`\n← Done`)
-							if (socket.readyState === WebSocket.OPEN) {
-								socket.send(
-									JSON.stringify({
-										type: 'response',
-										content: '',
-										sessionId,
-										done: true,
-									}),
-								)
+					adapter
+						.sendPrompt(opts.prompt, opencodeModel)
+						.then(result => {
+							if (result.error) {
+								console.error(`\n✗ Agent error: ${result.error}`)
+								if (socket.readyState === WebSocket.OPEN) {
+									socket.send(
+										JSON.stringify({
+											type: 'error',
+											message: result.error,
+											sessionId,
+										}),
+									)
+								}
+							} else {
+								process.stdout.write(result.text + '\n')
+								if (socket.readyState === WebSocket.OPEN) {
+									socket.send(
+										JSON.stringify({
+											type: 'response',
+											content: result.text,
+											sessionId,
+											done: false,
+										}),
+									)
+									socket.send(
+										JSON.stringify({
+											type: 'response',
+											content: '',
+											sessionId,
+											done: true,
+										}),
+									)
+								}
 							}
 							intentionalClose = true
 							socket.close()
-							process.exit(0)
-						},
-						err => {
-							console.error(`\n✗ Agent error: ${err}`)
+							process.exit(result.error ? 1 : 0)
+						})
+						.catch(err => {
+							const msg = `Failed to send prompt: ${(err as Error).message}`
+							console.error(`\n✗ Agent error: ${msg}`)
 							if (socket.readyState === WebSocket.OPEN) {
 								socket.send(
-									JSON.stringify({type: 'error', message: err, sessionId}),
+									JSON.stringify({
+										type: 'error',
+										message: msg,
+										sessionId,
+									}),
 								)
 							}
 							intentionalClose = true
 							socket.close()
 							process.exit(1)
-						},
-					)
+						})
 				}
 			})
 
 			if (!opts.prompt) {
 				let agentRunning = false
-				let currentAgentProc: ReturnType<typeof spawn> | null = null
-				let currentStdinWrite: ((text: string) => void) | null = null
+				let currentAbort: (() => Promise<void>) | null = null
 
 				socket.on('message', data => {
 					let msg: IncomingMsg
@@ -656,11 +465,10 @@ export const connectCommand = new Command('connect')
 					}
 
 					if (msg.type === 'stop') {
-						if (currentAgentProc) {
-							currentAgentProc.kill()
-							currentAgentProc = null
+						if (currentAbort) {
+							currentAbort()
+							currentAbort = null
 						}
-						currentStdinWrite = null
 						agentRunning = false
 						return
 					}
@@ -677,28 +485,6 @@ export const connectCommand = new Command('connect')
 					if (msg.type === 'model') {
 						const wsMsg = msg as WsModel
 						log('Model updated:', wsMsg.model)
-						return
-					}
-
-					if (msg.type === 'input') {
-						const inputMsg = msg as WsInput
-						if (currentStdinWrite) {
-							currentStdinWrite(inputMsg.content)
-							console.log(
-								`  ↩ Input [${inputMsg.sessionId}]: ${inputMsg.content.slice(0, 40)}`,
-							)
-						}
-						return
-					}
-
-					if (msg.type === 'input') {
-						const inputMsg = msg as WsInput
-						if (currentStdinWrite) {
-							currentStdinWrite(inputMsg.content)
-							console.log(
-								`  ↩ Input [${inputMsg.sessionId}]: ${inputMsg.content.slice(0, 40)}`,
-							)
-						}
 						return
 					}
 
@@ -731,65 +517,71 @@ export const connectCommand = new Command('connect')
 						}),
 					)
 
-					runAgent(
-						agent!,
-						content,
-						workspace,
-						model,
-						opts.shell,
-						chunk => {
-							process.stdout.write(chunk)
-							const response: WsResponse = {
-								type: 'response',
-								content: chunk,
-								sessionId,
-								done: false,
-							}
-							if (socket.readyState === WebSocket.OPEN) {
-								socket.send(JSON.stringify(response))
-							}
-						},
-						() => {
+					adapter
+						.sendPromptStreaming(
+							content,
+							opencodeModel,
+							chunk => {
+								process.stdout.write(chunk)
+								const response: WsResponse = {
+									type: 'response',
+									content: chunk,
+									sessionId,
+									done: false,
+								}
+								if (socket.readyState === WebSocket.OPEN) {
+									socket.send(JSON.stringify(response))
+								}
+							},
+							() => {
+								agentRunning = false
+								currentAbort = null
+								console.log(`\n← Done [${sessionId}]`)
+								const response: WsResponse = {
+									type: 'response',
+									content: '',
+									sessionId,
+									done: true,
+								}
+								if (socket.readyState === WebSocket.OPEN) {
+									socket.send(JSON.stringify(response))
+								}
+							},
+							err => {
+								agentRunning = false
+								currentAbort = null
+								console.error(`\n✗ Agent error [${sessionId}]: ${err}`)
+								if (socket.readyState === WebSocket.OPEN) {
+									socket.send(
+										JSON.stringify({
+											type: 'error',
+											message: err,
+											sessionId,
+										}),
+									)
+								}
+							},
+						)
+						.then(result => {
+							currentAbort = result.abort
+						})
+						.catch(err => {
 							agentRunning = false
-							currentAgentProc = null
-							currentStdinWrite = null
-							console.log(`\n← Done [${sessionId}]`)
-							const response: WsResponse = {
-								type: 'response',
-								content: '',
-								sessionId,
-								done: true,
-							}
-							if (socket.readyState === WebSocket.OPEN) {
-								socket.send(JSON.stringify(response))
-							}
-						},
-						err => {
-							agentRunning = false
-							currentAgentProc = null
-							currentStdinWrite = null
-							console.error(`\n✗ Agent error [${sessionId}]: ${err}`)
+							const msg = `Failed to start agent: ${(err as Error).message}`
+							console.error(`\n✗ ${msg}`)
 							if (socket.readyState === WebSocket.OPEN) {
 								socket.send(
-									JSON.stringify({type: 'error', message: err, sessionId}),
+									JSON.stringify({type: 'error', message: msg, sessionId}),
 								)
 							}
-						},
-						proc => {
-							currentAgentProc = proc
-						},
-						write => {
-							currentStdinWrite = write
-						},
-					)
+						})
 				})
 
 				socket.on('close', () => {
-					if (currentAgentProc) {
-						currentAgentProc.kill()
-						currentAgentProc = null
+					if (currentAbort) {
+						currentAbort()
+						currentAbort = null
 					}
-					currentStdinWrite = null
 					agentRunning = false
 				})
 			}
@@ -834,6 +626,7 @@ export const connectCommand = new Command('connect')
 		process.on('SIGINT', () => {
 			console.log('\nDisconnecting...')
 			intentionalClose = true
+			adapter.cleanup()
 			process.exit(0)
 		})
 

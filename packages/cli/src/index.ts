@@ -6,6 +6,7 @@ import {whoamiCommand} from './commands/whoami.js'
 import {statusCommand} from './commands/status.js'
 import {doctorCommand} from './commands/doctor.js'
 import {configCommand} from './commands/config.js'
+import {serveCommand} from './commands/serve.js'
 import {loginCommand} from './commands/login.js'
 import {initCommand} from './commands/init.js'
 import {setDebug} from './utils/log.js'
@@ -24,6 +25,7 @@ program.hook('preAction', thisCommand => {
 
 program.addCommand(loginCommand)
 program.addCommand(connectCommand)
+program.addCommand(serveCommand)
 program.addCommand(initCommand)
 program.addCommand(workspaceCommand)
 program.addCommand(configCommand)
