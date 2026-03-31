@@ -1,3 +1,4 @@
+import {isOpencodeRunning} from '../utils/opencode-server.js'
 import type {AgentsConfig} from '../types/llm-provider.js'
 import {existsSync, readFileSync, writeFileSync} from 'fs'
 import {DEFAULT_AGENTS} from '../utils/agents-config.js'
@@ -162,12 +163,37 @@ export const doctorCommand = new Command('doctor')
 	.description('Diagnose and fix configuration issues')
 	.option('-f, --fix', 'Automatically fix issues where possible')
 	.option('--fix-agents', 'Regenerate agents.json with correct defaults')
-	.action(opts => {
+	.action(async opts => {
 		const fix = opts.fix || opts.fixAgents
 		console.log('\n=== Happy Vibecode Doctor ===\n')
 		console.log('Running diagnostics...\n')
 
 		const issues = runDiagnostics(fix)
+
+		// Check opencode binary
+		if (checkBinaryExists('opencode')) {
+			issues.push({type: 'info', message: '✓ opencode binary found in PATH'})
+			// Check if opencode serve is currently running
+			const running = await isOpencodeRunning()
+			if (running) {
+				issues.push({
+					type: 'info',
+					message: '✓ opencode serve is running (port 4096)',
+				})
+			} else {
+				issues.push({
+					type: 'info',
+					message:
+						'ℹ opencode serve is not running (will auto-start when you run `happy connect`)',
+				})
+			}
+		} else {
+			issues.push({
+				type: 'warning',
+				message: 'opencode binary not found in PATH',
+				fix: 'Install it with: bun add -g opencode-ai',
+			})
+		}
 
 		let hasErrors = false
 		let hasWarnings = false
@@ -199,5 +225,5 @@ export const doctorCommand = new Command('doctor')
 		} else {
 			console.log('✅ Configuration looks good!')
 		}
-		process.exit(1)
+		process.exit(hasErrors ? 1 : 0)
 	})

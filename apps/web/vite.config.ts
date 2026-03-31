@@ -22,11 +22,20 @@ export default defineConfig({
 		copyPublicDir: true,
 		emptyOutDir: true,
 		outDir: 'dist',
+		minify: 'esbuild',
 	},
 	environments: {
 		rsc: {
 			optimizeDeps: {
 				exclude: ['swr', '@ai-sdk/react'],
+			},
+			build: {
+				minify: 'esbuild',
+			},
+		},
+		ssr: {
+			build: {
+				minify: 'esbuild',
 			},
 		},
 	},

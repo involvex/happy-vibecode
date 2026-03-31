@@ -1,3 +1,5 @@
+'use client'
+
 import {
 	PaperPlaneRightIcon,
 	StopIcon,
@@ -105,6 +107,7 @@ function useBridgeAgent(roomId: string) {
 	const [messages, setMessages] = useState<ChatMessage[]>([])
 	const [wsStatus, setWsStatus] = useState<BridgeStatus>('disconnected')
 	const [isStreaming, setIsStreaming] = useState(false)
+	const [opencodeUrl, setOpencodeUrl] = useState<string | null>(null)
 	const [currentModel, setCurrentModel] = useState<{
 		provider: string
 		model: string
@@ -182,6 +185,7 @@ function useBridgeAgent(roomId: string) {
 					success?: boolean
 					error?: string
 					sessionId?: string
+					url?: string
 				}
 
 				if (msg.type === 'response') {
@@ -237,6 +241,8 @@ function useBridgeAgent(roomId: string) {
 						setCurrentModel(updated)
 						currentModelRef.current = updated
 					}
+				} else if (msg.type === 'opencode_url' && msg.url) {
+					setOpencodeUrl(msg.url)
 				}
 			} catch {
 				// ignore non-JSON
@@ -314,6 +320,7 @@ function useBridgeAgent(roomId: string) {
 		wsStatus,
 		isStreaming,
 		currentModel,
+		opencodeUrl,
 		sendMessage,
 		sendInput,
 		stop,
@@ -340,6 +347,7 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 		wsStatus,
 		isStreaming,
 		currentModel,
+		opencodeUrl,
 		sendMessage,
 		sendInput,
 		stop,
@@ -522,6 +530,14 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 				</div>
 			) : (
 				<>
+					{/* opencode debug banner */}
+					{showDebug && opencodeUrl && (
+						<div className="bg-kumo-control border-b border-kumo-line px-5 py-1.5 flex items-center gap-2 text-xs text-kumo-subtle font-mono">
+							<span className="text-green-500">●</span>
+							<span>opencode serve:</span>
+							<span className="text-kumo-default">{opencodeUrl}</span>
+						</div>
+					)}
 					{/* Messages */}
 					<div className="flex-1 overflow-y-auto">
 						<div className="max-w-3xl px-5 py-6 mx-auto space-y-5">

@@ -13,19 +13,19 @@ export interface OpencodeServerInfo {
 	close: () => void
 }
 
-function getHealthUrl(port: number): string {
-	return `http://127.0.0.1:${port}/global/health`
-}
-
-async function checkHealth(port: number): Promise<boolean> {
+async function checkHealthUrl(url: string): Promise<boolean> {
 	try {
-		const res = await fetch(getHealthUrl(port), {
+		const res = await fetch(`${url}/global/health`, {
 			signal: AbortSignal.timeout(HEALTH_CHECK_TIMEOUT_MS),
 		})
 		return res.ok
 	} catch {
 		return false
 	}
+}
+
+async function checkHealth(port: number): Promise<boolean> {
+	return checkHealthUrl(`http://127.0.0.1:${port}`)
 }
 
 export async function isOpencodeRunning(
@@ -61,6 +61,7 @@ export async function ensureOpencodeServer(
 		debug('Using SDK createOpencodeServer')
 		const server = await createOpencodeServer({
 			port,
+			hostname: '127.0.0.1',
 			timeout: SDK_START_TIMEOUT_MS,
 		})
 		debug('opencode serve started via SDK at', server.url)
@@ -81,9 +82,11 @@ async function startOpencodeServerManual(
 	corsOrigins?: string,
 ): Promise<OpencodeServerInfo> {
 	const {spawn} = await import('child_process')
-	const url = `http://127.0.0.1:${port}`
 
-	const args = ['serve', '--port', String(port)]
+	// Force 127.0.0.1 to override any opencode config file that sets a different
+	// hostname (e.g. a LAN IP). Without this flag the health check on 127.0.0.1
+	// would always fail even though opencode started successfully.
+	const args = ['serve', '--port', String(port), '--hostname', '127.0.0.1']
 	if (corsOrigins) {
 		args.push('--cors', corsOrigins)
 	}
@@ -94,6 +97,18 @@ async function startOpencodeServerManual(
 		windowsHide: true,
 	})
 
+	// Parse stdout for the "opencode server listening on <url>" line so we can
+	// use the exact URL opencode chose (respects --port overrides, etc.)
+	let resolvedUrl: string | undefined
+	proc.stdout?.setEncoding('utf8')
+	proc.stdout?.on('data', (chunk: string) => {
+		debug('opencode stdout:', chunk.trim())
+		const match = chunk.match(
+			/opencode server listening on (https?:\/\/[^\s\n]+)/,
+		)
+		if (match) resolvedUrl = match[1]
+	})
+
 	proc.stderr?.setEncoding('utf8')
 	proc.stderr?.on('data', (chunk: string) => {
 		debug('opencode serve:', chunk.trim())
@@ -102,7 +117,7 @@ async function startOpencodeServerManual(
 	proc.on('error', err => {
 		if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
 			throw new Error(
-				'opencode binary not found. Install it with: bun add -g opencode-ai',
+				'opencode binary not found. Install it with: npm install -g opencode-ai',
 			)
 		}
 		throw err
@@ -110,9 +125,12 @@ async function startOpencodeServerManual(
 
 	for (let i = 0; i < MANUAL_RETRIES; i++) {
 		await sleep(MANUAL_RETRY_INTERVAL_MS)
-		if (await checkHealth(port)) {
-			debug('opencode serve is healthy on port', port)
-			return {url, port, close: () => proc.kill()}
+
+		// Prefer the URL parsed from stdout; fall back to the 127.0.0.1 we asked for
+		const urlToCheck = resolvedUrl ?? `http://127.0.0.1:${port}`
+		if (await checkHealthUrl(urlToCheck)) {
+			debug('opencode serve is healthy at', urlToCheck)
+			return {url: urlToCheck, port, close: () => proc.kill()}
 		}
 	}
 

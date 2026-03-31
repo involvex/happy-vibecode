@@ -1,6 +1,7 @@
 import {createDb, authAccount, linkedRepos} from '@happy-vibecode/db'
 import {eq, and} from 'drizzle-orm'
-import {Octokit} from 'octokit'
+
+const GITHUB_API = 'https://api.github.com'
 
 interface GitHubTreeItem {
 	path?: string
@@ -57,9 +58,30 @@ export class GitHubService {
 		return account.accessToken
 	}
 
-	private async getOctokit(userId: string): Promise<Octokit> {
-		const token = await this.getAccessToken(userId)
-		return new Octokit({auth: token})
+	private async githubFetch<T>(
+		apiPath: string,
+		token: string,
+		params?: Record<string, string | number>,
+	): Promise<T> {
+		const url = new URL(`${GITHUB_API}${apiPath}`)
+		if (params) {
+			for (const [k, v] of Object.entries(params)) {
+				url.searchParams.set(k, String(v))
+			}
+		}
+		const res = await fetch(url.toString(), {
+			headers: {
+				Authorization: `Bearer ${token}`,
+				Accept: 'application/vnd.github+json',
+				'X-GitHub-Api-Version': '2022-11-28',
+			},
+		})
+		if (!res.ok) {
+			const err = new Error(`GitHub API error: ${res.status} ${res.statusText}`)
+			;(err as unknown as {status: number}).status = res.status
+			throw err
+		}
+		return res.json() as Promise<T>
 	}
 
 	async getUserRepos(
@@ -77,8 +99,18 @@ export class GitHubService {
 			description: string | null
 		}>
 	> {
-		const octokit = await this.getOctokit(userId)
-		const {data} = await octokit.rest.repos.listForAuthenticatedUser({
+		const token = await this.getAccessToken(userId)
+		const data = await this.githubFetch<
+			Array<{
+				id: number
+				name: string
+				full_name: string
+				owner: {login: string}
+				private: boolean
+				default_branch: string
+				description: string | null
+			}>
+		>('/user/repos', token, {
 			per_page: perPage,
 			page,
 			sort: 'updated',
@@ -115,23 +147,24 @@ export class GitHubService {
 			}>
 		}
 
-		const octokit = await this.getOctokit(userId)
+		const token = await this.getAccessToken(userId)
 
-		// Get the default branch if no ref provided
 		let targetRef = ref
 		if (!targetRef) {
-			const {data: repoData} = await octokit.rest.repos.get({owner, repo})
+			const repoData = await this.githubFetch<{default_branch: string}>(
+				`/repos/${owner}/${repo}`,
+				token,
+			)
 			targetRef = repoData.default_branch
 		}
 
-		const {data} = await octokit.rest.git.getTree({
-			owner,
-			repo,
-			tree_sha: targetRef,
-			recursive: '1',
-		})
+		const treeData = await this.githubFetch<{tree: GitHubTreeItem[]}>(
+			`/repos/${owner}/${repo}/git/trees/${targetRef}`,
+			token,
+			{recursive: '1'},
+		)
 
-		const tree = data.tree
+		const tree = treeData.tree
 			.filter(
 				(item: GitHubTreeItem): item is GitHubTreeItem & {path: string} =>
 					item.path !== undefined && item.type !== undefined,
@@ -142,9 +175,9 @@ export class GitHubService {
 				sha: item.sha!,
 				size: item.size ?? null,
 			}))
-			.slice(0, 1000) // Truncate at 1000 entries
+			.slice(0, 1000)
 
-		await this.kv.put(cacheKey, JSON.stringify(tree), {expirationTtl: 3600}) // 1hr TTL
+		await this.kv.put(cacheKey, JSON.stringify(tree), {expirationTtl: 3600})
 
 		return tree
 	}
@@ -153,37 +186,35 @@ export class GitHubService {
 		userId: string,
 		owner: string,
 		repo: string,
-		path: string,
+		filePath: string,
 		ref?: string,
 	): Promise<{content: string; encoding: string; sha: string}> {
-		const pathHash = Buffer.from(path).toString('base64url')
+		const pathHash = Buffer.from(filePath).toString('base64url')
 		const cacheKey = `repo:file:${owner}/${repo}:${pathHash}`
 		const cached = await this.kv.get(cacheKey, 'json')
 		if (cached) {
 			return cached as {content: string; encoding: string; sha: string}
 		}
 
-		const octokit = await this.getOctokit(userId)
-		const params: {owner: string; repo: string; path: string; ref?: string} = {
-			owner,
-			repo,
-			path,
-		}
-		if (ref) params.ref = ref
+		const token = await this.getAccessToken(userId)
+		const apiPath = `/repos/${owner}/${repo}/contents/${filePath}`
+		const data = await this.githubFetch<
+			| {type: string; content: string; encoding: string; sha: string}
+			| Array<unknown>
+		>(apiPath, token, ref ? {ref} : undefined)
 
-		const {data} = await octokit.rest.repos.getContent(params)
-
-		if (Array.isArray(data) || data.type !== 'file') {
-			throw new Error(`Path "${path}" is not a file`)
+		if (Array.isArray(data) || (data as {type: string}).type !== 'file') {
+			throw new Error(`Path "${filePath}" is not a file`)
 		}
 
+		const fileData = data as {content: string; encoding: string; sha: string}
 		const result = {
-			content: data.content,
-			encoding: data.encoding,
-			sha: data.sha,
+			content: fileData.content,
+			encoding: fileData.encoding,
+			sha: fileData.sha,
 		}
 
-		await this.kv.put(cacheKey, JSON.stringify(result), {expirationTtl: 21600}) // 6hr TTL
+		await this.kv.put(cacheKey, JSON.stringify(result), {expirationTtl: 21600})
 
 		return result
 	}
@@ -198,9 +229,14 @@ export class GitHubService {
 		private: boolean
 		fullName: string
 	}> {
-		const octokit = await this.getOctokit(userId)
+		const token = await this.getAccessToken(userId)
 		try {
-			const {data} = await octokit.rest.repos.get({owner, repo})
+			const data = await this.githubFetch<{
+				id: number
+				default_branch: string
+				private: boolean
+				full_name: string
+			}>(`/repos/${owner}/${repo}`, token)
 			return {
 				id: data.id,
 				defaultBranch: data.default_branch,
@@ -226,8 +262,14 @@ export class GitHubService {
 	): Promise<
 		Array<{path: string; line: number; text: string; htmlUrl: string}>
 	> {
-		const octokit = await this.getOctokit(userId)
-		const {data} = await octokit.rest.search.code({
+		const token = await this.getAccessToken(userId)
+		const data = await this.githubFetch<{
+			items: Array<{
+				path: string
+				html_url: string
+				text_matches?: Array<{fragment?: string}>
+			}>
+		}>('/search/code', token, {
 			q: `${query} repo:${owner}/${repo}`,
 			per_page: 30,
 		})

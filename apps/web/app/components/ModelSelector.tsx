@@ -1,3 +1,5 @@
+'use client'
+
 import {providerCapabilities} from '@happy-vibecode/shared'
 import {CaretDownIcon} from '@phosphor-icons/react'
 import {useCallback, useState} from 'react'

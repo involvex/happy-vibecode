@@ -6,6 +6,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native'
+import {useOpencodeClient} from '../../hooks/useOpencodeClient'
 import {AgentControls} from '../../components/AgentControls'
 import {SafeAreaView} from 'react-native-safe-area-context'
 import {useLocalSearchParams, useRouter} from 'expo-router'
@@ -46,8 +47,11 @@ export default function SessionScreen() {
 	const [bridgeCode, setBridgeCode] = useState<string | null>(null)
 	const [logs, setLogs] = useState<LogEntry[]>([])
 	const [agentStatus, setAgentStatus] = useState<string | null>(null)
+	const [opencodeUrl, setOpencodeUrl] = useState<string | null>(null)
 	const wsRef = useRef<WebSocket | null>(null)
 	const flatListRef = useRef<FlatList>(null)
+
+	const opencode = useOpencodeClient(opencodeUrl)
 
 	useEffect(() => {
 		SecureStore.getItemAsync(BRIDGE_CODE_KEY).then(code => {
@@ -75,6 +79,7 @@ export default function SessionScreen() {
 		ws.onclose = () => {
 			setConnected(false)
 			setCliConnected(false)
+			setOpencodeUrl(null)
 		}
 
 		ws.onmessage = event => {
@@ -87,6 +92,12 @@ export default function SessionScreen() {
 					message?: string
 					level?: string
 					sessionId?: string
+					url?: string
+				}
+
+				if (msg.type === 'opencode_url' && msg.url) {
+					setOpencodeUrl(msg.url)
+					return
 				}
 
 				if (msg.type === 'status') {
@@ -202,6 +213,22 @@ export default function SessionScreen() {
 					</View>
 				</View>
 			</View>
+
+			{/* opencode serve status (shown when CLI has an active opencode server) */}
+			{opencodeUrl ? (
+				<View className="flex-row items-center gap-1.5 px-4 py-1.5 bg-success/10 border-b border-success/20">
+					<View className="w-1.5 h-1.5 rounded-full bg-success" />
+					<Text
+						className="text-xs font-mono text-success flex-1"
+						numberOfLines={1}
+					>
+						{opencodeUrl}
+					</Text>
+					<Text className="text-xs text-muted dark:text-muted-dark ml-1">
+						{opencode.mode === 'direct' ? '⚡ direct' : '🌐 bridge'}
+					</Text>
+				</View>
+			) : null}
 
 			<KeyboardAvoidingView className="flex-1" behavior="padding">
 				<FlatList

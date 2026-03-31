@@ -205,6 +205,10 @@ export const connectCommand = new Command('connect')
 		'http://127.0.0.1:4096',
 	)
 	.option('-v, --verbose', 'Verbose output')
+	.option(
+		'-c, --cors <origins>',
+		'CORS origins to allow for opencode serve (comma-separated, e.g. http://localhost:5173,https://app.example.com)',
+	)
 	.action(async (agentId: string, opts) => {
 		const config = requireConfig()
 		const {serverUrl, apiToken} = config
@@ -303,7 +307,9 @@ export const connectCommand = new Command('connect')
 		const serverSpinner = ora('Connecting to opencode server...').start()
 		let opencodeServer: OpencodeServerInfo
 		try {
-			opencodeServer = await ensureOpencodeServer(opencodePort)
+			opencodeServer = await ensureOpencodeServer(opencodePort, {
+				cors: opts.cors,
+			})
 			serverSpinner.succeed(`opencode server ready at ${opencodeServer.url}`)
 		} catch (err) {
 			serverSpinner.fail(
