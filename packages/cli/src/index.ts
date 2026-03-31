@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 import {workspaceCommand} from './commands/workspace.js'
+import {providersCommand} from './commands/providers.js'
 import pkg from '../package.json' with {type: 'json'}
 import {connectCommand} from './commands/connect.js'
 import {whoamiCommand} from './commands/whoami.js'
@@ -32,5 +33,6 @@ program.addCommand(configCommand)
 program.addCommand(doctorCommand)
 program.addCommand(statusCommand)
 program.addCommand(whoamiCommand)
+program.addCommand(providersCommand)
 
 program.parseAsync(process.argv)

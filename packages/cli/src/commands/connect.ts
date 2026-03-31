@@ -139,25 +139,43 @@ function findAgent(
 }
 
 /**
- * Map an agent definition to an opencode provider/model pair.
- * The agent's provider field maps directly to opencode's provider IDs.
+ * Map an agent definition and optional model override to an opencode provider/model pair.
+ *
+ * modelOverride formats:
+ *   "anthropic/claude-opus-4-5"  → {providerID: "anthropic", modelID: "claude-opus-4-5"}
+ *   "gemini-2.0-flash"           → {providerID: <from agent>, modelID: "gemini-2.0-flash"}
+ *   undefined                    → {providerID: <from agent>, modelID: "default"}
  */
 function agentToOpencodeModel(
 	agent: AgentDefinition,
+	modelOverride?: string,
 ): {providerID: string; modelID: string} | undefined {
-	// Map agent provider to opencode provider ID
+	// Explicit "providerID/modelID" format takes full precedence
+	if (modelOverride?.includes('/')) {
+		const slash = modelOverride.indexOf('/')
+		return {
+			providerID: modelOverride.slice(0, slash),
+			modelID: modelOverride.slice(slash + 1),
+		}
+	}
+
+	// Map agent provider slug → opencode provider ID
 	const providerMap: Record<string, string> = {
 		gemini: 'google',
 		claude: 'anthropic',
 		codex: 'openai',
-		'opencode-ai': 'opencode',
+		// opencode-ai agent defaults to anthropic (opencode's default provider)
+		'opencode-ai': 'anthropic',
 		copilot: 'github',
 		kilo: 'anthropic',
 		cline: 'anthropic',
 	}
 	const providerID = providerMap[agent.provider] ?? agent.provider
 	if (!providerID || providerID === 'custom') return undefined
-	return {providerID, modelID: 'default'}
+
+	// Plain model name (no slash) → use as modelID, infer providerID from agent
+	const modelID = modelOverride ?? 'default'
+	return {providerID, modelID}
 }
 
 export const connectCommand = new Command('connect')
@@ -174,7 +192,7 @@ export const connectCommand = new Command('connect')
 	.option('-w, --workspace <workspaceId>', 'Workspace ID from config')
 	.option(
 		'-m, --model <model>',
-		'Model to use (provider-specific, e.g., claude-sonnet-4-20250514)',
+		'Model to use — plain name (e.g. claude-opus-4-5) or provider/model (e.g. anthropic/claude-opus-4-5)',
 	)
 	.option(
 		'-p, --prompt <prompt>',
@@ -267,7 +285,7 @@ export const connectCommand = new Command('connect')
 
 		// Resolve the agent definition (for display name and model mapping)
 		const agents = await loadAgents(serverUrl, apiToken)
-		const agent: AgentDefinition | undefined = findAgent(agents, agentId) ?? {
+		const agent: AgentDefinition = findAgent(agents, agentId) ?? {
 			id: agentId,
 			name: agentId,
 			provider: 'custom' as const,
@@ -300,8 +318,11 @@ export const connectCommand = new Command('connect')
 		// Create the bridge adapter
 		const adapter = new OpencodeBridgeAdapter(opencodeServer.url)
 
-		// Resolve model from agent definition
-		const opencodeModel = agentToOpencodeModel(agent)
+		// Resolve model from agent definition + --model flag
+		let opencodeModel = agentToOpencodeModel(
+			agent,
+			opts.model as string | undefined,
+		)
 		if (verbose && opencodeModel) {
 			console.log(
 				`  Model: ${opencodeModel.providerID}/${opencodeModel.modelID}`,
@@ -356,6 +377,12 @@ export const connectCommand = new Command('connect')
 				debug('WS open — sent cli_connected status')
 
 				socket.send(JSON.stringify({type: 'status', status: 'cli_connected'}))
+
+				// Relay opencode server URL to web/mobile for optional direct connection
+				socket.send(
+					JSON.stringify({type: 'opencode_url', url: opencodeServer.url}),
+				)
+				debug('Sent opencode_url relay:', opencodeServer.url)
 
 				// Keepalive: send ping every 30s to prevent Cloudflare idle timeout
 				if (keepaliveTimer) clearInterval(keepaliveTimer)
@@ -484,7 +511,8 @@ export const connectCommand = new Command('connect')
 
 					if (msg.type === 'model') {
 						const wsMsg = msg as WsModel
-						log('Model updated:', wsMsg.model)
+						opencodeModel = agentToOpencodeModel(agent, wsMsg.model)
+						log('Model updated:', wsMsg.model, '→', opencodeModel)
 						return
 					}
 

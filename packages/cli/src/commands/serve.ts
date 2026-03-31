@@ -1,5 +1,5 @@
 import {
-	startOpencodeServer,
+	ensureOpencodeServer,
 	isOpencodeRunning,
 } from '../utils/opencode-server.js'
 import {debug} from '../utils/log.js'
@@ -24,25 +24,25 @@ export const serveCommand = new Command('serve')
 		const spinner = ora(`Starting opencode serve on port ${port}...`).start()
 
 		try {
-			const info = await startOpencodeServer(port)
+			const info = await ensureOpencodeServer(port)
 			spinner.succeed(`opencode serve running at ${info.url}`)
+			console.log('  Press Ctrl+C to stop the server.\n')
 
-			if (info.process) {
-				console.log('  Press Ctrl+C to stop the server.\n')
-
-				process.on('SIGINT', () => {
-					debug('SIGINT received, stopping opencode serve')
-					info.process?.kill()
-					process.exit(0)
-				})
-
-				// Keep the process alive
-				await new Promise<void>(resolve => {
-					info.process?.on('close', () => resolve())
-				})
-			} else {
-				console.log('  (server was already running)')
+			const cleanup = () => {
+				debug('Stopping opencode serve')
+				info.close()
+				process.exit(0)
 			}
+			process.on('SIGINT', cleanup)
+			process.on('SIGTERM', cleanup)
+
+			// Keep the CLI alive until the server exits or user presses Ctrl+C
+			await new Promise<void>(resolve => {
+				// We don't have direct access to the child process exit here, so
+				// we rely on SIGINT/SIGTERM. For the manual spawn path the process
+				// will keep going; for the SDK path the server object handles it.
+				setTimeout(resolve, 2_147_483_647) // ~24 days — effectively "forever"
+			})
 		} catch (err) {
 			spinner.fail(`Failed to start opencode serve: ${(err as Error).message}`)
 			process.exit(1)
