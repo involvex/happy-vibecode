@@ -4,6 +4,14 @@ import type {z} from 'zod'
 
 type WsMessage = z.infer<typeof wsMessageSchema>
 
+// ── Constants ──────────────────────────────────────────────────────────────────
+const KEEPALIVE_INTERVAL_MS = 30_000
+const KEEPALIVE_TIMEOUT_MS = 90_000
+const BACKPRESSURE_LIMIT_BYTES = 64 * 1024 // 64 KB
+const SCROLLBACK_BUFFER_BYTES = 256 * 1024 // 256 KB
+const DROP_WARN_THRESHOLD_1 = 100
+const DROP_WARN_THRESHOLD_N = 1000
+
 interface BridgeSession {
 	ws: WebSocket
 	type: 'cli' | 'web' | 'mobile'
@@ -11,6 +19,7 @@ interface BridgeSession {
 	sessionId?: string
 	workspace?: string
 	model?: string
+	lastPingAt: number
 }
 
 /**
@@ -25,6 +34,13 @@ interface BridgeSession {
  */
 export class BridgeAgent extends DurableObject<Env> {
 	private sessions = new Map<WebSocket, BridgeSession>()
+	// Scrollback buffer: stores last N bytes of agent output for reconnecting clients
+	private scrollbackBuffer = ''
+	private scrollbackSeq = 0
+	// Liveness tracking for keepalive
+	private aliveMap = new Map<WebSocket, boolean>()
+	// Drop counters per client (slow-client backpressure)
+	private dropCounters = new Map<WebSocket, number>()
 
 	override async fetch(request: Request): Promise<Response> {
 		const url = new URL(request.url)
@@ -52,7 +68,14 @@ export class BridgeAgent extends DurableObject<Env> {
 		const {0: client, 1: server} = new WebSocketPair()
 		server.accept()
 
-		this.sessions.set(server, {ws: server, type: clientType, userId})
+		this.sessions.set(server, {
+			ws: server,
+			type: clientType,
+			userId,
+			lastPingAt: Date.now(),
+		})
+		this.aliveMap.set(server, true)
+		this.dropCounters.set(server, 0)
 
 		server.addEventListener('message', event => {
 			this.handleMessage(server, event.data as string)
@@ -60,6 +83,8 @@ export class BridgeAgent extends DurableObject<Env> {
 
 		server.addEventListener('close', () => {
 			this.sessions.delete(server)
+			this.aliveMap.delete(server)
+			this.dropCounters.delete(server)
 			if (clientType === 'cli') {
 				this.broadcast(
 					JSON.stringify({type: 'status', status: 'cli_disconnected'}),
@@ -70,6 +95,8 @@ export class BridgeAgent extends DurableObject<Env> {
 
 		server.addEventListener('error', () => {
 			this.sessions.delete(server)
+			this.aliveMap.delete(server)
+			this.dropCounters.delete(server)
 		})
 
 		if (clientType === 'cli') {
@@ -88,7 +115,20 @@ export class BridgeAgent extends DurableObject<Env> {
 					status: cliOnline ? 'cli_connected' : 'cli_disconnected',
 				}),
 			)
+			// Send any buffered scrollback so the client can catch up
+			if (this.scrollbackBuffer.length > 0) {
+				server.send(
+					JSON.stringify({
+						type: 'scrollback',
+						seq: this.scrollbackSeq,
+						data: this.scrollbackBuffer,
+					}),
+				)
+			}
 		}
+
+		// Ensure keepalive alarm is scheduled
+		await this.ctx.storage.setAlarm(Date.now() + KEEPALIVE_INTERVAL_MS)
 
 		return new Response(null, {status: 101, webSocket: client})
 	}
@@ -104,8 +144,41 @@ export class BridgeAgent extends DurableObject<Env> {
 		const senderSession = this.sessions.get(sender)
 		if (!senderSession) return
 
+		// Keepalive ping/pong handling
 		if (msg.type === 'ping') {
+			senderSession.lastPingAt = Date.now()
 			sender.send(JSON.stringify({type: 'pong'}))
+			return
+		}
+		if (msg.type === 'pong') {
+			this.aliveMap.set(sender, true)
+			senderSession.lastPingAt = Date.now()
+			return
+		}
+
+		// Reconnect: client requesting scrollback delta or full buffer
+		if ((msg as {type: string; lastSeq?: number}).type === 'sync') {
+			const lastSeq = (msg as {type: string; lastSeq?: number}).lastSeq ?? -1
+			if (lastSeq === -1 || lastSeq >= this.scrollbackSeq) {
+				sender.send(
+					JSON.stringify({
+						type: 'scrollback',
+						seq: this.scrollbackSeq,
+						data: this.scrollbackBuffer,
+					}),
+				)
+			} else {
+				const delta = this.scrollbackBuffer.slice(
+					-(this.scrollbackSeq - lastSeq),
+				)
+				sender.send(
+					JSON.stringify({
+						type: 'scrollback',
+						seq: this.scrollbackSeq,
+						data: delta,
+					}),
+				)
+			}
 			return
 		}
 
@@ -129,6 +202,10 @@ export class BridgeAgent extends DurableObject<Env> {
 				return
 			}
 			if (msg.type === 'agent_logs' || msg.type === 'agent_status_update') {
+				// Append agent output to scrollback buffer
+				if (msg.type === 'agent_logs' && msg.content) {
+					this.appendScrollback(msg.content)
+				}
 				this.broadcast(data, 'cli')
 				if (msg.type === 'agent_status_update') {
 					this.notifyStatusChange(
@@ -138,6 +215,11 @@ export class BridgeAgent extends DurableObject<Env> {
 						msg.details,
 					).catch(() => {})
 				}
+				return
+			}
+			// Relay thinking blocks to web/mobile clients (visible in disclosure section)
+			if ((msg as {type: string}).type === 'agent_thinking') {
+				this.broadcast(data, 'cli')
 				return
 			}
 			if (
@@ -525,14 +607,75 @@ export class BridgeAgent extends DurableObject<Env> {
 	}
 
 	private broadcast(data: string, excludeType?: 'cli' | 'web' | 'mobile') {
-		for (const [, session] of this.sessions) {
-			if (session.type !== excludeType) {
-				try {
-					session.ws.send(data)
-				} catch {
-					// Client disconnected
+		for (const [ws, session] of this.sessions) {
+			if (session.type === excludeType) continue
+			// Backpressure: skip slow clients whose send buffer is too full
+			if (ws.bufferedAmount > BACKPRESSURE_LIMIT_BYTES) {
+				const drops = (this.dropCounters.get(ws) ?? 0) + 1
+				this.dropCounters.set(ws, drops)
+				if (
+					drops === DROP_WARN_THRESHOLD_1 ||
+					drops % DROP_WARN_THRESHOLD_N === 0
+				) {
+					console.warn(
+						`[BridgeAgent] slow client dropped ${drops} messages (userId=${session.userId})`,
+					)
+				}
+				continue
+			}
+			try {
+				ws.send(data)
+			} catch {
+				// Client disconnected — cleanup happens in the 'close' event handler
+			}
+		}
+	}
+
+	/** Keepalive alarm: runs every 30 s to detect dead clients and reschedule. */
+	override async alarm(): Promise<void> {
+		const now = Date.now()
+		for (const [ws, session] of this.sessions) {
+			// If no pong received since last ping, close the dead connection
+			if (!this.aliveMap.get(ws)) {
+				if (now - session.lastPingAt > KEEPALIVE_TIMEOUT_MS) {
+					try {
+						ws.close(1001, 'keepalive timeout')
+					} catch {
+						// Already gone
+					}
+					this.sessions.delete(ws)
+					this.aliveMap.delete(ws)
+					this.dropCounters.delete(ws)
+					continue
 				}
 			}
+			// Mark as not-alive; client must send pong to stay alive
+			this.aliveMap.set(ws, false)
+			try {
+				ws.send(JSON.stringify({type: 'ping'}))
+			} catch {
+				// Already disconnected
+			}
+		}
+		// Reschedule only if there are still clients connected
+		if (this.sessions.size > 0) {
+			await this.ctx.storage.setAlarm(Date.now() + KEEPALIVE_INTERVAL_MS)
+		}
+	}
+
+	/**
+	 * Append text to the in-memory scrollback buffer, trimming from the front
+	 * when the buffer exceeds SCROLLBACK_BUFFER_BYTES.
+	 */
+	private appendScrollback(text: string): void {
+		this.scrollbackBuffer += text
+		this.scrollbackSeq += text.length
+		// Trim excess bytes from the front (approximate — no multi-byte split risk
+		// because we trim whole characters via string length, not byte indexing)
+		if (this.scrollbackBuffer.length > SCROLLBACK_BUFFER_BYTES) {
+			this.scrollbackBuffer = this.scrollbackBuffer.slice(
+				this.scrollbackBuffer.length - SCROLLBACK_BUFFER_BYTES,
+			)
 		}
 	}
 

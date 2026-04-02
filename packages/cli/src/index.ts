@@ -5,8 +5,10 @@ import pkg from '../package.json' with {type: 'json'}
 import {connectCommand} from './commands/connect.js'
 import {whoamiCommand} from './commands/whoami.js'
 import {statusCommand} from './commands/status.js'
+import {exportCommand} from './commands/export.js'
 import {doctorCommand} from './commands/doctor.js'
 import {configCommand} from './commands/config.js'
+import {setupCommand} from './commands/setup.js'
 import {serveCommand} from './commands/serve.js'
 import {loginCommand} from './commands/login.js'
 import {initCommand} from './commands/init.js'
@@ -25,6 +27,8 @@ program.hook('preAction', thisCommand => {
 })
 
 program.addCommand(loginCommand)
+program.addCommand(setupCommand)
+program.addCommand(exportCommand)
 program.addCommand(connectCommand)
 program.addCommand(serveCommand)
 program.addCommand(initCommand)
