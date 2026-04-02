@@ -99,54 +99,84 @@ export class OpencodeBridgeAdapter {
 
 		const sessionId = session.id
 		let lastTextLength = 0
+		let doneCalled = false
 
-		// Subscribe to events for streaming updates
-		// The SDK manages the SSE connection lifecycle internally.
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		const _eventStream = this.client.event.subscribe({
-			onSseEvent: event => {
-				const data = event.data as {
-					type: string
-					properties: Record<string, unknown>
-				}
-				if (!data?.type) return
+		const callDone = () => {
+			if (doneCalled) return
+			doneCalled = true
+			onDone()
+		}
 
-				// Filter for events related to our session
-				if (data.type === 'message.part.updated') {
-					const part = data.properties.part as Part | undefined
-					if (!part) return
-					if (part.sessionID !== sessionId) return
-					if (part.type === 'text') {
-						const textPart = part as TextPart
-						if (textPart.text && textPart.text.length > lastTextLength) {
-							const newChunk = textPart.text.slice(lastTextLength)
-							lastTextLength = textPart.text.length
-							if (newChunk) onChunk(newChunk)
+		// FIX: event.subscribe() returns a Promise<{stream: AsyncGenerator}>.
+		// Must await to get the stream object, then iterate it to drive the SSE
+		// connection. Without iterating, onSseEvent never fires and the connection
+		// is never established.
+		let eventStream: {stream: AsyncGenerator<unknown>}
+		try {
+			eventStream = await this.client.event.subscribe({
+				onSseEvent: event => {
+					const data = event.data as {
+						type: string
+						properties: Record<string, unknown>
+					}
+					if (!data?.type) return
+
+					debug('SSE event:', data.type)
+
+					if (data.type === 'message.part.updated') {
+						const part = data.properties.part as Part | undefined
+						if (!part) return
+						if (part.sessionID !== sessionId) return
+						if (part.type === 'text') {
+							const textPart = part as TextPart
+							if (textPart.text && textPart.text.length > lastTextLength) {
+								const newChunk = textPart.text.slice(lastTextLength)
+								lastTextLength = textPart.text.length
+								if (newChunk) onChunk(newChunk)
+							}
+						}
+					} else if (data.type === 'message.updated') {
+						const info = data.properties.info as
+							| {sessionID?: string; role?: string; error?: {message?: string}}
+							| undefined
+						if (info?.sessionID === sessionId && info.role === 'assistant') {
+							if (info.error?.message) {
+								onError(info.error.message)
+							}
+						}
+					} else if (data.type === 'session.idle') {
+						const eventSessionID = (data.properties as {sessionID?: string})
+							.sessionID
+						if (eventSessionID === sessionId) {
+							callDone()
 						}
 					}
-				} else if (data.type === 'message.updated') {
-					const info = data.properties.info as
-						| {sessionID?: string; role?: string; error?: {message?: string}}
-						| undefined
-					if (info?.sessionID === sessionId && info.role === 'assistant') {
-						if (info.error?.message) {
-							onError(info.error.message)
-						}
-					}
-				} else if (data.type === 'session.idle') {
-					const eventSessionID = (data.properties as {sessionID?: string})
-						.sessionID
-					if (eventSessionID === sessionId) {
-						onDone()
-					}
-				}
-			},
-			onSseError: err => {
-				debug('SSE error:', err)
-			},
-		})
+				},
+				onSseError: err => {
+					debug('SSE error:', err)
+				},
+			})
+		} catch (err) {
+			onError(`Failed to subscribe to events: ${(err as Error).message}`)
+			onDone()
+			return {sessionId, abort: async () => {}}
+		}
 
-		// Fire the prompt asynchronously
+		// Drive the async generator — this is what actually opens the SSE connection.
+		// The onSseEvent callback fires inside the generator body on each iteration.
+		;(async () => {
+			try {
+				for await (const _ of eventStream.stream) {
+					if (doneCalled) break
+				}
+			} catch (err) {
+				if (!doneCalled) {
+					debug('Event stream error:', (err as Error).message)
+				}
+			}
+		})()
+
+		// Fire the prompt asynchronously; response arrives via SSE events above
 		try {
 			const promptBody: Record<string, unknown> = {
 				parts: [{type: 'text', text: prompt}],
@@ -165,10 +195,11 @@ export class OpencodeBridgeAdapter {
 			debug('Prompt sent async to session:', sessionId)
 		} catch (err) {
 			onError(`Failed to send prompt: ${(err as Error).message}`)
-			onDone()
+			callDone()
 		}
 
 		const abort = async () => {
+			callDone()
 			try {
 				await this.client.session.abort({path: {id: sessionId}})
 			} catch {
