@@ -161,3 +161,4 @@ node_modules
 packages/cli/.npmrc
 .kilo
 firebase-debug.log
+apps/web/.vinext
