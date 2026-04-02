@@ -38,7 +38,7 @@
 	"dependencies": {
 		"@tsconfig/bun": "^1.0.10",
 		"@types/bun": "^1.3.11",
-		"turbo": "^2.9.1"
+		"turbo": "^2.9.3"
 	},
 	"devDependencies": {
 		"@involvex/prettier-config": "^0.0.4",
