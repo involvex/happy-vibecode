@@ -41,6 +41,9 @@ export class BridgeAgent extends DurableObject<Env> {
 	private aliveMap = new Map<WebSocket, boolean>()
 	// Drop counters per client (slow-client backpressure)
 	private dropCounters = new Map<WebSocket, number>()
+	// Accumulate streamed response chunks keyed by sessionId so we can persist
+	// the full response text once the CLI sends the final done:true message
+	private responseAccumulator = new Map<string, string>()
 
 	override async fetch(request: Request): Promise<Response> {
 		const url = new URL(request.url)
@@ -228,12 +231,23 @@ export class BridgeAgent extends DurableObject<Env> {
 				msg.type === 'status'
 			) {
 				this.broadcast(data, 'cli')
+				if (msg.type === 'response' && !msg.done && msg.content) {
+					// Accumulate streamed chunks; the final done:true carries empty content
+					const key = msg.sessionId ?? senderSession.userId
+					this.responseAccumulator.set(
+						key,
+						(this.responseAccumulator.get(key) ?? '') + msg.content,
+					)
+				}
 				if (msg.type === 'response' && msg.done) {
+					const key = msg.sessionId ?? senderSession.userId
+					const fullContent = this.responseAccumulator.get(key) ?? ''
+					this.responseAccumulator.delete(key)
 					this.persistMessage(
 						msg.sessionId ?? senderSession.userId,
 						senderSession.userId,
 						'assistant',
-						msg.content,
+						fullContent,
 						senderSession.model,
 					).catch(() => {})
 					this.notifyAgentCompleted(

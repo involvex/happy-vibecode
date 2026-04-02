@@ -98,7 +98,11 @@ export class OpencodeBridgeAdapter {
 		}
 
 		const sessionId = session.id
-		let lastTextLength = 0
+		// Track which message IDs belong to the assistant so we don't echo the user's
+		// own prompt back as a response chunk (message.part.updated fires for ALL parts)
+		const assistantMessageIds = new Set<string>()
+		// Per-part delta tracking (a message can have multiple text parts)
+		const partTextLengths = new Map<string, number>()
 		let doneCalled = false
 
 		const callDone = () => {
@@ -129,17 +133,29 @@ export class OpencodeBridgeAdapter {
 						if (part.sessionID !== sessionId) return
 						if (part.type === 'text') {
 							const textPart = part as TextPart
-							if (textPart.text && textPart.text.length > lastTextLength) {
-								const newChunk = textPart.text.slice(lastTextLength)
-								lastTextLength = textPart.text.length
+							// Only relay chunks that belong to the assistant's reply.
+							// message.part.updated fires for ALL parts including the user's own
+							// prompt, which would otherwise echo back as the answer.
+							if (!assistantMessageIds.has(textPart.messageID)) return
+							const knownLength = partTextLengths.get(textPart.id) ?? 0
+							if (textPart.text && textPart.text.length > knownLength) {
+								const newChunk = textPart.text.slice(knownLength)
+								partTextLengths.set(textPart.id, textPart.text.length)
 								if (newChunk) onChunk(newChunk)
 							}
 						}
 					} else if (data.type === 'message.updated') {
 						const info = data.properties.info as
-							| {sessionID?: string; role?: string; error?: {message?: string}}
+							| {
+									id?: string
+									sessionID?: string
+									role?: string
+									error?: {message?: string}
+							  }
 							| undefined
 						if (info?.sessionID === sessionId && info.role === 'assistant') {
+							// Register this message ID so its parts pass the filter above
+							if (info.id) assistantMessageIds.add(info.id)
 							if (info.error?.message) {
 								onError(info.error.message)
 							}

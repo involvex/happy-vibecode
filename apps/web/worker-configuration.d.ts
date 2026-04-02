@@ -3,65 +3,41 @@
 // Runtime types generated with workerd@1.20260401.1 2026-02-12 nodejs_compat
 declare namespace Cloudflare {
 	interface GlobalProps {
-		mainModule: typeof import('./worker/index')
-		durableNamespaces: 'BridgeAgent'
+		mainModule: typeof import("./worker/index");
+		durableNamespaces: "BridgeAgent";
 	}
 	interface Env {
-		KV: KVNamespace
-		DB: D1Database
-		IMAGES: ImagesBinding
-		ASSETS: Fetcher
-		TURNSTILE_SITE_KEY: string
-		TURNSTILE_SECRET_KEY: string
-		CLOUDFLARE_API_TOKEN: string
-		CLOUDFLARE_ACCOUNT_ID: string
-		GITHUB_CLIENT_ID: string
-		GITHUB_CLIENT_SECRET: string
-		AUTH_GITHUB_ID: string
-		AUTH_GITHUB_SECRET: string
-		BETTER_AUTH_SECRET: string
-		BETTER_AUTH_URL: string
-		STRIPE_API_KEY: string
-		SRIPE_PRO_URL: string
-		STRIPE_PRO_URL: string
-		STRIPE_PRO_PRODUCT_ID: string
-		'STRIPE_pricing-table-id': string
-		STRIPE_PRO_PRICE_ID: string
-		STRIPE_WEBHOOK_SECRET: string
-		STRIPE_WEBHOOK_SECRET_2: string
-		BridgeAgent: DurableObjectNamespace<import('./worker/index').BridgeAgent>
+		KV: KVNamespace;
+		DB: D1Database;
+		IMAGES: ImagesBinding;
+		ASSETS: Fetcher;
+		TURNSTILE_SITE_KEY: string;
+		TURNSTILE_SECRET_KEY: string;
+		CLOUDFLARE_API_TOKEN: string;
+		CLOUDFLARE_ACCOUNT_ID: string;
+		GITHUB_CLIENT_ID: string;
+		GITHUB_CLIENT_SECRET: string;
+		AUTH_GITHUB_ID: string;
+		AUTH_GITHUB_SECRET: string;
+		BETTER_AUTH_SECRET: string;
+		BETTER_AUTH_URL: string;
+		STRIPE_API_KEY: string;
+		SRIPE_PRO_URL: string;
+		STRIPE_PRO_URL: string;
+		STRIPE_PRO_PRODUCT_ID: string;
+		"STRIPE_pricing-table-id": string;
+		STRIPE_PRO_PRICE_ID: string;
+		STRIPE_WEBHOOK_SECRET: string;
+		STRIPE_WEBHOOK_SECRET_2: string;
+		BridgeAgent: DurableObjectNamespace<import("./worker/index").BridgeAgent>;
 	}
 }
 interface Env extends Cloudflare.Env {}
 type StringifyValues<EnvType extends Record<string, unknown>> = {
-	[Binding in keyof EnvType]: EnvType[Binding] extends string
-		? EnvType[Binding]
-		: string
-}
+	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
+};
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<
-		Pick<
-			Cloudflare.Env,
-			| 'TURNSTILE_SITE_KEY'
-			| 'TURNSTILE_SECRET_KEY'
-			| 'CLOUDFLARE_API_TOKEN'
-			| 'CLOUDFLARE_ACCOUNT_ID'
-			| 'GITHUB_CLIENT_ID'
-			| 'GITHUB_CLIENT_SECRET'
-			| 'AUTH_GITHUB_ID'
-			| 'AUTH_GITHUB_SECRET'
-			| 'BETTER_AUTH_SECRET'
-			| 'BETTER_AUTH_URL'
-			| 'STRIPE_API_KEY'
-			| 'SRIPE_PRO_URL'
-			| 'STRIPE_PRO_URL'
-			| 'STRIPE_PRO_PRODUCT_ID'
-			| 'STRIPE_pricing-table-id'
-			| 'STRIPE_PRO_PRICE_ID'
-			| 'STRIPE_WEBHOOK_SECRET'
-			| 'STRIPE_WEBHOOK_SECRET_2'
-		>
-	> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "TURNSTILE_SITE_KEY" | "TURNSTILE_SECRET_KEY" | "CLOUDFLARE_API_TOKEN" | "CLOUDFLARE_ACCOUNT_ID" | "GITHUB_CLIENT_ID" | "GITHUB_CLIENT_SECRET" | "AUTH_GITHUB_ID" | "AUTH_GITHUB_SECRET" | "BETTER_AUTH_SECRET" | "BETTER_AUTH_URL" | "STRIPE_API_KEY" | "SRIPE_PRO_URL" | "STRIPE_PRO_URL" | "STRIPE_PRO_PRODUCT_ID" | "STRIPE_pricing-table-id" | "STRIPE_PRO_PRICE_ID" | "STRIPE_WEBHOOK_SECRET" | "STRIPE_WEBHOOK_SECRET_2">> {}
 }
 
 // Begin runtime types
