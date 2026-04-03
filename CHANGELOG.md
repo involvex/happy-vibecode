@@ -1,3 +1,10 @@
+## [0.0.5](https://github.com/involvex/happy-vibecode/compare/v0.0.4...v0.0.5) (2026-04-03)
+
+### Features
+
+- add code-analyzer agent for comprehensive code quality analysis ([026b073](https://github.com/involvex/happy-vibecode/commit/026b073d155f128caa6be45206fab67d4b6960df))
+- **chat:** add file upload and improve session handling ([029c4b9](https://github.com/involvex/happy-vibecode/commit/029c4b97e2c2a355161266e9d66e3e2bf4b4018a))
+
 ## [0.0.4](https://github.com/involvex/happy-vibecode/compare/v0.0.3...v0.0.4) (2026-04-03)
 
 ### Features
