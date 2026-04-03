@@ -2,6 +2,7 @@ import {
 	Animated,
 	FlatList,
 	KeyboardAvoidingView,
+	Modal,
 	RefreshControl,
 	ScrollView,
 	Text,
@@ -19,6 +20,36 @@ import {useColorScheme} from 'nativewind'
 import {useRouter} from 'expo-router'
 
 const BRIDGE_CODE_KEY = 'happy-bridge-code'
+const MODEL_SETTINGS_KEY = 'happy-model-settings'
+
+interface ModelInfo {
+	id: string
+	name: string
+	provider: string
+	pricing?: {prompt: number; completion: number}
+	isFree?: boolean
+}
+
+const GEMINI_MODELS: ModelInfo[] = [
+	{
+		id: 'gemini-2.5-flash-preview-05-20',
+		name: 'Gemini 2.5 Flash Preview',
+		provider: 'gemini',
+		isFree: false,
+	},
+	{
+		id: 'gemini-2.5-flash-latest',
+		name: 'Gemini Flash Latest',
+		provider: 'gemini',
+		isFree: false,
+	},
+	{
+		id: 'gemini-2.0-flash',
+		name: 'Gemini 2.0 Flash',
+		provider: 'gemini',
+		isFree: false,
+	},
+]
 
 let _nextId = 0
 function uniqueId(): string {
@@ -108,6 +139,7 @@ export default function ChatTab() {
 	const {isAuthed, userId, apiToken, serverUrl} = useAuth()
 	const router = useRouter()
 	const {presets} = usePromptPresets()
+	const {colorScheme} = useColorScheme()
 
 	const [messages, setMessages] = useState<Message[]>([])
 	const [input, setInput] = useState('')
@@ -117,6 +149,15 @@ export default function ChatTab() {
 	const [bridgeCodeInput, setBridgeCodeInput] = useState('')
 	const [bridgeCodeLoaded, setBridgeCodeLoaded] = useState(false)
 	const [isAgentTyping, setIsAgentTyping] = useState(false)
+	const [showModelSettings, setShowModelSettings] = useState(false)
+	const [modelSettings, setModelSettings] = useState<Record<string, string>>({})
+	const [activeProviderTab, setActiveProviderTab] = useState<
+		'opencode' | 'kilo' | 'gemini'
+	>('opencode')
+	const [openCodeModels, setOpenCodeModels] = useState<ModelInfo[]>([])
+	const [kiloModels, setKiloModels] = useState<ModelInfo[]>([])
+	const [modelsLoading, setModelsLoading] = useState(false)
+	const [sortByPrice, setSortByPrice] = useState(false)
 
 	const wsRef = useRef<WebSocket | null>(null)
 	const flatListRef = useRef<FlatList>(null)
@@ -137,6 +178,71 @@ export default function ChatTab() {
 		})
 	}, [])
 
+	// Load model settings from SecureStore
+	useEffect(() => {
+		SecureStore.getItemAsync(MODEL_SETTINGS_KEY).then(raw => {
+			if (raw) {
+				try {
+					setModelSettings(JSON.parse(raw))
+				} catch {}
+			}
+		})
+	}, [])
+
+	// Fetch third-party model lists when settings panel opens
+	useEffect(() => {
+		if (!showModelSettings || !serverUrl) return
+		setModelsLoading(true)
+		const base = serverUrl.replace(/\/$/, '')
+		Promise.all([
+			fetch(`${base}/api/models/opencode`)
+				.then(r => r.json() as Promise<{models: unknown[]}>)
+				.catch(() => ({models: [] as unknown[]})),
+			fetch(`${base}/api/models/kilo`)
+				.then(r => r.json() as Promise<{models: unknown[]}>)
+				.catch(() => ({models: [] as unknown[]})),
+		])
+			.then(([oc, kilo]) => {
+				const mapModel = (
+					m: {
+						id: string
+						name?: string
+						pricing?: {prompt: number; completion: number}
+					},
+					provider: string,
+				): ModelInfo => ({
+					id: m.id,
+					name: m.name || m.id,
+					provider,
+					pricing: m.pricing,
+					isFree: m.pricing
+						? m.pricing.prompt === 0 && m.pricing.completion === 0
+						: false,
+				})
+				setOpenCodeModels(
+					(Array.isArray(oc.models) ? oc.models : []).map(raw => {
+						const m = raw as {
+							id: string
+							name?: string
+							pricing?: {prompt: number; completion: number}
+						}
+						return mapModel(m, 'opencode')
+					}),
+				)
+				setKiloModels(
+					(Array.isArray(kilo.models) ? kilo.models : []).map(raw => {
+						const m = raw as {
+							id: string
+							name?: string
+							pricing?: {prompt: number; completion: number}
+						}
+						return mapModel(m, 'kilo')
+					}),
+				)
+			})
+			.finally(() => setModelsLoading(false))
+	}, [showModelSettings, serverUrl])
+
 	useEffect(() => {
 		return () => {
 			if (typingTimerRef.current) clearTimeout(typingTimerRef.current)
@@ -148,6 +254,24 @@ export default function ChatTab() {
 		await SecureStore.setItemAsync(BRIDGE_CODE_KEY, upper)
 		setBridgeCode(upper)
 	}, [])
+
+	const selectModel = useCallback(
+		async (provider: string, modelId: string) => {
+			const updated = {...modelSettings, [provider]: modelId}
+			setModelSettings(updated)
+			await SecureStore.setItemAsync(
+				MODEL_SETTINGS_KEY,
+				JSON.stringify(updated),
+			)
+			if (wsRef.current?.readyState === WebSocket.OPEN) {
+				wsRef.current.send(
+					JSON.stringify({type: 'model_switch', provider, model: modelId}),
+				)
+			}
+			setShowModelSettings(false)
+		},
+		[modelSettings],
+	)
 
 	const clearBridgeCode = useCallback(async () => {
 		await SecureStore.deleteItemAsync(BRIDGE_CODE_KEY)
@@ -281,6 +405,10 @@ export default function ChatTab() {
 						},
 					])
 				}
+
+				if (msg.type === 'ping') {
+					ws.send(JSON.stringify({type: 'pong'}))
+				}
 			} catch {
 				// ignore parse errors
 			}
@@ -398,6 +526,17 @@ export default function ChatTab() {
 					</View>
 				</View>
 				<View className="flex-row items-center gap-3">
+					<TouchableOpacity
+						onPress={() => setShowModelSettings(true)}
+						className="p-2"
+						accessibilityLabel="Model settings"
+					>
+						<Ionicons
+							name="settings-outline"
+							size={18}
+							color={colorScheme === 'dark' ? '#9ca3af' : '#6b7280'}
+						/>
+					</TouchableOpacity>
 					<TouchableOpacity
 						onPress={clearBridgeCode}
 						className="px-3 py-2"
@@ -527,6 +666,150 @@ export default function ChatTab() {
 					</TouchableOpacity>
 				</View>
 			</KeyboardAvoidingView>
+
+			{/* Model Settings Modal */}
+			<Modal
+				visible={showModelSettings}
+				animationType="slide"
+				presentationStyle="pageSheet"
+				onRequestClose={() => setShowModelSettings(false)}
+			>
+				<SafeAreaView
+					className="flex-1 bg-surface dark:bg-surface-dark"
+					edges={['top']}
+				>
+					{/* Modal Header */}
+					<View className="flex-row items-center justify-between px-4 py-3 border-b border-border dark:border-border-dark">
+						<Text className="text-base font-semibold text-text dark:text-text-dark">
+							Model Settings
+						</Text>
+						<TouchableOpacity
+							onPress={() => setShowModelSettings(false)}
+							className="p-2"
+						>
+							<Ionicons
+								name="close"
+								size={20}
+								color={colorScheme === 'dark' ? '#9ca3af' : '#6b7280'}
+							/>
+						</TouchableOpacity>
+					</View>
+
+					{/* Provider Tabs */}
+					<View className="flex-row border-b border-border dark:border-border-dark px-2">
+						{(['opencode', 'kilo', 'gemini'] as const).map(tab => (
+							<TouchableOpacity
+								key={tab}
+								onPress={() => setActiveProviderTab(tab)}
+								className={`px-4 py-3 border-b-2 ${activeProviderTab === tab ? 'border-primary' : 'border-transparent'}`}
+							>
+								<Text
+									className={`text-sm font-medium capitalize ${activeProviderTab === tab ? 'text-primary' : 'text-muted dark:text-muted-dark'}`}
+								>
+									{tab === 'opencode'
+										? 'OpenCode'
+										: tab === 'kilo'
+											? 'Kilo'
+											: 'Gemini'}
+								</Text>
+							</TouchableOpacity>
+						))}
+					</View>
+
+					{/* Sort toggle */}
+					<View className="flex-row items-center justify-between px-4 py-2 border-b border-border dark:border-border-dark">
+						<Text className="text-xs text-muted dark:text-muted-dark">
+							Sort by price
+						</Text>
+						<TouchableOpacity
+							onPress={() => setSortByPrice(p => !p)}
+							className={`w-10 h-6 rounded-full items-center justify-center ${sortByPrice ? 'bg-primary' : 'bg-border dark:bg-border-dark'}`}
+						>
+							<View
+								className={`w-4 h-4 rounded-full bg-white absolute ${sortByPrice ? 'right-1' : 'left-1'}`}
+							/>
+						</TouchableOpacity>
+					</View>
+
+					{/* Model List */}
+					{modelsLoading ? (
+						<View className="flex-1 items-center justify-center">
+							<Text className="text-muted dark:text-muted-dark text-sm">
+								Loading models…
+							</Text>
+						</View>
+					) : (
+						<ScrollView className="flex-1 px-4 pt-2">
+							{(() => {
+								const rawModels =
+									activeProviderTab === 'opencode'
+										? openCodeModels
+										: activeProviderTab === 'kilo'
+											? kiloModels
+											: GEMINI_MODELS
+								const sorted = sortByPrice
+									? [...rawModels].sort((a, b) => {
+											const pa = a.pricing?.prompt ?? 0
+											const pb = b.pricing?.prompt ?? 0
+											return pa - pb
+										})
+									: rawModels
+								return sorted.map(model => {
+									const isSelected =
+										modelSettings[activeProviderTab] === model.id
+									return (
+										<TouchableOpacity
+											key={model.id}
+											onPress={() => selectModel(activeProviderTab, model.id)}
+											className={`flex-row items-center justify-between p-3 mb-2 rounded-xl border ${isSelected ? 'border-primary bg-primary/10' : 'border-border dark:border-border-dark bg-surface dark:bg-surface-dark'}`}
+										>
+											<View className="flex-1 mr-3">
+												<View className="flex-row items-center gap-2 flex-wrap">
+													<Text className="text-sm font-medium text-text dark:text-text-dark">
+														{model.name}
+													</Text>
+													{(model.isFree ||
+														(model.pricing &&
+															model.pricing.prompt === 0 &&
+															model.pricing.completion === 0)) && (
+														<View className="bg-green-500/15 rounded px-1.5 py-0.5">
+															<Text className="text-xs font-medium text-green-600 dark:text-green-400">
+																FREE
+															</Text>
+														</View>
+													)}
+												</View>
+												<Text className="text-xs text-muted dark:text-muted-dark mt-0.5">
+													{model.id}
+												</Text>
+												{model.pricing &&
+													(model.pricing.prompt > 0 ||
+														model.pricing.completion > 0) && (
+														<Text className="text-xs text-muted dark:text-muted-dark mt-0.5">
+															${(model.pricing.prompt * 1_000_000).toFixed(2)}/M
+															in · $
+															{(model.pricing.completion * 1_000_000).toFixed(
+																2,
+															)}
+															/M out
+														</Text>
+													)}
+											</View>
+											{isSelected && (
+												<Ionicons
+													name="checkmark-circle"
+													size={20}
+													color="#3b82f6"
+												/>
+											)}
+										</TouchableOpacity>
+									)
+								})
+							})()}
+						</ScrollView>
+					)}
+				</SafeAreaView>
+			</Modal>
 		</SafeAreaView>
 	)
 }

@@ -14,6 +14,7 @@ import {
 } from '@phosphor-icons/react'
 import {Suspense, useCallback, useState, useEffect, useRef} from 'react'
 import {Button, Badge, InputArea, Empty, Text} from '@cloudflare/kumo'
+import {ModelSettingsModal} from '../components/ModelSettingsModal'
 import {ModelSelector} from '../components/ModelSelector'
 import {Switch} from '@cloudflare/kumo'
 import {Streamdown} from 'streamdown'
@@ -243,6 +244,8 @@ function useBridgeAgent(roomId: string) {
 					}
 				} else if (msg.type === 'opencode_url' && msg.url) {
 					setOpencodeUrl(msg.url)
+				} else if (msg.type === 'ping') {
+					ws.send(JSON.stringify({type: 'pong'}))
 				}
 			} catch {
 				// ignore non-JSON
@@ -455,11 +458,18 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 							</Text>
 						</div>
 						{wsStatus === 'cli_connected' && (
-							<ModelSelector
-								currentProvider={currentModel?.provider}
-								currentModel={currentModel?.model}
-								onSwitch={switchModel}
-							/>
+							<>
+								<ModelSelector
+									currentProvider={currentModel?.provider}
+									currentModel={currentModel?.model}
+									onSwitch={switchModel}
+								/>
+								<ModelSettingsModal
+									currentProvider={currentModel?.provider}
+									currentModel={currentModel?.model}
+									onSwitch={switchModel}
+								/>
+							</>
 						)}
 						<div className="flex items-center gap-1.5">
 							<BugIcon size={14} className="text-kumo-inactive" />

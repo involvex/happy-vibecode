@@ -1,11 +1,5 @@
-import {
-	createOpencodeClient,
-	type OpencodeClient,
-	type Session,
-	type TextPart,
-	type Part,
-} from '@opencode-ai/sdk'
 import {debug} from '../utils/log.js'
+import {spawn} from 'child_process'
 
 export interface PromptResponse {
 	text: string
@@ -13,12 +7,43 @@ export interface PromptResponse {
 	error?: string
 }
 
+// JSON event types from `opencode run --format json`
+interface JsonEvent {
+	type: string
+	timestamp?: number
+	sessionID?: string
+	part?: {
+		id?: string
+		messageID?: string
+		sessionID?: string
+		type?: string
+		text?: string
+		[key: string]: unknown
+	}
+}
+
+// Strip ANSI escape codes from text
+/* eslint-disable no-control-regex */
+function stripAnsi(text: string): string {
+	return text
+		.replace(/\x1b\[[0-9;]*[mGKHFABCDST]/g, '')
+		.replace(/\x1b\].*?\x07/g, '')
+}
+/* eslint-enable no-control-regex */
+
+// Resolve the command to run opencode cross-platform
+function getOpencodeCommand(): {cmd: string; baseArgs: string[]} {
+	if (process.platform === 'win32') {
+		return {cmd: process.env.COMSPEC || 'cmd.exe', baseArgs: ['/c', 'opencode']}
+	}
+	return {cmd: 'opencode', baseArgs: []}
+}
+
 export class OpencodeBridgeAdapter {
-	private client: OpencodeClient
-	private sessions: Set<string> = new Set()
+	private baseUrl: string
 
 	constructor(baseUrl: string) {
-		this.client = createOpencodeClient({baseUrl})
+		this.baseUrl = baseUrl
 		debug('OpencodeBridgeAdapter created with baseUrl:', baseUrl)
 	}
 
@@ -26,48 +51,23 @@ export class OpencodeBridgeAdapter {
 		prompt: string,
 		model?: {providerID: string; modelID: string},
 	): Promise<PromptResponse> {
-		// Create a session for this prompt
-		const sessionRes = await this.client.session.create({
-			body: {title: prompt.slice(0, 80)},
+		let fullText = ''
+		let error: string | undefined
+		await new Promise<void>(resolve => {
+			this.sendPromptStreaming(
+				prompt,
+				model,
+				chunk => {
+					fullText += chunk
+				},
+				() => resolve(),
+				err => {
+					error = err
+					resolve()
+				},
+			)
 		})
-		if (!sessionRes.data) {
-			return {text: '', sessionId: '', error: 'Failed to create session'}
-		}
-		const session: Session = sessionRes.data
-		this.sessions.add(session.id)
-		debug('Created opencode session:', session.id)
-
-		// Send the prompt
-		const promptBody: Record<string, unknown> = {
-			parts: [{type: 'text', text: prompt}],
-		}
-		if (model) {
-			promptBody.model = model
-		}
-
-		const messageRes = await this.client.session.prompt({
-			path: {id: session.id},
-			body: promptBody as {
-				parts: Array<{type: 'text'; text: string}>
-				model?: {providerID: string; modelID: string}
-			},
-		})
-
-		if (messageRes.error) {
-			const errMsg =
-				typeof messageRes.error === 'object' && 'message' in messageRes.error
-					? (messageRes.error as {message: string}).message
-					: JSON.stringify(messageRes.error)
-			return {text: '', sessionId: session.id, error: errMsg}
-		}
-
-		if (!messageRes.data) {
-			return {text: '', sessionId: session.id, error: 'No response data'}
-		}
-
-		// Extract text from response parts
-		const text = this.extractTextFromParts(messageRes.data.parts)
-		return {text, sessionId: session.id}
+		return {text: fullText, sessionId: '', error}
 	}
 
 	async sendPromptStreaming(
@@ -77,32 +77,7 @@ export class OpencodeBridgeAdapter {
 		onDone: () => void,
 		onError: (err: string) => void,
 	): Promise<{sessionId: string; abort: () => Promise<void>}> {
-		// Create a session for this prompt
-		let session: Session
-		try {
-			const sessionRes = await this.client.session.create({
-				body: {title: prompt.slice(0, 80)},
-			})
-			if (!sessionRes.data) {
-				onError('Failed to create session')
-				onDone()
-				return {sessionId: '', abort: async () => {}}
-			}
-			session = sessionRes.data
-			this.sessions.add(session.id)
-			debug('Created opencode session for streaming:', session.id)
-		} catch (err) {
-			onError(`Failed to create session: ${(err as Error).message}`)
-			onDone()
-			return {sessionId: '', abort: async () => {}}
-		}
-
-		const sessionId = session.id
-		// Track which message IDs belong to the assistant so we don't echo the user's
-		// own prompt back as a response chunk (message.part.updated fires for ALL parts)
-		const assistantMessageIds = new Set<string>()
-		// Per-part delta tracking (a message can have multiple text parts)
-		const partTextLengths = new Map<string, number>()
+		const sessionId = Math.random().toString(36).slice(2)
 		let doneCalled = false
 
 		const callDone = () => {
@@ -111,141 +86,110 @@ export class OpencodeBridgeAdapter {
 			onDone()
 		}
 
-		// FIX: event.subscribe() returns a Promise<{stream: AsyncGenerator}>.
-		// Must await to get the stream object, then iterate it to drive the SSE
-		// connection. Without iterating, onSseEvent never fires and the connection
-		// is never established.
-		let eventStream: {stream: AsyncGenerator<unknown>}
-		try {
-			eventStream = await this.client.event.subscribe({
-				onSseEvent: event => {
-					const data = event.data as {
-						type: string
-						properties: Record<string, unknown>
-					}
-					if (!data?.type) return
+		const {cmd, baseArgs} = getOpencodeCommand()
 
-					debug('SSE event:', data.type)
-
-					if (data.type === 'message.part.updated') {
-						const part = data.properties.part as Part | undefined
-						if (!part) return
-						if (part.sessionID !== sessionId) return
-						if (part.type === 'text') {
-							const textPart = part as TextPart
-							// Only relay chunks that belong to the assistant's reply.
-							// message.part.updated fires for ALL parts including the user's own
-							// prompt, which would otherwise echo back as the answer.
-							if (!assistantMessageIds.has(textPart.messageID)) return
-							const knownLength = partTextLengths.get(textPart.id) ?? 0
-							if (textPart.text && textPart.text.length > knownLength) {
-								const newChunk = textPart.text.slice(knownLength)
-								partTextLengths.set(textPart.id, textPart.text.length)
-								if (newChunk) onChunk(newChunk)
-							}
-						}
-					} else if (data.type === 'message.updated') {
-						const info = data.properties.info as
-							| {
-									id?: string
-									sessionID?: string
-									role?: string
-									error?: {message?: string}
-							  }
-							| undefined
-						if (info?.sessionID === sessionId && info.role === 'assistant') {
-							// Register this message ID so its parts pass the filter above
-							if (info.id) assistantMessageIds.add(info.id)
-							if (info.error?.message) {
-								onError(info.error.message)
-							}
-						}
-					} else if (data.type === 'session.idle') {
-						const eventSessionID = (data.properties as {sessionID?: string})
-							.sessionID
-						if (eventSessionID === sessionId) {
-							callDone()
-						}
-					}
-				},
-				onSseError: err => {
-					debug('SSE error:', err)
-				},
-			})
-		} catch (err) {
-			onError(`Failed to subscribe to events: ${(err as Error).message}`)
-			onDone()
-			return {sessionId, abort: async () => {}}
+		// Build args: opencode run --format json [--model provider/model] <prompt>
+		const runArgs = [...baseArgs, 'run', '--format', 'json']
+		if (model) {
+			runArgs.push('--model', `${model.providerID}/${model.modelID}`)
 		}
+		runArgs.push(prompt)
 
-		// Drive the async generator — this is what actually opens the SSE connection.
-		// The onSseEvent callback fires inside the generator body on each iteration.
-		;(async () => {
-			try {
-				for await (const _ of eventStream.stream) {
-					if (doneCalled) break
+		debug('Spawning opencode:', cmd, runArgs.join(' '))
+
+		const child = spawn(cmd, runArgs, {
+			cwd: process.cwd(),
+			env: {...process.env},
+			stdio: ['ignore', 'pipe', 'pipe'],
+		})
+
+		// Track cumulative text per part ID to compute deltas
+		const partTextLen = new Map<string, number>()
+		let stdoutBuf = ''
+
+		child.stdout.on('data', (chunk: Buffer) => {
+			stdoutBuf += chunk.toString('utf8')
+			// Process complete newline-delimited JSON lines
+			const lines = stdoutBuf.split('\n')
+			stdoutBuf = lines.pop() ?? ''
+
+			for (const line of lines) {
+				const trimmed = line.trim()
+				if (!trimmed) continue
+
+				// Skip non-JSON lines (ANSI, MCP startup noise)
+				if (!trimmed.startsWith('{')) {
+					debug('opencode non-json stdout:', trimmed)
+					continue
 				}
-			} catch (err) {
-				if (!doneCalled) {
-					debug('Event stream error:', (err as Error).message)
+
+				try {
+					const event = JSON.parse(trimmed) as JsonEvent
+					if (event.type === 'text' && event.part?.type === 'text') {
+						const partId = event.part.id ?? 'default'
+						const fullText = (event.part.text as string) ?? ''
+						const prev = partTextLen.get(partId) ?? 0
+						const delta = fullText.slice(prev)
+						if (delta) {
+							partTextLen.set(partId, fullText.length)
+							onChunk(delta)
+						}
+					} else if (event.type === 'error') {
+						const msg =
+							(event.part as {error?: string})?.error ?? 'Unknown error'
+						onError(msg)
+					}
+				} catch {
+					debug('opencode invalid json line:', trimmed.slice(0, 80))
 				}
 			}
-		})()
+		})
 
-		// Fire the prompt asynchronously; response arrives via SSE events above
-		try {
-			const promptBody: Record<string, unknown> = {
-				parts: [{type: 'text', text: prompt}],
-			}
-			if (model) {
-				promptBody.model = model
-			}
+		child.stderr.on('data', (chunk: Buffer) => {
+			debug('opencode stderr:', stripAnsi(chunk.toString('utf8')).trim())
+		})
 
-			await this.client.session.promptAsync({
-				path: {id: sessionId},
-				body: promptBody as {
-					parts: Array<{type: 'text'; text: string}>
-					model?: {providerID: string; modelID: string}
-				},
-			})
-			debug('Prompt sent async to session:', sessionId)
-		} catch (err) {
-			onError(`Failed to send prompt: ${(err as Error).message}`)
+		child.on('error', (err: Error) => {
+			debug('opencode spawn error:', err.message)
+			onError(`Failed to spawn opencode: ${err.message}`)
 			callDone()
-		}
+		})
+
+		child.on('close', (code: number | null) => {
+			// Flush any remaining buffered line
+			if (stdoutBuf.trim().startsWith('{')) {
+				try {
+					const event = JSON.parse(stdoutBuf.trim()) as JsonEvent
+					if (event.type === 'text' && event.part?.type === 'text') {
+						const partId = event.part.id ?? 'default'
+						const fullText = (event.part.text as string) ?? ''
+						const prev = partTextLen.get(partId) ?? 0
+						const delta = fullText.slice(prev)
+						if (delta) onChunk(delta)
+					}
+				} catch {
+					// ignore
+				}
+			}
+			debug('opencode run exited with code:', code)
+			callDone()
+		})
 
 		const abort = async () => {
-			callDone()
-			try {
-				await this.client.session.abort({path: {id: sessionId}})
-			} catch {
-				// ignore abort errors
+			if (!doneCalled) {
+				child.kill('SIGTERM')
+				callDone()
 			}
 		}
 
 		return {sessionId, abort}
 	}
 
-	async abortSession(sessionId: string): Promise<void> {
-		try {
-			await this.client.session.abort({path: {id: sessionId}})
-			debug('Aborted opencode session:', sessionId)
-		} catch (err) {
-			debug('Failed to abort session:', (err as Error).message)
-		}
+	async abortSession(_sessionId: string): Promise<void> {
+		debug('abortSession called (subprocess manages its own lifecycle)')
 	}
 
 	async cleanup(): Promise<void> {
-		// Nothing to clean up at the session level — opencode server
-		// manages session lifecycle. We just drop our references.
-		this.sessions.clear()
 		debug('OpencodeBridgeAdapter cleaned up')
-	}
-
-	private extractTextFromParts(parts: Part[]): string {
-		return parts
-			.filter((p): p is TextPart => p.type === 'text' && !p.ignored)
-			.map(p => p.text)
-			.join('\n')
 	}
 }

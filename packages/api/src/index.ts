@@ -15,6 +15,7 @@ import {ticketsRouter} from './routes/tickets.js'
 import {devicesRouter} from './routes/devices.js'
 import {billingRouter} from './routes/billing.js'
 import type {ApiEnv} from './middleware/auth.js'
+import {modelsRouter} from './routes/models.js'
 import {bridgeRouter} from './routes/bridge.js'
 import {agentsRouter} from './routes/agents.js'
 import {reposRouter} from './routes/repos.js'
@@ -50,6 +51,7 @@ api.route('/agents', agentsRouter)
 api.route('/bridge', bridgeRouter)
 api.route('/tickets', ticketsRouter)
 api.route('/notifications', notificationsRouter)
+api.route('/models', modelsRouter)
 api.route('/templates', agentTemplatesRouter)
 api.route('/sync', syncRouter)
 api.route('/repos', reposRouter)

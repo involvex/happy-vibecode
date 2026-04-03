@@ -371,10 +371,17 @@ export const connectCommand = new Command('connect')
 		let intentionalClose = false
 		let keepaliveTimer: ReturnType<typeof setInterval> | null = null
 
+		// Hoisted outside connectWs so streaming callbacks always reference the
+		// latest socket even after a reconnect, preventing stale-closure drops.
+		let agentRunning = false
+		let currentAbort: (() => Promise<void>) | null = null
+		let activeSocket: WebSocket | null = null
+
 		function connectWs(): WebSocket {
 			const socket = new WebSocket(wsUrl, {
 				headers: {Authorization: `Bearer ${apiToken}`},
 			})
+			activeSocket = socket
 
 			socket.on('open', () => {
 				reconnectAttempts = 0
@@ -478,9 +485,6 @@ export const connectCommand = new Command('connect')
 			})
 
 			if (!opts.prompt) {
-				let agentRunning = false
-				let currentAbort: (() => Promise<void>) | null = null
-
 				socket.on('message', data => {
 					let msg: IncomingMsg
 					try {
@@ -563,8 +567,8 @@ export const connectCommand = new Command('connect')
 									sessionId,
 									done: false,
 								}
-								if (socket.readyState === WebSocket.OPEN) {
-									socket.send(JSON.stringify(response))
+								if (activeSocket?.readyState === WebSocket.OPEN) {
+									activeSocket.send(JSON.stringify(response))
 								}
 							},
 							() => {
@@ -577,16 +581,16 @@ export const connectCommand = new Command('connect')
 									sessionId,
 									done: true,
 								}
-								if (socket.readyState === WebSocket.OPEN) {
-									socket.send(JSON.stringify(response))
+								if (activeSocket?.readyState === WebSocket.OPEN) {
+									activeSocket.send(JSON.stringify(response))
 								}
 							},
 							err => {
 								agentRunning = false
 								currentAbort = null
 								console.error(`\n✗ Agent error [${sessionId}]: ${err}`)
-								if (socket.readyState === WebSocket.OPEN) {
-									socket.send(
+								if (activeSocket?.readyState === WebSocket.OPEN) {
+									activeSocket.send(
 										JSON.stringify({
 											type: 'error',
 											message: err,
@@ -603,8 +607,8 @@ export const connectCommand = new Command('connect')
 							agentRunning = false
 							const msg = `Failed to start agent: ${(err as Error).message}`
 							console.error(`\n✗ ${msg}`)
-							if (socket.readyState === WebSocket.OPEN) {
-								socket.send(
+							if (activeSocket?.readyState === WebSocket.OPEN) {
+								activeSocket.send(
 									JSON.stringify({type: 'error', message: msg, sessionId}),
 								)
 							}
