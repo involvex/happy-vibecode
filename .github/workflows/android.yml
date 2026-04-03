@@ -22,6 +22,8 @@ jobs:
       - name: Extract Latest Changelog
         run: |
           awk '/^#+ \[?[0-9]/ { if (p) exit; p=1 } p' CHANGELOG.md > latest-release.md
+      - name: Restore google-services.json
+        run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > apps/mobile/google-services.json
       - name: Running expo prebuild
         run: bunx expo prebuild --platform android --no-install
         working-directory: apps/mobile
