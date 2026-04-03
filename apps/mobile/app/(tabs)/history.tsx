@@ -16,8 +16,8 @@ import {useRouter} from 'expo-router'
 interface Session {
 	id: string
 	agentType: string
-	status: string
-	createdAt: string
+	connectionStatus: string
+	startedAt: number | string
 }
 
 function formatDate(dateStr: string) {
@@ -41,7 +41,7 @@ export default function HistoryScreen() {
 		if (!isAuthed || !apiToken) return
 		const base = serverUrl ?? 'https://happy-vibecode.involvex.workers.dev'
 		try {
-			const r = await fetch(`${base}/api/sessions?status=closed`, {
+			const r = await fetch(`${base}/api/sessions?status=disconnected`, {
 				headers: {Authorization: `Bearer ${apiToken}`},
 			})
 			if (r.ok) {
@@ -149,7 +149,7 @@ export default function HistoryScreen() {
 									{item.agentType ?? 'Session'}
 								</Text>
 								<Text className="text-muted dark:text-muted-dark text-xs mt-0.5">
-									{formatDate(item.createdAt)}
+									{item.startedAt ? formatDate(String(item.startedAt)) : '—'}
 								</Text>
 							</View>
 							<Ionicons name="chevron-forward" size={16} color="#94a3b8" />

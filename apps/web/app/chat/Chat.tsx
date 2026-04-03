@@ -12,6 +12,7 @@ import {
 	LinkIcon,
 	LinkBreakIcon,
 	TerminalWindowIcon,
+	UploadSimpleIcon,
 } from '@phosphor-icons/react'
 import {Suspense, useCallback, useState, useEffect, useRef} from 'react'
 import {Button, Badge, InputArea, Empty, Text} from '@cloudflare/kumo'
@@ -353,6 +354,7 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const terminalEndRef = useRef<HTMLDivElement>(null)
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
+	const fileInputRef = useRef<HTMLInputElement>(null)
 	const [bridgeCodeInput, setBridgeCodeInput] = useState('')
 	const [bridgeCode, setBridgeCodeState] = useState<string | null>(
 		() => roomIdProp ?? getBridgeCode(),
@@ -709,6 +711,38 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 							className="max-w-3xl px-5 py-4 mx-auto"
 						>
 							<div className="flex items-end gap-3 p-3 transition-shadow border shadow-sm rounded-xl border-kumo-line bg-kumo-base focus-within:ring-2 focus-within:ring-kumo-ring focus-within:border-transparent">
+								<input
+									ref={fileInputRef}
+									type="file"
+									accept=".md,.txt,.ts,.tsx,.js,.jsx,.py,.json,.yaml,.yml"
+									className="hidden"
+									onChange={e => {
+										const file = e.target.files?.[0]
+										if (!file) return
+										const reader = new FileReader()
+										reader.onload = ev => {
+											const content = ev.target?.result as string
+											setInput(prev =>
+												prev
+													? `${prev}\n\n---\n**${file.name}:**\n\`\`\`\n${content}\n\`\`\``
+													: `**${file.name}:**\n\`\`\`\n${content}\n\`\`\``,
+											)
+										}
+										reader.readAsText(file)
+										e.target.value = ''
+									}}
+								/>
+								<Button
+									type="button"
+									variant="ghost"
+									shape="square"
+									size="sm"
+									aria-label="Attach file"
+									icon={<UploadSimpleIcon size={16} />}
+									onClick={() => fileInputRef.current?.click()}
+									className="mb-0.5 text-kumo-muted hover:text-kumo-default"
+									disabled={!connected}
+								/>
 								<InputArea
 									ref={textareaRef}
 									value={input}

@@ -6,6 +6,16 @@
 		"type": "git",
 		"url": "git+https://github.com/involvex/happy-vibecode.git"
 	},
+	"funding": [
+		{
+			"type": "github",
+			"url": "https://github.com/sponsors/involvex"
+		},
+		{
+			"type": "others",
+			"url": "https://paypal.me/involvex"
+		}
+	],
 	"author": {
 		"name": "involvex"
 	},
@@ -54,5 +64,8 @@
 	"peerDependencies": {
 		"typescript": "5.9.3"
 	},
-	"packageManager": "bun@1.3.10"
+	"packageManager": "bun@1.3.10",
+	"sponsor": {
+		"url": "https://github.com/sponsors/involvex"
+	}
 }

@@ -1,8 +1,11 @@
 'use client'
 import {BookOpenIcon, PaypalLogoIcon} from '@phosphor-icons/react'
+import {usePathname} from 'next/navigation'
 import Link from 'next/link'
 
 export default function Footer() {
+	const pathname = usePathname()
+	if (pathname.startsWith('/chat')) return null
 	return (
 		<footer
 			className="px-6 py-4 mt-4 border-t bg-kumo-elevated border-kumo-line"
