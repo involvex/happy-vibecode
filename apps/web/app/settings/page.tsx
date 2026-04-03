@@ -77,6 +77,7 @@ export default function SettingsPage() {
 		addWorkspace,
 		removeWorkspace,
 		setActiveWorkspace,
+		updateWorkspace,
 	} = useWorkspaces()
 	const router = useRouter()
 
@@ -407,27 +408,19 @@ export default function SettingsPage() {
 
 	const handleSaveProvider = () => {
 		if (!selectedProvider || !activeWorkspaceId) return
-		const activeIdx = workspaces.findIndex(w => w.id === activeWorkspaceId)
-		if (activeIdx === -1) return
-		workspaces[activeIdx] = {
-			...workspaces[activeIdx],
+		updateWorkspace(activeWorkspaceId, {
 			defaultProvider: selectedProvider,
 			defaultModel: selectedModel || undefined,
-		}
-		localStorage.setItem('happy-workspaces', JSON.stringify(workspaces))
+		})
 		setProviderSaved(true)
 		setTimeout(() => setProviderSaved(false), 3000)
 	}
 
 	const handleSaveFallbackChain = () => {
 		if (!activeWorkspaceId) return
-		const activeIdx = workspaces.findIndex(w => w.id === activeWorkspaceId)
-		if (activeIdx === -1) return
-		workspaces[activeIdx] = {
-			...workspaces[activeIdx],
+		updateWorkspace(activeWorkspaceId, {
 			fallbackChain: fallbackChain.length > 0 ? fallbackChain : undefined,
-		}
-		localStorage.setItem('happy-workspaces', JSON.stringify(workspaces))
+		})
 		setFallbackSaved(true)
 		setTimeout(() => setFallbackSaved(false), 3000)
 	}

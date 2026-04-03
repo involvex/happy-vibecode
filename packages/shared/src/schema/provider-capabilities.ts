@@ -14,7 +14,13 @@ export interface StreamingCapabilities {
 export const providerCapabilities = {
 	gemini: {
 		maxTokens: 1_000_000,
-		models: ['gemini-2.0-flash', 'gemini-2.0-pro', 'gemini-2.5-flash'],
+		models: [
+			'gemini-2.5-flash-preview-04-17',
+			'gemini-2.5-flash',
+			'gemini-2.0-flash-latest',
+			'gemini-2.0-flash',
+			'gemini-2.0-pro',
+		],
 		displayName: 'Google Gemini',
 		description: 'High-context, multimodal AI',
 		streaming: {
@@ -60,7 +66,15 @@ export const providerCapabilities = {
 	},
 	'opencode-ai': {
 		maxTokens: 128_000,
-		models: ['default'],
+		models: [
+			'default',
+			'anthropic/claude-sonnet-4-5',
+			'openai/gpt-4o',
+			'openai/gpt-4o-mini',
+			'minimax/minimax-text-01',
+			'deepseek/deepseek-r1-0528',
+			'qwen/qwen3-30b-a3b',
+		],
 		displayName: 'OpenCode AI',
 		description: 'Open-source coding agent',
 		streaming: {
@@ -86,7 +100,13 @@ export const providerCapabilities = {
 	},
 	kilo: {
 		maxTokens: 200_000,
-		models: ['default'],
+		models: [
+			'default',
+			'kilo-auto/free',
+			'claude-sonnet-4-5',
+			'gpt-4o',
+			'gpt-4o-mini',
+		],
 		displayName: 'Kilo',
 		description: 'VS Code AI coding agent',
 		streaming: {

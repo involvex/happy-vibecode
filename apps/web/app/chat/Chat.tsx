@@ -11,11 +11,13 @@ import {
 	BugIcon,
 	LinkIcon,
 	LinkBreakIcon,
+	TerminalWindowIcon,
 } from '@phosphor-icons/react'
 import {Suspense, useCallback, useState, useEffect, useRef} from 'react'
 import {Button, Badge, InputArea, Empty, Text} from '@cloudflare/kumo'
 import {ModelSettingsModal} from '../components/ModelSettingsModal'
 import {ModelSelector} from '../components/ModelSelector'
+import {useWorkspaces} from '../hooks/useWorkspaces'
 import {Switch} from '@cloudflare/kumo'
 import {Streamdown} from 'streamdown'
 
@@ -113,6 +115,7 @@ function useBridgeAgent(roomId: string) {
 		provider: string
 		model: string
 	} | null>(null)
+	const [terminalLines, setTerminalLines] = useState<string[]>([])
 	const currentModelRef = useRef<{provider: string; model: string} | null>(null)
 	const wsRef = useRef<WebSocket | null>(null)
 	const streamingIdRef = useRef<string | null>(null)
@@ -187,6 +190,7 @@ function useBridgeAgent(roomId: string) {
 					error?: string
 					sessionId?: string
 					url?: string
+					output?: string
 				}
 
 				if (msg.type === 'response') {
@@ -246,6 +250,8 @@ function useBridgeAgent(roomId: string) {
 					setOpencodeUrl(msg.url)
 				} else if (msg.type === 'ping') {
 					ws.send(JSON.stringify({type: 'pong'}))
+				} else if (msg.type === 'agent_logs' && msg.output) {
+					setTerminalLines(prev => [...prev.slice(-500), msg.output!])
 				}
 			} catch {
 				// ignore non-JSON
@@ -306,6 +312,10 @@ function useBridgeAgent(roomId: string) {
 		setIsStreaming(false)
 	}, [])
 
+	const clearTerminal = useCallback(() => {
+		setTerminalLines([])
+	}, [])
+
 	const switchModel = useCallback((provider: string, model: string) => {
 		if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return
 		wsRef.current.send(
@@ -329,6 +339,8 @@ function useBridgeAgent(roomId: string) {
 		stop,
 		clearHistory,
 		switchModel,
+		terminalLines,
+		clearTerminal,
 	}
 }
 
@@ -337,13 +349,17 @@ function useBridgeAgent(roomId: string) {
 function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 	const [input, setInput] = useState('')
 	const [showDebug, setShowDebug] = useState(false)
+	const [showTerminal, setShowTerminal] = useState(false)
 	const messagesEndRef = useRef<HTMLDivElement>(null)
+	const terminalEndRef = useRef<HTMLDivElement>(null)
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const [bridgeCodeInput, setBridgeCodeInput] = useState('')
 	const [bridgeCode, setBridgeCodeState] = useState<string | null>(
 		() => roomIdProp ?? getBridgeCode(),
 	)
 	const roomId = bridgeCode ?? ''
+
+	const {workspaces, activeWorkspaceId, setActiveWorkspace} = useWorkspaces()
 
 	const {
 		messages,
@@ -356,6 +372,8 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 		stop,
 		clearHistory,
 		switchModel,
+		terminalLines,
+		clearTerminal,
 	} = useBridgeAgent(roomId)
 
 	const connected = wsStatus !== 'disconnected'
@@ -388,6 +406,12 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({behavior: 'smooth'})
 	}, [messages])
+
+	useEffect(() => {
+		if (showTerminal) {
+			terminalEndRef.current?.scrollIntoView({behavior: 'smooth'})
+		}
+	}, [terminalLines, showTerminal])
 
 	useEffect(() => {
 		if (!isStreaming && textareaRef.current) {
@@ -471,6 +495,20 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 								/>
 							</>
 						)}
+						{workspaces.length > 0 && (
+							<select
+								value={activeWorkspaceId ?? ''}
+								onChange={e => setActiveWorkspace(e.target.value)}
+								className="text-xs rounded-md border border-kumo-line bg-kumo-base text-kumo-default px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-kumo-ring"
+								aria-label="Active workspace"
+							>
+								{workspaces.map(w => (
+									<option key={w.id} value={w.id}>
+										{w.name}
+									</option>
+								))}
+							</select>
+						)}
 						<div className="flex items-center gap-1.5">
 							<BugIcon size={14} className="text-kumo-inactive" />
 							<Switch
@@ -480,6 +518,14 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 								aria-label="Toggle debug mode"
 							/>
 						</div>
+						<Button
+							variant={showTerminal ? 'primary' : 'secondary'}
+							shape="square"
+							icon={<TerminalWindowIcon size={16} />}
+							onClick={() => setShowTerminal(v => !v)}
+							aria-label="Toggle terminal"
+							title="Toggle agent logs terminal"
+						/>
 						<ThemeToggle />
 						{bridgeCode && (
 							<Button
@@ -549,7 +595,7 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 						</div>
 					)}
 					{/* Messages */}
-					<div className="flex-1 overflow-y-auto">
+					<div className="flex-1 min-h-0 overflow-y-auto">
 						<div className="max-w-3xl px-5 py-6 mx-auto space-y-5">
 							{messages.length === 0 && (
 								<Empty
@@ -623,6 +669,36 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 						</div>
 					</div>
 
+					{showTerminal && (
+						<div
+							className="border-t border-kumo-line bg-zinc-950"
+							style={{height: '200px', flexShrink: 0}}
+						>
+							<div className="flex items-center justify-between px-3 py-1 border-b border-zinc-800">
+								<span className="font-mono text-xs text-zinc-400">
+									Agent Logs
+								</span>
+								<button
+									type="button"
+									onClick={clearTerminal}
+									className="text-xs text-zinc-400 hover:text-zinc-200 px-2 py-0.5 rounded"
+								>
+									Clear
+								</button>
+							</div>
+							<pre
+								className="p-3 overflow-y-auto font-mono text-xs whitespace-pre-wrap text-zinc-300 wrap-break-word"
+								style={{height: 'calc(200px - 33px)'}}
+							>
+								{terminalLines.length === 0 ? (
+									<span className="text-zinc-600">No agent logs yet...</span>
+								) : (
+									terminalLines.join('\n')
+								)}
+								<div ref={terminalEndRef} />
+							</pre>
+						</div>
+					)}
 					{/* Input */}
 					<div className="mb-1 border-t border-kumo-line bg-kumo-base">
 						<form
