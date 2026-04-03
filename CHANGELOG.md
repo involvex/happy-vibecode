@@ -1,3 +1,24 @@
+## [0.0.4](https://github.com/involvex/happy-vibecode/compare/v0.0.3...v0.0.4) (2026-04-03)
+
+### Features
+
+- add agent logs terminal and workspace selector to chat ([22a2519](https://github.com/involvex/happy-vibecode/commit/22a25195d670cc40c755c84de6a7b217cb4f626a))
+- add comprehensive Firebase AI Logic integration skill ([9d71d7e](https://github.com/involvex/happy-vibecode/commit/9d71d7ea37884bd9f048b04448294a804da224e1))
+- add environment configuration template and setup tooling ([16c2bc1](https://github.com/involvex/happy-vibecode/commit/16c2bc187444255688aefcb5844ce11a2705dac7))
+- add interactive stdin input support during agent streaming ([e1a7f5f](https://github.com/involvex/happy-vibecode/commit/e1a7f5f74f264f685c05f25dd3587450feec86c3))
+- add multi-model selection and database schema updates ([5e061e6](https://github.com/involvex/happy-vibecode/commit/5e061e619ef18671e5f4d288ece459b092049b28))
+- add opencode URL relay to web and mobile clients ([ca59db9](https://github.com/involvex/happy-vibecode/commit/ca59db960fe4e745c10f2f1ee8b49c77dd6d4271))
+- **cli:** integrate OpenCode SDK adapter replacing process spawning ([82b6353](https://github.com/involvex/happy-vibecode/commit/82b63536a9541f68121f9412fb844aa62575980c))
+- **mobile:** add model settings modal with multi-provider support ([f118d1c](https://github.com/involvex/happy-vibecode/commit/f118d1c2060aca8fc128373437f1788667139f82))
+- **mobile:** add UI/UX corrections plan and apply mobile fixes ([ca4f753](https://github.com/involvex/happy-vibecode/commit/ca4f75355f8e1c497ac41b89dec4412fb58fd43f))
+
+### Bug Fixes
+
+- **bridge:** accumulate streamed responses and filter assistant messages ([cb83b22](https://github.com/involvex/happy-vibecode/commit/cb83b22c35074feeb481ac7c9e228c74e12a9aa8))
+- **cli:** remove ./ prefix from bin paths in package.json ([2832837](https://github.com/involvex/happy-vibecode/commit/28328376fb2ec47dfe63895355e87ab7b5bbcbe9))
+- **cli:** resolve SSE event stream connection in opencode adapter ([4b9d4b7](https://github.com/involvex/happy-vibecode/commit/4b9d4b703cb4632bfe01dfe82eea21f473d995a7))
+- improve cross-platform shell command spawning ([b1b7de5](https://github.com/involvex/happy-vibecode/commit/b1b7de51c1533c8d67815f398f517bc5603da04c))
+
 ## [0.0.3](https://github.com/involvex/happy-vibecode/compare/v0.0.2...v0.0.3) (2026-03-29)
 
 ### Features
