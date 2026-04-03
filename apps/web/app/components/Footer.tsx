@@ -5,7 +5,7 @@ import Link from 'next/link'
 export default function Footer() {
 	return (
 		<footer
-			className="px-6 py-4 border-t bg-kumo-elevated border-kumo-line"
+			className="px-6 py-4 mt-4 border-t bg-kumo-elevated border-kumo-line"
 			style={{position: 'fixed', bottom: 0, width: '100%'}}
 		>
 			<div className="flex items-center justify-center gap-2 text-sm text-kumo-secondary">
