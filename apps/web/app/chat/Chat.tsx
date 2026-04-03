@@ -624,7 +624,7 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 					</div>
 
 					{/* Input */}
-					<div className="border-t border-kumo-line bg-kumo-base">
+					<div className="mb-1 border-t border-kumo-line bg-kumo-base">
 						<form
 							onSubmit={e => {
 								e.preventDefault()
