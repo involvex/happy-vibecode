@@ -15,7 +15,7 @@
 	},
 	"dependencies": {
 		"@better-auth/expo": "^1.5.6",
-		"@cloudflare/kumo": "^1.16.0",
+		"@cloudflare/kumo": "^1.17.0",
 		"@happy-vibecode/api": "workspace:*",
 		"@happy-vibecode/db": "workspace:*",
 		"@happy-vibecode/shared": "workspace:*",
@@ -36,7 +36,7 @@
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "^1.31.0",
 		"@tailwindcss/postcss": "^4",
-		"@types/node": "^25",
+		"@types/node": "^25.5.2",
 		"@types/react": "^19",
 		"@types/react-dom": "^19",
 		"oxlint": "latest",
