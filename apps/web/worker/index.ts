@@ -75,34 +75,48 @@ export default {
 			const roomId =
 				url.pathname.slice('/agents/BridgeAgent/'.length) || 'default'
 
-			// Validate Bearer token before forwarding to Durable Object
-			// Accept token from Authorization header (CLI/mobile) or query param (browser WS)
-			const authHeader = request.headers.get('Authorization')
-			const token = authHeader?.startsWith('Bearer ')
-				? authHeader.slice(7)
-				: url.searchParams.get('token')
-			if (!token) {
-				return new Response('Unauthorized', {status: 401})
-			}
-
 			const db = createDb(env.DB)
 			let userId: string | undefined
 
-			// Fast path: check users table
-			const user = await db.query.users.findFirst({
-				where: (u, {eq}) => eq(u.apiToken, token),
-			})
-			if (user) {
-				userId = user.id
-			} else {
-				// Fallback: check auth_user table (Better Auth users)
-				const authUserRecord = await db
-					.select()
-					.from(authUser)
-					.where(eq(authUser.apiToken, token))
-					.get()
-				if (authUserRecord) {
-					userId = authUserRecord.id
+			// Method 1: Better Auth session cookie (browser clients already logged in)
+			// Browser WebSocket upgrades carry cookies automatically — no token needed.
+			try {
+				const auth = createAuth(env, request.url)
+				const session = await auth.api.getSession({
+					headers: request.headers,
+				})
+				if (session?.user?.id) {
+					userId = session.user.id
+				}
+			} catch {
+				// Session validation failed; fall through to token auth
+			}
+
+			// Method 2: API token (CLI / mobile — Bearer header or ?token= query param)
+			if (!userId) {
+				const authHeader = request.headers.get('Authorization')
+				const token = authHeader?.startsWith('Bearer ')
+					? authHeader.slice(7)
+					: url.searchParams.get('token')
+
+				if (token) {
+					// Fast path: check users table
+					const user = await db.query.users.findFirst({
+						where: (u, {eq}) => eq(u.apiToken, token),
+					})
+					if (user) {
+						userId = user.id
+					} else {
+						// Fallback: check auth_user table (Better Auth users)
+						const authUserRecord = await db
+							.select()
+							.from(authUser)
+							.where(eq(authUser.apiToken, token))
+							.get()
+						if (authUserRecord) {
+							userId = authUserRecord.id
+						}
+					}
 				}
 			}
 

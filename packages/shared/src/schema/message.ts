@@ -107,6 +107,30 @@ export const wsMessageSchema = z.discriminatedUnion('type', [
 		success: z.boolean(),
 		error: z.string().optional(),
 	}),
+	// PTY relay messages — used when CLI connects with ?mode=pty
+	z.object({
+		type: z.literal('pty_start'),
+		cols: z.number(),
+		rows: z.number(),
+	}),
+	z.object({
+		type: z.literal('pty_data'),
+		data: z.string(),
+	}),
+	z.object({
+		type: z.literal('pty_input'),
+		data: z.string(),
+	}),
+	z.object({
+		type: z.literal('pty_resize'),
+		cols: z.number(),
+		rows: z.number(),
+	}),
+	z.object({
+		type: z.literal('pty_exit'),
+		exitCode: z.number(),
+		signal: z.string().optional(),
+	}),
 ])
 
 export type MessageRole = z.infer<typeof messageRoleSchema>

@@ -117,6 +117,9 @@ function useBridgeAgent(roomId: string) {
 		model: string
 	} | null>(null)
 	const [terminalLines, setTerminalLines] = useState<string[]>([])
+	const [ptyMode, setPtyMode] = useState(false)
+	const [ptyOutput, setPtyOutput] = useState('')
+	const ptyOutputRef = useRef('')
 	const currentModelRef = useRef<{provider: string; model: string} | null>(null)
 	const wsRef = useRef<WebSocket | null>(null)
 	const streamingIdRef = useRef<string | null>(null)
@@ -192,6 +195,26 @@ function useBridgeAgent(roomId: string) {
 					sessionId?: string
 					url?: string
 					output?: string
+					data?: string
+					cols?: number
+					rows?: number
+					exitCode?: number
+					signal?: string
+				}
+
+				if (msg.type === 'pty_start') {
+					ptyOutputRef.current = ''
+					setPtyOutput('')
+					setPtyMode(true)
+					return
+				} else if (msg.type === 'pty_data' && msg.data) {
+					ptyOutputRef.current += msg.data
+					setPtyOutput(ptyOutputRef.current)
+					return
+				} else if (msg.type === 'pty_exit') {
+					ptyOutputRef.current += `\r\n[Process exited${msg.exitCode != null ? ` with code ${msg.exitCode}` : ''}]\r\n`
+					setPtyOutput(ptyOutputRef.current)
+					return
 				}
 
 				if (msg.type === 'response') {
@@ -329,6 +352,22 @@ function useBridgeAgent(roomId: string) {
 		)
 	}, [])
 
+	const sendPtyInput = useCallback((data: string) => {
+		if (wsRef.current?.readyState !== WebSocket.OPEN) return
+		wsRef.current.send(JSON.stringify({type: 'pty_input', data}))
+	}, [])
+
+	const sendPtyResize = useCallback((cols: number, rows: number) => {
+		if (wsRef.current?.readyState !== WebSocket.OPEN) return
+		wsRef.current.send(JSON.stringify({type: 'pty_resize', cols, rows}))
+	}, [])
+
+	const clearPty = useCallback(() => {
+		ptyOutputRef.current = ''
+		setPtyOutput('')
+		setPtyMode(false)
+	}, [])
+
 	return {
 		messages,
 		wsStatus,
@@ -342,7 +381,116 @@ function useBridgeAgent(roomId: string) {
 		switchModel,
 		terminalLines,
 		clearTerminal,
+		ptyMode,
+		ptyOutput,
+		sendPtyInput,
+		sendPtyResize,
+		clearPty,
 	}
+}
+
+// ── PTY Terminal ──────────────────────────────────────────────────────
+
+function stripAnsi(raw: string): string {
+	/* eslint-disable no-control-regex */
+	return raw
+		.replace(/\u001b\[[0-9;]*[mGKHFJABCDsurh?l]/g, '')
+		.replace(/\u001b[()][012B]/g, '')
+	/* eslint-enable no-control-regex */
+}
+
+function PtyTerminal({
+	output,
+	onKey,
+	onClear,
+}: {
+	output: string
+	onKey: (data: string) => void
+	onClear: () => void
+}) {
+	const preRef = useRef<HTMLPreElement>(null)
+	const containerRef = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		preRef.current?.scrollTo({
+			top: preRef.current.scrollHeight,
+			behavior: 'smooth',
+		})
+	}, [output])
+
+	const handleKeyDown = useCallback(
+		(e: React.KeyboardEvent<HTMLDivElement>) => {
+			let data = ''
+			if (e.key === 'Enter') {
+				data = '\r'
+			} else if (e.key === 'Backspace') {
+				data = '\x7f'
+			} else if (e.key === 'Tab') {
+				e.preventDefault()
+				data = '\t'
+			} else if (e.key === 'Escape') {
+				data = '\x1b'
+			} else if (e.key === 'ArrowUp') {
+				e.preventDefault()
+				data = '\x1b[A'
+			} else if (e.key === 'ArrowDown') {
+				e.preventDefault()
+				data = '\x1b[B'
+			} else if (e.key === 'ArrowRight') {
+				data = '\x1b[C'
+			} else if (e.key === 'ArrowLeft') {
+				data = '\x1b[D'
+			} else if (e.key === 'Home') {
+				data = '\x1b[H'
+			} else if (e.key === 'End') {
+				data = '\x1b[F'
+			} else if (e.key === 'Delete') {
+				data = '\x1b[3~'
+			} else if (e.ctrlKey && e.key.length === 1) {
+				e.preventDefault()
+				data = String.fromCharCode(e.key.toLowerCase().charCodeAt(0) - 96)
+			} else if (!e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1) {
+				data = e.key
+			}
+			if (data) onKey(data)
+		},
+		[onKey],
+	)
+
+	return (
+		<div
+			ref={containerRef}
+			tabIndex={0}
+			onKeyDown={handleKeyDown}
+			className="flex flex-col flex-1 min-h-0 font-mono outline-none bg-zinc-950 focus:ring-2 focus:ring-inset focus:ring-green-700 cursor-text"
+			onClick={() => containerRef.current?.focus()}
+		>
+			<div className="flex items-center justify-between px-3 py-1.5 border-b border-zinc-800 shrink-0 bg-zinc-900">
+				<span className="text-xs text-zinc-400 flex items-center gap-1.5">
+					<TerminalWindowIcon size={12} />
+					<span>PTY Terminal</span>
+					<span className="text-zinc-600">(click to focus, then type)</span>
+				</span>
+				<button
+					type="button"
+					onClick={onClear}
+					className="text-xs text-zinc-400 hover:text-zinc-200 px-2 py-0.5 rounded hover:bg-zinc-800 transition-colors"
+				>
+					Exit terminal
+				</button>
+			</div>
+			<pre
+				ref={preRef}
+				className="flex-1 p-3 overflow-y-auto text-sm leading-snug text-green-400 break-all whitespace-pre-wrap"
+			>
+				{output ? (
+					stripAnsi(output)
+				) : (
+					<span className="text-zinc-600">Waiting for terminal output...</span>
+				)}
+			</pre>
+		</div>
+	)
 }
 
 // ── Main chat ─────────────────────────────────────────────────────────
@@ -376,6 +524,10 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 		switchModel,
 		terminalLines,
 		clearTerminal,
+		ptyMode,
+		ptyOutput,
+		sendPtyInput,
+		clearPty,
 	} = useBridgeAgent(roomId)
 
 	const connected = wsStatus !== 'disconnected'
@@ -596,199 +748,214 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 							<span className="text-kumo-default">{opencodeUrl}</span>
 						</div>
 					)}
-					{/* Messages */}
-					<div className="flex-1 min-h-0 overflow-y-auto">
-						<div className="max-w-3xl px-5 py-6 mx-auto space-y-5">
-							{messages.length === 0 && (
-								<Empty
-									icon={<ChatCircleDotsIcon size={32} />}
-									title="Start a conversation"
-									contents={
-										<div className="flex flex-wrap justify-center gap-2">
-											{[
-												'Hello, what can you do?',
-												'What is 42 * 7?',
-												'Write a haiku about Cloudflare',
-												'Explain Durable Objects in one sentence',
-											].map(prompt => (
-												<Button
-													key={prompt}
-													variant="outline"
-													size="sm"
-													disabled={isStreaming || !connected}
-													onClick={() => sendMessage(prompt)}
-												>
-													{prompt}
-												</Button>
-											))}
-										</div>
-									}
-								/>
-							)}
-
-							{messages.map((message: ChatMessage, index: number) => {
-								const isUser = message.role === 'user'
-								const isLastAssistant =
-									message.role === 'assistant' && index === messages.length - 1
-
-								return (
-									<div key={message.id} className="space-y-2">
-										{showDebug && (
-											<pre className="text-[11px] text-kumo-subtle bg-kumo-control rounded-lg p-3 overflow-auto max-h-64">
-												{JSON.stringify(message, null, 2)}
-											</pre>
-										)}
-
-										{isUser ? (
-											<div className="flex justify-end">
-												<div className="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-br-md bg-kumo-contrast text-kumo-inverse leading-relaxed">
-													{message.content}
+					{ptyMode ? (
+						<PtyTerminal
+							output={ptyOutput}
+							onKey={sendPtyInput}
+							onClear={clearPty}
+						/>
+					) : (
+						<>
+							{/* Messages */}
+							<div className="flex-1 min-h-0 overflow-y-auto">
+								<div className="max-w-3xl px-5 py-6 mx-auto space-y-5">
+									{messages.length === 0 && (
+										<Empty
+											icon={<ChatCircleDotsIcon size={32} />}
+											title="Start a conversation"
+											contents={
+												<div className="flex flex-wrap justify-center gap-2">
+													{[
+														'Hello, what can you do?',
+														'What is 42 * 7?',
+														'Write a haiku about Cloudflare',
+														'Explain Durable Objects in one sentence',
+													].map(prompt => (
+														<Button
+															key={prompt}
+															variant="outline"
+															size="sm"
+															disabled={isStreaming || !connected}
+															onClick={() => sendMessage(prompt)}
+														>
+															{prompt}
+														</Button>
+													))}
 												</div>
-											</div>
-										) : (
-											<div className="flex justify-start">
-												<div className="max-w-[85%] rounded-2xl rounded-bl-md bg-kumo-base text-kumo-default leading-relaxed">
-													<Streamdown
-														className="p-3 sd-theme rounded-2xl rounded-bl-md"
-														controls={false}
-														isAnimating={isLastAssistant && isStreaming}
-													>
-														{message.content}
-													</Streamdown>
-													{message.model && (
-														<div className="px-3 pb-2">
-															<Badge variant="outline">{message.model}</Badge>
+											}
+										/>
+									)}
+
+									{messages.map((message: ChatMessage, index: number) => {
+										const isUser = message.role === 'user'
+										const isLastAssistant =
+											message.role === 'assistant' &&
+											index === messages.length - 1
+
+										return (
+											<div key={message.id} className="space-y-2">
+												{showDebug && (
+													<pre className="text-[11px] text-kumo-subtle bg-kumo-control rounded-lg p-3 overflow-auto max-h-64">
+														{JSON.stringify(message, null, 2)}
+													</pre>
+												)}
+
+												{isUser ? (
+													<div className="flex justify-end">
+														<div className="max-w-[85%] px-4 py-2.5 rounded-2xl rounded-br-md bg-kumo-contrast text-kumo-inverse leading-relaxed">
+															{message.content}
 														</div>
-													)}
-												</div>
+													</div>
+												) : (
+													<div className="flex justify-start">
+														<div className="max-w-[85%] rounded-2xl rounded-bl-md bg-kumo-base text-kumo-default leading-relaxed">
+															<Streamdown
+																className="p-3 sd-theme rounded-2xl rounded-bl-md"
+																controls={false}
+																isAnimating={isLastAssistant && isStreaming}
+															>
+																{message.content}
+															</Streamdown>
+															{message.model && (
+																<div className="px-3 pb-2">
+																	<Badge variant="outline">
+																		{message.model}
+																	</Badge>
+																</div>
+															)}
+														</div>
+													</div>
+												)}
 											</div>
+										)
+									})}
+
+									<div ref={messagesEndRef} />
+								</div>
+							</div>
+
+							{showTerminal && (
+								<div
+									className="border-t border-kumo-line bg-zinc-950"
+									style={{height: '200px', flexShrink: 0}}
+								>
+									<div className="flex items-center justify-between px-3 py-1 border-b border-zinc-800">
+										<span className="font-mono text-xs text-zinc-400">
+											Agent Logs
+										</span>
+										<button
+											type="button"
+											onClick={clearTerminal}
+											className="text-xs text-zinc-400 hover:text-zinc-200 px-2 py-0.5 rounded"
+										>
+											Clear
+										</button>
+									</div>
+									<pre
+										className="p-3 overflow-y-auto font-mono text-xs whitespace-pre-wrap text-zinc-300 wrap-break-word"
+										style={{height: 'calc(200px - 33px)'}}
+									>
+										{terminalLines.length === 0 ? (
+											<span className="text-zinc-600">
+												No agent logs yet...
+											</span>
+										) : (
+											terminalLines.join('\n')
+										)}
+										<div ref={terminalEndRef} />
+									</pre>
+								</div>
+							)}
+							{/* Input */}
+							<div className="mb-1 border-t border-kumo-line bg-kumo-base">
+								<form
+									onSubmit={e => {
+										e.preventDefault()
+										send()
+									}}
+									className="max-w-3xl px-5 py-4 mx-auto"
+								>
+									<div className="flex items-end gap-3 p-3 transition-shadow border shadow-sm rounded-xl border-kumo-line bg-kumo-base focus-within:ring-2 focus-within:ring-kumo-ring focus-within:border-transparent">
+										<input
+											ref={fileInputRef}
+											type="file"
+											accept=".md,.txt,.ts,.tsx,.js,.jsx,.py,.json,.yaml,.yml"
+											className="hidden"
+											onChange={e => {
+												const file = e.target.files?.[0]
+												if (!file) return
+												const reader = new FileReader()
+												reader.onload = ev => {
+													const content = ev.target?.result as string
+													setInput(prev =>
+														prev
+															? `${prev}\n\n---\n**${file.name}:**\n\`\`\`\n${content}\n\`\`\``
+															: `**${file.name}:**\n\`\`\`\n${content}\n\`\`\``,
+													)
+												}
+												reader.readAsText(file)
+												e.target.value = ''
+											}}
+										/>
+										<Button
+											type="button"
+											variant="ghost"
+											shape="square"
+											size="sm"
+											aria-label="Attach file"
+											icon={<UploadSimpleIcon size={16} />}
+											onClick={() => fileInputRef.current?.click()}
+											className="mb-0.5 text-kumo-muted hover:text-kumo-default"
+											disabled={!connected}
+										/>
+										<InputArea
+											ref={textareaRef}
+											value={input}
+											onValueChange={setInput}
+											onKeyDown={e => {
+												if (e.key === 'Enter' && !e.shiftKey) {
+													e.preventDefault()
+													send()
+												}
+											}}
+											onInput={e => {
+												const el = e.currentTarget
+												el.style.height = 'auto'
+												el.style.height = `${el.scrollHeight}px`
+											}}
+											placeholder={
+												isStreaming ? 'Reply to agent...' : 'Send a message...'
+											}
+											disabled={!connected}
+											rows={1}
+											className="flex-1 ring-0! focus:ring-0! shadow-none! bg-transparent! outline-none! resize-none max-h-40"
+										/>
+										{isStreaming ? (
+											<Button
+												type="button"
+												variant="secondary"
+												shape="square"
+												aria-label="Stop generation"
+												icon={<StopIcon size={18} />}
+												onClick={handleStop}
+												className="mb-0.5"
+											/>
+										) : (
+											<Button
+												type="submit"
+												variant="primary"
+												shape="square"
+												aria-label="Send message"
+												disabled={!input.trim() || !connected}
+												icon={<PaperPlaneRightIcon size={18} />}
+												className="mb-0.5"
+											/>
 										)}
 									</div>
-								)
-							})}
-
-							<div ref={messagesEndRef} />
-						</div>
-					</div>
-
-					{showTerminal && (
-						<div
-							className="border-t border-kumo-line bg-zinc-950"
-							style={{height: '200px', flexShrink: 0}}
-						>
-							<div className="flex items-center justify-between px-3 py-1 border-b border-zinc-800">
-								<span className="font-mono text-xs text-zinc-400">
-									Agent Logs
-								</span>
-								<button
-									type="button"
-									onClick={clearTerminal}
-									className="text-xs text-zinc-400 hover:text-zinc-200 px-2 py-0.5 rounded"
-								>
-									Clear
-								</button>
+								</form>
 							</div>
-							<pre
-								className="p-3 overflow-y-auto font-mono text-xs whitespace-pre-wrap text-zinc-300 wrap-break-word"
-								style={{height: 'calc(200px - 33px)'}}
-							>
-								{terminalLines.length === 0 ? (
-									<span className="text-zinc-600">No agent logs yet...</span>
-								) : (
-									terminalLines.join('\n')
-								)}
-								<div ref={terminalEndRef} />
-							</pre>
-						</div>
+						</>
 					)}
-					{/* Input */}
-					<div className="mb-1 border-t border-kumo-line bg-kumo-base">
-						<form
-							onSubmit={e => {
-								e.preventDefault()
-								send()
-							}}
-							className="max-w-3xl px-5 py-4 mx-auto"
-						>
-							<div className="flex items-end gap-3 p-3 transition-shadow border shadow-sm rounded-xl border-kumo-line bg-kumo-base focus-within:ring-2 focus-within:ring-kumo-ring focus-within:border-transparent">
-								<input
-									ref={fileInputRef}
-									type="file"
-									accept=".md,.txt,.ts,.tsx,.js,.jsx,.py,.json,.yaml,.yml"
-									className="hidden"
-									onChange={e => {
-										const file = e.target.files?.[0]
-										if (!file) return
-										const reader = new FileReader()
-										reader.onload = ev => {
-											const content = ev.target?.result as string
-											setInput(prev =>
-												prev
-													? `${prev}\n\n---\n**${file.name}:**\n\`\`\`\n${content}\n\`\`\``
-													: `**${file.name}:**\n\`\`\`\n${content}\n\`\`\``,
-											)
-										}
-										reader.readAsText(file)
-										e.target.value = ''
-									}}
-								/>
-								<Button
-									type="button"
-									variant="ghost"
-									shape="square"
-									size="sm"
-									aria-label="Attach file"
-									icon={<UploadSimpleIcon size={16} />}
-									onClick={() => fileInputRef.current?.click()}
-									className="mb-0.5 text-kumo-muted hover:text-kumo-default"
-									disabled={!connected}
-								/>
-								<InputArea
-									ref={textareaRef}
-									value={input}
-									onValueChange={setInput}
-									onKeyDown={e => {
-										if (e.key === 'Enter' && !e.shiftKey) {
-											e.preventDefault()
-											send()
-										}
-									}}
-									onInput={e => {
-										const el = e.currentTarget
-										el.style.height = 'auto'
-										el.style.height = `${el.scrollHeight}px`
-									}}
-									placeholder={
-										isStreaming ? 'Reply to agent...' : 'Send a message...'
-									}
-									disabled={!connected}
-									rows={1}
-									className="flex-1 ring-0! focus:ring-0! shadow-none! bg-transparent! outline-none! resize-none max-h-40"
-								/>
-								{isStreaming ? (
-									<Button
-										type="button"
-										variant="secondary"
-										shape="square"
-										aria-label="Stop generation"
-										icon={<StopIcon size={18} />}
-										onClick={handleStop}
-										className="mb-0.5"
-									/>
-								) : (
-									<Button
-										type="submit"
-										variant="primary"
-										shape="square"
-										aria-label="Send message"
-										disabled={!input.trim() || !connected}
-										icon={<PaperPlaneRightIcon size={18} />}
-										className="mb-0.5"
-									/>
-								)}
-							</div>
-						</form>
-					</div>
 				</>
 			)}
 		</div>

@@ -15,6 +15,7 @@ const DROP_WARN_THRESHOLD_N = 1000
 interface BridgeSession {
 	ws: WebSocket
 	type: 'cli' | 'web' | 'mobile'
+	mode: 'chat' | 'pty'
 	userId: string
 	sessionId?: string
 	workspace?: string
@@ -61,6 +62,9 @@ export class BridgeAgent extends DurableObject<Env> {
 			| 'cli'
 			| 'web'
 			| 'mobile'
+		const clientMode = (url.searchParams.get('mode') ?? 'chat') as
+			| 'chat'
+			| 'pty'
 		// Read userId from authenticated header set by the worker
 		// Falls back to query param for backward compatibility
 		const userId =
@@ -74,6 +78,7 @@ export class BridgeAgent extends DurableObject<Env> {
 		this.sessions.set(server, {
 			ws: server,
 			type: clientType,
+			mode: clientMode,
 			userId,
 			lastPingAt: Date.now(),
 		})
@@ -225,6 +230,19 @@ export class BridgeAgent extends DurableObject<Env> {
 				this.broadcast(data, 'cli')
 				return
 			}
+			// PTY relay: forward raw terminal output to all web/mobile clients
+			if (
+				msg.type === 'pty_start' ||
+				msg.type === 'pty_data' ||
+				msg.type === 'pty_exit'
+			) {
+				// For pty_data, append to scrollback so reconnecting clients see recent output
+				if (msg.type === 'pty_data') {
+					this.appendScrollback(msg.data)
+				}
+				this.broadcast(data, 'cli')
+				return
+			}
 			if (
 				msg.type === 'response' ||
 				msg.type === 'error' ||
@@ -311,6 +329,28 @@ export class BridgeAgent extends DurableObject<Env> {
 		if (
 			(senderSession.type === 'web' || senderSession.type === 'mobile') &&
 			msg.type === 'input'
+		) {
+			const cliSession = this.findCli()
+			if (cliSession) {
+				try {
+					cliSession.ws.send(data)
+				} catch {
+					sender.send(
+						JSON.stringify({
+							type: 'error',
+							message: 'CLI connection lost. Please reconnect.',
+						}),
+					)
+					this.sessions.delete(cliSession.ws)
+				}
+			}
+			return
+		}
+
+		// web/mobile → CLI: PTY keyboard input and resize events
+		if (
+			(senderSession.type === 'web' || senderSession.type === 'mobile') &&
+			(msg.type === 'pty_input' || msg.type === 'pty_resize')
 		) {
 			const cliSession = this.findCli()
 			if (cliSession) {

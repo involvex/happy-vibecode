@@ -9,7 +9,9 @@ import {
 } from '../utils/opencode-server.js'
 import {requireConfig, writeConfig, generateBridgeCode} from '../config.js'
 import {OpencodeBridgeAdapter} from '../bridge/opencode-adapter.js'
+import {SubprocessAdapter} from '../bridge/subprocess-adapter.js'
 import {DEFAULT_AGENTS} from '../utils/agents-config.js'
+import {PtyManager} from '../services/pty-manager.js'
 import {debug, debugTime} from '../utils/log.js'
 import {existsSync, readFileSync} from 'fs'
 import {Command} from 'commander'
@@ -52,12 +54,25 @@ interface WsInput {
 	sessionId: string
 }
 
+interface WsPtyInput {
+	type: 'pty_input'
+	data: string
+}
+
+interface WsPtyResize {
+	type: 'pty_resize'
+	cols: number
+	rows: number
+}
+
 type IncomingMsg =
 	| WsPrompt
 	| WsPing
 	| WsWorkspace
 	| WsModel
 	| WsInput
+	| WsPtyInput
+	| WsPtyResize
 	| {type: string}
 
 const AGENTS_FILE = join(homedir(), '.happy', 'agents.json')
@@ -209,6 +224,10 @@ export const connectCommand = new Command('connect')
 		'-c, --cors <origins>',
 		'CORS origins to allow for opencode serve (comma-separated, e.g. http://localhost:5173,https://app.example.com)',
 	)
+	.option(
+		'--mode <mode>',
+		'Connection mode: chat (default) or pty (raw terminal relay)',
+	)
 	.action(async (agentId: string, opts) => {
 		const config = requireConfig()
 		const {serverUrl, apiToken} = config
@@ -300,29 +319,50 @@ export const connectCommand = new Command('connect')
 		}
 		debug('Agent:', agent.name, 'provider:', agent.provider)
 
-		// Ensure opencode serve is running
-		const opencodeUrl = opts.server
-		const opencodePort = parseInt(new URL(opencodeUrl).port || '4096', 10)
+		// Auto-select PTY mode for agents whose output goes to VS Code UI (not stdout)
+		const isPtyMode =
+			(opts.mode as string | undefined) === 'pty' ||
+			agent.provider === 'kilo' ||
+			agent.provider === 'cline'
 
-		const serverSpinner = ora('Connecting to opencode server...').start()
-		let opencodeServer: OpencodeServerInfo
-		try {
-			opencodeServer = await ensureOpencodeServer(opencodePort, {
-				cors: opts.cors,
-			})
-			serverSpinner.succeed(`opencode server ready at ${opencodeServer.url}`)
-		} catch (err) {
-			serverSpinner.fail(
-				`Failed to start opencode server: ${(err as Error).message}`,
+		// Select bridge adapter based on agent type.
+		// Only opencode-ai requires a running HTTP server; all other agents run as
+		// subprocesses and stream their stdout directly back over the WebSocket.
+		// PTY mode bypasses adapters entirely — the PTY manager handles I/O.
+		let opencodeServer: OpencodeServerInfo | undefined
+		let adapter: OpencodeBridgeAdapter | SubprocessAdapter | undefined
+
+		if (isPtyMode) {
+			// PTY mode: no adapter needed — PtyManager handles direct I/O
+		} else if (agent.provider === 'opencode-ai') {
+			const opencodeUrl = opts.server
+			const opencodePort = parseInt(new URL(opencodeUrl).port || '4096', 10)
+
+			const serverSpinner = ora('Connecting to opencode server...').start()
+			try {
+				opencodeServer = await ensureOpencodeServer(opencodePort, {
+					cors: opts.cors,
+				})
+				serverSpinner.succeed(`opencode server ready at ${opencodeServer.url}`)
+			} catch (err) {
+				serverSpinner.fail(
+					`Failed to start opencode server: ${(err as Error).message}`,
+				)
+				console.error(
+					'  Make sure opencode is installed: npm install -g opencode-ai',
+				)
+				process.exit(1)
+			}
+			adapter = new OpencodeBridgeAdapter(opencodeServer.url)
+		} else {
+			// Generic subprocess adapter: run agent CLI and stream stdout as response
+			adapter = new SubprocessAdapter(
+				agent.command,
+				agent.args,
+				agent.promptFlag,
+				agent.modelFlag,
 			)
-			console.error(
-				'  Make sure opencode is installed: npm install -g opencode-ai',
-			)
-			process.exit(1)
 		}
-
-		// Create the bridge adapter
-		const adapter = new OpencodeBridgeAdapter(opencodeServer.url)
 
 		// Resolve model from agent definition + --model flag
 		let opencodeModel = agentToOpencodeModel(
@@ -355,12 +395,14 @@ export const connectCommand = new Command('connect')
 
 		const wsUrl = serverUrl
 			.replace(/^https?/, m => (m === 'https' ? 'wss' : 'ws'))
-			.concat(`/agents/BridgeAgent/${roomId}?type=cli`)
+			.concat(
+				`/agents/BridgeAgent/${roomId}?type=cli${isPtyMode ? '&mode=pty' : ''}`,
+			)
 
 		if (verbose) console.log(`WebSocket URL: ${wsUrl}`)
 		debug('WebSocket URL:', wsUrl)
 		debug('Workspace:', workspace ?? '(none)')
-		debug('opencode URL:', opencodeServer.url)
+		if (opencodeServer) debug('opencode URL:', opencodeServer.url)
 
 		const log = (...args: unknown[]) => {
 			if (verbose) console.log(...args)
@@ -376,6 +418,7 @@ export const connectCommand = new Command('connect')
 		let agentRunning = false
 		let currentAbort: (() => Promise<void>) | null = null
 		let activeSocket: WebSocket | null = null
+		let ptyManager: PtyManager | undefined
 
 		function connectWs(): WebSocket {
 			const socket = new WebSocket(wsUrl, {
@@ -392,10 +435,12 @@ export const connectCommand = new Command('connect')
 				socket.send(JSON.stringify({type: 'status', status: 'cli_connected'}))
 
 				// Relay opencode server URL to web/mobile for optional direct connection
-				socket.send(
-					JSON.stringify({type: 'opencode_url', url: opencodeServer.url}),
-				)
-				debug('Sent opencode_url relay:', opencodeServer.url)
+				if (opencodeServer) {
+					socket.send(
+						JSON.stringify({type: 'opencode_url', url: opencodeServer.url}),
+					)
+					debug('Sent opencode_url relay:', opencodeServer.url)
+				}
 
 				// Keepalive: send ping every 30s to prevent Cloudflare idle timeout
 				if (keepaliveTimer) clearInterval(keepaliveTimer)
@@ -413,7 +458,59 @@ export const connectCommand = new Command('connect')
 					)
 				}
 
-				if (opts.prompt) {
+				if (isPtyMode) {
+					// Spawn the agent in a PTY and stream I/O over the WebSocket
+					const pm = new PtyManager()
+					ptyManager = pm
+					const cols = 220
+					const rows = 50
+
+					pm.spawn({
+						command: agent.command,
+						args: agent.args,
+						cwd: workspace ?? process.cwd(),
+						cols,
+						rows,
+					})
+						.then(() => {
+							socket.send(JSON.stringify({type: 'pty_start', cols, rows}))
+							debug('PTY spawned, sent pty_start')
+
+							pm.on('data', (chunk: string) => {
+								if (socket.readyState === WebSocket.OPEN) {
+									socket.send(JSON.stringify({type: 'pty_data', data: chunk}))
+								}
+							})
+
+							pm.on('exit', (code: number, signal?: string) => {
+								if (socket.readyState === WebSocket.OPEN) {
+									socket.send(
+										JSON.stringify({
+											type: 'pty_exit',
+											exitCode: code ?? 0,
+											signal,
+										}),
+									)
+								}
+								ptyManager = undefined
+								if (!intentionalClose) {
+									intentionalClose = true
+									socket.close()
+								}
+							})
+						})
+						.catch((err: Error) => {
+							console.error(`\n✗ PTY spawn failed: ${err.message}`)
+							if (socket.readyState === WebSocket.OPEN) {
+								socket.send(
+									JSON.stringify({
+										type: 'error',
+										message: `PTY spawn failed: ${err.message}`,
+									}),
+								)
+							}
+						})
+				} else if (opts.prompt) {
 					log('Running in single prompt mode')
 					const sessionId = `single-${Date.now()}`
 					console.log(`→ Prompt: ${opts.prompt.slice(0, 80)}...`)
@@ -426,7 +523,7 @@ export const connectCommand = new Command('connect')
 						}),
 					)
 
-					adapter
+					adapter!
 						.sendPrompt(opts.prompt, opencodeModel)
 						.then(result => {
 							if (result.error) {
@@ -501,6 +598,20 @@ export const connectCommand = new Command('connect')
 						return
 					}
 
+					// PTY keyboard input → write to PTY
+					if (msg.type === 'pty_input') {
+						const ptyMsg = msg as WsPtyInput
+						ptyManager?.write(ptyMsg.data)
+						return
+					}
+
+					// PTY resize → resize PTY
+					if (msg.type === 'pty_resize') {
+						const ptyMsg = msg as WsPtyResize
+						ptyManager?.resize(ptyMsg.cols, ptyMsg.rows)
+						return
+					}
+
 					if (msg.type === 'stop') {
 						if (currentAbort) {
 							currentAbort()
@@ -527,6 +638,7 @@ export const connectCommand = new Command('connect')
 					}
 
 					if (msg.type !== 'prompt') return
+					if (!adapter) return
 
 					const {content, sessionId} = msg as WsPrompt
 					console.log(`\n→ Prompt [${sessionId}]: ${content.slice(0, 80)}...`)
@@ -637,6 +749,12 @@ export const connectCommand = new Command('connect')
 					keepaliveTimer = null
 				}
 
+				// Clean up PTY if active
+				if (ptyManager) {
+					ptyManager.kill()
+					ptyManager = undefined
+				}
+
 				if (intentionalClose) {
 					console.log(`\nBridge disconnected (${code} ${reason.toString()})`)
 					process.exit(0)
@@ -664,7 +782,8 @@ export const connectCommand = new Command('connect')
 		process.on('SIGINT', () => {
 			console.log('\nDisconnecting...')
 			intentionalClose = true
-			adapter.cleanup()
+			ptyManager?.kill()
+			adapter?.cleanup()
 			process.exit(0)
 		})
 
