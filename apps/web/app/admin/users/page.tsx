@@ -23,6 +23,11 @@ interface UserRow {
 	status: string
 	lastLogin: string | null
 	createdAt: string
+	subscription?: {
+		type: string
+		status: string
+		expiry: string | null
+	} | null
 }
 
 interface UsersResponse {
@@ -227,6 +232,29 @@ export default function AdminUsersPage() {
 					{u.status}
 				</span>
 			),
+		},
+		{
+			key: 'subscription',
+			header: 'Subscription',
+			render: (u: UserRow) => {
+				if (!u.subscription) {
+					return <span className="text-xs text-kumo-secondary">None</span>
+				}
+				const {type, status, expiry} = u.subscription
+				const statusColor =
+					status === 'active'
+						? 'bg-kumo-success/15 text-kumo-success'
+						: 'bg-kumo-danger/15 text-kumo-danger'
+				return (
+					<div
+						className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${statusColor}`}
+					>
+						{type} ({status}
+						{expiry ? `, expires ${new Date(expiry).toLocaleDateString()}` : ''}
+						)
+					</div>
+				)
+			},
 		},
 		{
 			key: 'lastLogin',
