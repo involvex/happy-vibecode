@@ -430,7 +430,7 @@ export default function SettingsPage() {
 		const firstProvider = Object.keys(providerCapabilities)[0]
 		const firstModel =
 			providerCapabilities[firstProvider as keyof typeof providerCapabilities]
-				?.models[0] ?? 'default'
+				?.models[0] ?? ''
 		setFallbackChain(prev => [
 			...prev,
 			{provider: firstProvider, model: firstModel},
@@ -466,7 +466,7 @@ export default function SettingsPage() {
 		<div className="min-h-screen bg-kumo-elevated">
 			<Nav onLogout={handleLogout} />
 
-			<main className="max-w-2xl px-6 py-10 mx-auto space-y-6">
+			<main className="max-w-2xl px-6 pt-10 pb-24 mx-auto space-y-6">
 				<h1 className="text-2xl font-bold text-kumo-default">Settings</h1>
 
 				{passwordSuccess && (
@@ -998,7 +998,7 @@ export default function SettingsPage() {
 											e.target.value as keyof typeof providerCapabilities
 										]
 									if (caps) {
-										setSelectedModel(caps.models[0])
+										setSelectedModel(caps.models[0] ?? '')
 									}
 								}}
 								className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
@@ -1023,20 +1023,38 @@ export default function SettingsPage() {
 									>
 										Model
 									</label>
-									<select
-										id="model-select"
-										value={selectedModel}
-										onChange={e => setSelectedModel(e.target.value)}
-										className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
-									>
-										{providerCapabilities[
-											selectedProvider as keyof typeof providerCapabilities
-										].models.map(model => (
-											<option key={model} value={model}>
-												{model}
-											</option>
-										))}
-									</select>
+									{(() => {
+										const models =
+											providerCapabilities[
+												selectedProvider as keyof typeof providerCapabilities
+											]?.models ?? []
+										if (models.length === 0) {
+											return (
+												<input
+													id="model-select"
+													type="text"
+													value={selectedModel}
+													onChange={e => setSelectedModel(e.target.value)}
+													placeholder="Enter model name"
+													className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
+												/>
+											)
+										}
+										return (
+											<select
+												id="model-select"
+												value={selectedModel}
+												onChange={e => setSelectedModel(e.target.value)}
+												className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
+											>
+												{models.map(model => (
+													<option key={model} value={model}>
+														{model}
+													</option>
+												))}
+											</select>
+										)
+									})()}
 								</div>
 							)}
 
@@ -1086,7 +1104,7 @@ export default function SettingsPage() {
 											providerCapabilities[
 												newProvider as keyof typeof providerCapabilities
 											]
-										const newModel = caps?.models[0] ?? 'default'
+										const newModel = caps?.models[0] ?? ''
 										setFallbackChain(prev =>
 											prev.map((item, i) =>
 												i === index
@@ -1103,27 +1121,52 @@ export default function SettingsPage() {
 										</option>
 									))}
 								</select>
-								<select
-									value={entry.model}
-									onChange={e => {
-										setFallbackChain(prev =>
-											prev.map((item, i) =>
-												i === index ? {...item, model: e.target.value} : item,
-											),
-										)
-									}}
-									className="flex-1 px-2 py-1.5 text-sm border rounded-lg border-kumo-line bg-kumo-base text-kumo-default"
-								>
-									{(
+								{(() => {
+									const models =
 										providerCapabilities[
 											entry.provider as keyof typeof providerCapabilities
-										]?.models ?? ['default']
-									).map(model => (
-										<option key={model} value={model}>
-											{model}
-										</option>
-									))}
-								</select>
+										]?.models ?? []
+									if (models.length === 0) {
+										return (
+											<input
+												type="text"
+												value={entry.model}
+												onChange={e => {
+													setFallbackChain(prev =>
+														prev.map((item, i) =>
+															i === index
+																? {...item, model: e.target.value}
+																: item,
+														),
+													)
+												}}
+												placeholder="Enter model name"
+												className="flex-1 px-2 py-1.5 text-sm border rounded-lg border-kumo-line bg-kumo-base text-kumo-default"
+											/>
+										)
+									}
+									return (
+										<select
+											value={entry.model}
+											onChange={e => {
+												setFallbackChain(prev =>
+													prev.map((item, i) =>
+														i === index
+															? {...item, model: e.target.value}
+															: item,
+													),
+												)
+											}}
+											className="flex-1 px-2 py-1.5 text-sm border rounded-lg border-kumo-line bg-kumo-base text-kumo-default"
+										>
+											{models.map(model => (
+												<option key={model} value={model}>
+													{model}
+												</option>
+											))}
+										</select>
+									)
+								})()}
 								<Button
 									variant="secondary"
 									shape="square"

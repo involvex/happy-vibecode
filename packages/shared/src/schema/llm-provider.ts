@@ -63,8 +63,10 @@ export const agentSchema = z.object({
 	args: z.array(z.string()),
 	promptFlag: z.string().nullable().optional(),
 	modelFlag: z.string().nullable().optional(),
+	workspaceFlag: z.string().nullable().optional(),
 	description: z.string().nullable().optional(),
 	isActive: z.boolean().optional(),
+	userId: z.string().nullable().optional(),
 	createdAt: z.string().optional(),
 	updatedAt: z.string().optional(),
 })
@@ -75,6 +77,7 @@ export const createAgentSchema = z.object({
 	args: z.array(z.string()).default([]),
 	promptFlag: z.string().optional(),
 	modelFlag: z.string().optional(),
+	workspaceFlag: z.string().optional(),
 	description: z.string().optional(),
 	isActive: z.boolean().optional(),
 })
@@ -85,6 +88,7 @@ export const updateAgentSchema = z.object({
 	args: z.array(z.string()).optional(),
 	promptFlag: z.string().optional(),
 	modelFlag: z.string().optional(),
+	workspaceFlag: z.string().optional(),
 	description: z.string().optional(),
 	isActive: z.boolean().optional(),
 })

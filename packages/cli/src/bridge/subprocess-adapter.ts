@@ -23,6 +23,8 @@ export class SubprocessAdapter {
 		private readonly baseArgs: string[] = [],
 		private readonly promptFlag?: string,
 		private readonly modelFlag?: string,
+		private readonly workspaceFlag?: string,
+		private readonly workspace?: string,
 	) {
 		debug(
 			'SubprocessAdapter created:',
@@ -33,6 +35,10 @@ export class SubprocessAdapter {
 			promptFlag,
 			'modelFlag:',
 			modelFlag,
+			'workspaceFlag:',
+			workspaceFlag,
+			'workspace:',
+			workspace,
 		)
 	}
 
@@ -78,6 +84,10 @@ export class SubprocessAdapter {
 		const resolvedCmd = this.resolveCommand(this.command)
 		const args = [...this.baseArgs]
 
+		// Inject workspace flag when both flag and path are provided
+		if (this.workspaceFlag && this.workspace) {
+			args.push(this.workspaceFlag, this.workspace)
+		}
 		// Inject model flag before the prompt (skip placeholder "default" value)
 		if (
 			model &&
@@ -102,7 +112,7 @@ export class SubprocessAdapter {
 		)
 
 		const child = spawn(resolvedCmd, args, {
-			cwd: process.cwd(),
+			cwd: this.workspace ?? process.cwd(),
 			env: {...process.env},
 			// shell: true on Windows so .cmd shims resolve correctly
 			shell: os.platform() === 'win32',
@@ -110,7 +120,9 @@ export class SubprocessAdapter {
 		})
 
 		child.stdout.on('data', (chunk: Buffer) => {
-			const text = chunk.toString('utf8')
+			// Strip ANSI escape codes so agents that emit coloured output display cleanly
+			// eslint-disable-next-line no-control-regex
+			const text = chunk.toString('utf8').replace(/\x1B\[[0-9;]*[mGKHFJl]/g, '')
 			debug('SubprocessAdapter stdout chunk:', text.slice(0, 80))
 			onChunk(text)
 		})

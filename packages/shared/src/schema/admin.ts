@@ -10,6 +10,8 @@ export const adminUserSchema = z.object({
 	githubId: z.string().nullable(),
 	role: z.string(),
 	status: userStatusSchema,
+	planTier: z.enum(['free', 'pro']).default('free'),
+	subscriptionStatus: z.string().default('inactive'),
 	lastLogin: z.string().nullable(),
 	createdAt: z.string(),
 	updatedAt: z.string(),
@@ -34,6 +36,10 @@ export const updateUserAdminSchema = z.object({
 	email: z.string().email().optional(),
 	nickname: z.string().max(50).optional().nullable(),
 	role: z.string().optional(),
+	planTier: z.enum(['free', 'pro']).optional(),
+	subscriptionStatus: z
+		.enum(['inactive', 'active', 'trialing', 'past_due', 'canceled', 'unpaid'])
+		.optional(),
 })
 
 export const updateUserStatusSchema = z.object({

@@ -76,6 +76,8 @@ adminUsersRouter.get('/', async c => {
 			githubId: u.githubId,
 			role: u.role,
 			status: u.status,
+			planTier: u.planTier,
+			subscriptionStatus: u.subscriptionStatus,
 			lastLogin: u.lastLogin ? u.lastLogin.toISOString() : null,
 			createdAt: u.createdAt.toISOString(),
 			updatedAt: u.updatedAt.toISOString(),
@@ -107,6 +109,8 @@ adminUsersRouter.get('/:id', async c => {
 		githubId: user.githubId,
 		role: user.role,
 		status: user.status,
+		planTier: user.planTier,
+		subscriptionStatus: user.subscriptionStatus,
 		preferences: user.preferences ? JSON.parse(user.preferences) : null,
 		lastLogin: user.lastLogin ? user.lastLogin.toISOString() : null,
 		createdAt: user.createdAt.toISOString(),
@@ -151,6 +155,8 @@ adminUsersRouter.post('/', async c => {
 		nickname: nickname ?? null,
 		role: role as 'user' | 'admin',
 		status,
+		planTier: 'free',
+		subscriptionStatus: 'inactive',
 		preferences: JSON.stringify({
 			theme: 'system',
 			notifications: true,
@@ -198,6 +204,10 @@ adminUsersRouter.put('/:id', async c => {
 	if (result.data.nickname !== undefined)
 		updates.nickname = result.data.nickname
 	if (result.data.role !== undefined) updates.role = result.data.role
+	if (result.data.planTier !== undefined)
+		updates.planTier = result.data.planTier
+	if (result.data.subscriptionStatus !== undefined)
+		updates.subscriptionStatus = result.data.subscriptionStatus
 
 	await db.update(schema.users).set(updates).where(eq(schema.users.id, userId))
 

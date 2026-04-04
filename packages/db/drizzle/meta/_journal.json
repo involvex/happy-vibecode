@@ -78,6 +78,13 @@
 			"when": 1774904529839,
 			"tag": "0010_cheerful_rocket_raccoon",
 			"breakpoints": true
+		},
+		{
+			"idx": 11,
+			"version": "6",
+			"when": 1775325977910,
+			"tag": "0011_parallel_rogue",
+			"breakpoints": true
 		}
 	]
 }

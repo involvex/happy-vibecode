@@ -107,6 +107,7 @@ async function fetchAgentsFromApi(
 				args: string[]
 				promptFlag: string | null
 				modelFlag: string | null
+				workspaceFlag: string | null
 				description: string | null
 			}>
 		}
@@ -118,6 +119,7 @@ async function fetchAgentsFromApi(
 			args: a.args,
 			promptFlag: a.promptFlag ?? undefined,
 			modelFlag: a.modelFlag ?? undefined,
+			workspaceFlag: a.workspaceFlag ?? undefined,
 			description: a.description ?? '',
 		}))
 	} catch {
@@ -319,6 +321,20 @@ export const connectCommand = new Command('connect')
 		}
 		debug('Agent:', agent.name, 'provider:', agent.provider)
 
+		// Resolve workspace early so adapter can use it
+		let workspace: string | undefined = opts.dir as string | undefined
+		if (!workspace && opts.workspace) {
+			const ws = findWorkspace(opts.workspace as string)
+			if (ws) {
+				workspace = ws.path
+			}
+		}
+
+		if (workspace && !existsSync(workspace)) {
+			console.error(`✗ Error: Workspace directory does not exist: ${workspace}`)
+			process.exit(1)
+		}
+
 		// Auto-select PTY mode for agents whose output goes to VS Code UI (not stdout)
 		const isPtyMode =
 			(opts.mode as string | undefined) === 'pty' ||
@@ -361,6 +377,8 @@ export const connectCommand = new Command('connect')
 				agent.args,
 				agent.promptFlag,
 				agent.modelFlag,
+				agent.workspaceFlag,
+				workspace,
 			)
 		}
 
@@ -373,19 +391,6 @@ export const connectCommand = new Command('connect')
 			console.log(
 				`  Model: ${opencodeModel.providerID}/${opencodeModel.modelID}`,
 			)
-		}
-
-		let workspace: string | undefined = opts.dir
-		if (!workspace && opts.workspace) {
-			const ws = findWorkspace(opts.workspace)
-			if (ws) {
-				workspace = ws.path
-			}
-		}
-
-		if (workspace && !existsSync(workspace)) {
-			console.error(`✗ Error: Workspace directory does not exist: ${workspace}`)
-			process.exit(1)
 		}
 
 		console.log(`Connecting agent "${agent.name}" to bridge room: ${roomId}`)

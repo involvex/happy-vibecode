@@ -159,8 +159,10 @@ export const agents = sqliteTable('agents', {
 	args: text('args').notNull(), // JSON array
 	promptFlag: text('prompt_flag'),
 	modelFlag: text('model_flag'),
+	workspaceFlag: text('workspace_flag'),
 	description: text('description'),
 	isActive: integer('is_active', {mode: 'boolean'}).default(true),
+	userId: text('user_id'), // null = system/global agent; non-null = user-owned
 	createdAt: integer('created_at', {mode: 'timestamp_ms'}).notNull(),
 	updatedAt: integer('updated_at', {mode: 'timestamp_ms'}).notNull(),
 })

@@ -21,13 +21,10 @@ interface UserRow {
 	nickname: string | null
 	role: string
 	status: string
+	planTier: string
+	subscriptionStatus: string
 	lastLogin: string | null
 	createdAt: string
-	subscription?: {
-		type: string
-		status: string
-		expiry: string | null
-	} | null
 }
 
 interface UsersResponse {
@@ -93,6 +90,8 @@ export default function AdminUsersPage() {
 		nickname?: string
 		role?: string
 		password?: string
+		planTier?: string
+		subscriptionStatus?: string
 	}) => {
 		const res = await fetch('/api/admin/users', {
 			method: 'POST',
@@ -115,6 +114,8 @@ export default function AdminUsersPage() {
 		email?: string
 		nickname?: string
 		role?: string
+		planTier?: string
+		subscriptionStatus?: string
 	}) => {
 		if (!editUser) return
 		const res = await fetch(`/api/admin/users/${editUser.id}`, {
@@ -237,21 +238,28 @@ export default function AdminUsersPage() {
 			key: 'subscription',
 			header: 'Subscription',
 			render: (u: UserRow) => {
-				if (!u.subscription) {
-					return <span className="text-xs text-kumo-secondary">None</span>
-				}
-				const {type, status, expiry} = u.subscription
+				const tier = u.planTier || 'free'
+				const status = u.subscriptionStatus || 'inactive'
+				const tierColor =
+					tier === 'pro'
+						? 'bg-kumo-accent/15 text-kumo-accent'
+						: 'bg-kumo-control text-kumo-secondary'
 				const statusColor =
 					status === 'active'
 						? 'bg-kumo-success/15 text-kumo-success'
 						: 'bg-kumo-danger/15 text-kumo-danger'
 				return (
-					<div
-						className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${statusColor}`}
-					>
-						{type} ({status}
-						{expiry ? `, expires ${new Date(expiry).toLocaleDateString()}` : ''}
-						)
+					<div className="flex items-center gap-1">
+						<span
+							className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${tierColor}`}
+						>
+							{tier}
+						</span>
+						<span
+							className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${statusColor}`}
+						>
+							{status}
+						</span>
 					</div>
 				)
 			},

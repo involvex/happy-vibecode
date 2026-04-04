@@ -1,7 +1,7 @@
 import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
 import {agents as agentsTable} from '@happy-vibecode/db'
 import {createDb} from '@happy-vibecode/db'
-import {eq, and} from 'drizzle-orm'
+import {eq, or, isNull} from 'drizzle-orm'
 import {Hono} from 'hono'
 import {z} from 'zod'
 
@@ -11,6 +11,7 @@ const createAgentSchema = z.object({
 	args: z.array(z.string()).default([]),
 	promptFlag: z.string().optional(),
 	modelFlag: z.string().optional(),
+	workspaceFlag: z.string().optional(),
 	description: z.string().optional(),
 	isActive: z.boolean().optional(),
 })
@@ -21,6 +22,7 @@ const updateAgentSchema = z.object({
 	args: z.array(z.string()).optional(),
 	promptFlag: z.string().optional(),
 	modelFlag: z.string().optional(),
+	workspaceFlag: z.string().optional(),
 	description: z.string().optional(),
 	isActive: z.boolean().optional(),
 })
@@ -34,11 +36,15 @@ agentsRouter.use('*', authMiddleware)
 
 agentsRouter.get('/', async c => {
 	const db = createDb(c.env.DB)
+	const currentUserId = c.get('userId')
 
+	// Return system agents (userId IS NULL) + user's own agents
 	const agents = await db
 		.select()
 		.from(agentsTable)
-		.where(eq(agentsTable.isActive, true))
+		.where(
+			or(isNull(agentsTable.userId), eq(agentsTable.userId, currentUserId)),
+		)
 
 	const parsed = agents.map(a => ({
 		...a,
@@ -51,6 +57,8 @@ agentsRouter.get('/', async c => {
 agentsRouter.get('/:id', async c => {
 	const db = createDb(c.env.DB)
 	const id = c.req.param('id')
+	const currentUserId = c.get('userId')
+	const userRole = c.get('userRole')
 
 	const agent = await db
 		.select()
@@ -62,6 +70,15 @@ agentsRouter.get('/:id', async c => {
 		return c.json({error: 'Agent not found'}, 404)
 	}
 
+	// Only admin or the owner can fetch a private agent
+	if (
+		agent[0].userId !== null &&
+		agent[0].userId !== currentUserId &&
+		userRole !== 'admin'
+	) {
+		return c.json({error: 'Not found'}, 404)
+	}
+
 	const parsed = {
 		...agent[0],
 		args: JSON.parse(agent[0].args) as string[],
@@ -71,18 +88,18 @@ agentsRouter.get('/:id', async c => {
 })
 
 agentsRouter.post('/', async c => {
-	const userRole = c.get('userRole')
-	if (userRole !== 'admin') {
-		return c.json({error: 'Admin access required'}, 403)
-	}
-
 	const db = createDb(c.env.DB)
+	const currentUserId = c.get('userId')
+	const userRole = c.get('userRole')
 	const body = await c.req.json()
 	const parsed = createAgentSchema.safeParse(body)
 
 	if (!parsed.success) {
 		return c.json({error: 'Invalid request', details: parsed.error.issues}, 400)
 	}
+
+	// Admins create system-wide agents (userId = null), regular users create their own
+	const agentUserId = userRole === 'admin' ? null : currentUserId
 
 	const now = new Date()
 	const inserted = await db
@@ -94,8 +111,10 @@ agentsRouter.post('/', async c => {
 			args: JSON.stringify(parsed.data.args),
 			promptFlag: parsed.data.promptFlag,
 			modelFlag: parsed.data.modelFlag,
+			workspaceFlag: parsed.data.workspaceFlag,
 			description: parsed.data.description,
 			isActive: parsed.data.isActive ?? true,
+			userId: agentUserId,
 			createdAt: now,
 			updatedAt: now,
 		})
@@ -114,13 +133,10 @@ agentsRouter.post('/', async c => {
 })
 
 agentsRouter.put('/:id', async c => {
-	const userRole = c.get('userRole')
-	if (userRole !== 'admin') {
-		return c.json({error: 'Admin access required'}, 403)
-	}
-
 	const db = createDb(c.env.DB)
 	const id = c.req.param('id')
+	const currentUserId = c.get('userId')
+	const userRole = c.get('userRole')
 	const body = await c.req.json()
 	const parsed = updateAgentSchema.safeParse(body)
 
@@ -138,6 +154,11 @@ agentsRouter.put('/:id', async c => {
 		return c.json({error: 'Agent not found'}, 404)
 	}
 
+	// Only admin or the owner can edit
+	if (existing[0].userId !== currentUserId && userRole !== 'admin') {
+		return c.json({error: 'Forbidden'}, 403)
+	}
+
 	const updates: Record<string, unknown> = {updatedAt: new Date()}
 	if (parsed.data.name !== undefined) updates.name = parsed.data.name
 	if (parsed.data.command !== undefined) updates.command = parsed.data.command
@@ -147,6 +168,8 @@ agentsRouter.put('/:id', async c => {
 		updates.promptFlag = parsed.data.promptFlag
 	if (parsed.data.modelFlag !== undefined)
 		updates.modelFlag = parsed.data.modelFlag
+	if (parsed.data.workspaceFlag !== undefined)
+		updates.workspaceFlag = parsed.data.workspaceFlag
 	if (parsed.data.description !== undefined)
 		updates.description = parsed.data.description
 	if (parsed.data.isActive !== undefined)
@@ -171,13 +194,10 @@ agentsRouter.put('/:id', async c => {
 })
 
 agentsRouter.delete('/:id', async c => {
-	const userRole = c.get('userRole')
-	if (userRole !== 'admin') {
-		return c.json({error: 'Admin access required'}, 403)
-	}
-
 	const db = createDb(c.env.DB)
 	const id = c.req.param('id')
+	const currentUserId = c.get('userId')
+	const userRole = c.get('userRole')
 
 	const existing = await db
 		.select()
@@ -187,6 +207,11 @@ agentsRouter.delete('/:id', async c => {
 
 	if (!existing[0]) {
 		return c.json({error: 'Agent not found'}, 404)
+	}
+
+	// Only admin or the owner can delete
+	if (existing[0].userId !== currentUserId && userRole !== 'admin') {
+		return c.json({error: 'Forbidden'}, 403)
 	}
 
 	await db.delete(agentsTable).where(eq(agentsTable.id, id))

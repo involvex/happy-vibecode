@@ -7,10 +7,7 @@ export default function Footer() {
 	const pathname = usePathname()
 	if (pathname.startsWith('/chat')) return null
 	return (
-		<footer
-			className="px-6 py-4 mt-4 border-t bg-kumo-elevated border-kumo-line"
-			style={{position: 'fixed', bottom: 0, width: '100%'}}
-		>
+		<footer className="px-6 py-4 mt-4 border-t bg-kumo-elevated border-kumo-line">
 			<div className="flex items-center justify-center gap-2 text-sm text-kumo-secondary">
 				<span>
 					© {new Date().getFullYear()} Happy Vibecode. All rights reserved.

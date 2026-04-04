@@ -201,7 +201,7 @@ export default function ProfilePage() {
 		<div className="min-h-screen bg-kumo-elevated">
 			<Nav onLogout={handleLogout} />
 
-			<main className="max-w-2xl px-6 py-10 mx-auto space-y-6">
+			<main className="max-w-2xl px-6 pt-10 pb-24 mx-auto space-y-6">
 				<h1 className="text-2xl font-bold text-kumo-default">Profile</h1>
 
 				{saveSuccess && (
