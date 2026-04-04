@@ -19,6 +19,7 @@ import {providerCapabilities} from '@happy-vibecode/shared'
 import {useWorkspaces} from '../hooks/useWorkspaces'
 import {zodResolver} from '@hookform/resolvers/zod'
 import {Button, Link, Text} from '@cloudflare/kumo'
+import {secureStorage} from '../../lib/storage'
 import {useRouter} from 'next/navigation'
 import {useEffect, useState} from 'react'
 import {useAuth} from '../hooks/useAuth'
@@ -217,7 +218,7 @@ export default function SettingsPage() {
 				throw new Error(data.error ?? 'Failed to rotate token')
 			}
 			const data = (await res.json()) as {apiToken: string}
-			localStorage.setItem('happy-api-token', data.apiToken)
+			secureStorage.setItem('happy-api-token', data.apiToken)
 			setRotateSuccess(
 				"Token rotated! Copy your new token — it won't be shown again.",
 			)

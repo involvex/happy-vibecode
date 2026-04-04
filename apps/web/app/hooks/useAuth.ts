@@ -2,6 +2,7 @@
 import type {UserSubscription} from '@happy-vibecode/shared'
 import {useCallback, useEffect, useState} from 'react'
 import {authClient} from '../../lib/auth-client'
+import {secureStorage} from '../../lib/storage'
 
 interface UserPreferences {
 	theme: 'light' | 'dark' | 'system'
@@ -61,7 +62,7 @@ export function useAuth() {
 
 		if (session?.user) {
 			const u = session.user as BetterAuthUser
-			const apiToken = u.apiToken ?? localStorage.getItem(AUTH_KEYS.token)
+			const apiToken = u.apiToken ?? secureStorage.getItem(AUTH_KEYS.token)
 			const userId = u.id
 			setAuth(prev => ({
 				...prev,
@@ -76,14 +77,14 @@ export function useAuth() {
 				isLoaded: true,
 			}))
 			// Keep localStorage in sync for legacy paths
-			if (apiToken) localStorage.setItem(AUTH_KEYS.token, apiToken)
+			if (apiToken) secureStorage.setItem(AUTH_KEYS.token, apiToken)
 			localStorage.setItem(AUTH_KEYS.userId, userId)
 			return
 		}
 
 		// No Better Auth session — fall back to localStorage (CLI/email users)
 		setAuth({
-			apiToken: localStorage.getItem(AUTH_KEYS.token),
+			apiToken: secureStorage.getItem(AUTH_KEYS.token),
 			userId: localStorage.getItem(AUTH_KEYS.userId),
 			email: null,
 			nickname: null,
@@ -109,7 +110,7 @@ export function useAuth() {
 			githubId?: string,
 			hasPassword?: boolean,
 		) => {
-			localStorage.setItem(AUTH_KEYS.token, apiToken)
+			secureStorage.setItem(AUTH_KEYS.token, apiToken)
 			localStorage.setItem(AUTH_KEYS.userId, userId)
 			if (serverUrl) localStorage.setItem(AUTH_KEYS.serverUrl, serverUrl)
 			setAuth({
@@ -131,7 +132,7 @@ export function useAuth() {
 
 	const logout = useCallback(async () => {
 		await authClient.signOut()
-		localStorage.removeItem(AUTH_KEYS.token)
+		secureStorage.removeItem(AUTH_KEYS.token)
 		localStorage.removeItem(AUTH_KEYS.userId)
 		setAuth({
 			apiToken: null,

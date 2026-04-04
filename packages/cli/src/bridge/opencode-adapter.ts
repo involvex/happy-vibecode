@@ -1,5 +1,6 @@
 import {debug} from '../utils/log.js'
 import {spawn} from 'child_process'
+import crypto from 'node:crypto'
 
 export interface PromptResponse {
 	text: string
@@ -77,7 +78,7 @@ export class OpencodeBridgeAdapter {
 		onDone: () => void,
 		onError: (err: string) => void,
 	): Promise<{sessionId: string; abort: () => Promise<void>}> {
-		const sessionId = Math.random().toString(36).slice(2)
+		const sessionId = crypto.randomUUID()
 		let doneCalled = false
 
 		const callDone = () => {
