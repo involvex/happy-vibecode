@@ -1,3 +1,5 @@
+## [0.0.8](https://github.com/involvex/happy-vibecode/compare/v0.0.7...v0.0.8) (2026-04-14)
+
 ## [0.0.7](https://github.com/involvex/happy-vibecode/compare/v0.0.6...v0.0.7) (2026-04-04)
 
 ### Features
