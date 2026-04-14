@@ -20,9 +20,24 @@ interface ToastProps {
 
 function Toast({toast, onDismiss}: ToastProps) {
 	const icons = {
-		success: <CheckCircleIcon size={18} className="text-kumo-success" />,
-		error: <XCircleIcon size={18} className="text-kumo-danger" />,
-		info: <InfoIcon size={18} className="text-kumo-accent" />,
+		success: (
+			<CheckCircleIcon
+				size={18}
+				className="text-kumo-success"
+			/>
+		),
+		error: (
+			<XCircleIcon
+				size={18}
+				className="text-kumo-danger"
+			/>
+		),
+		info: (
+			<InfoIcon
+				size={18}
+				className="text-kumo-accent"
+			/>
+		),
 	}
 
 	const borders = {
@@ -62,7 +77,11 @@ export function ToastContainer({toasts, onDismiss}: ToastContainerProps) {
 	return (
 		<div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
 			{toasts.map(t => (
-				<Toast key={t.id} toast={t} onDismiss={onDismiss} />
+				<Toast
+					key={t.id}
+					toast={t}
+					onDismiss={onDismiss}
+				/>
 			))}
 		</div>
 	)

@@ -102,7 +102,11 @@ export default function HistoryScreen() {
 
 			<View className="px-4 pt-3 pb-2">
 				<View className="flex-row items-center bg-card dark:bg-card-dark border border-border dark:border-border-dark rounded-xl px-3 gap-2">
-					<Ionicons name="search-outline" size={16} color="#94a3b8" />
+					<Ionicons
+						name="search-outline"
+						size={16}
+						color="#94a3b8"
+					/>
 					<TextInput
 						className="flex-1 py-2.5 text-text dark:text-text-dark text-sm"
 						placeholder="Search sessions…"
@@ -119,7 +123,11 @@ export default function HistoryScreen() {
 				</View>
 			) : filtered.length === 0 ? (
 				<View className="flex-1 items-center justify-center px-6 gap-3">
-					<Ionicons name="time-outline" size={40} color="#94a3b8" />
+					<Ionicons
+						name="time-outline"
+						size={40}
+						color="#94a3b8"
+					/>
 					<Text className="text-sm text-muted dark:text-muted-dark text-center">
 						{query ? 'No sessions match your search' : 'No past sessions yet'}
 					</Text>
@@ -129,7 +137,10 @@ export default function HistoryScreen() {
 					data={filtered}
 					keyExtractor={item => item.id}
 					refreshControl={
-						<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+						<RefreshControl
+							refreshing={refreshing}
+							onRefresh={onRefresh}
+						/>
 					}
 					contentContainerStyle={{
 						paddingHorizontal: 16,
@@ -152,7 +163,11 @@ export default function HistoryScreen() {
 									{item.startedAt ? formatDate(String(item.startedAt)) : '—'}
 								</Text>
 							</View>
-							<Ionicons name="chevron-forward" size={16} color="#94a3b8" />
+							<Ionicons
+								name="chevron-forward"
+								size={16}
+								color="#94a3b8"
+							/>
 						</TouchableOpacity>
 					)}
 				/>

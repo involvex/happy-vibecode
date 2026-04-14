@@ -1,7 +1,7 @@
 ---
 name: opencode-sdk-model-interaction
-description: 'Implement and debug model interactions using the OpenCode SDK API. Use when prompts mention OpenCode, opencode.ai SDK docs, model calls, chat/completions, streaming output, provider configuration, tool calling, token limits, retries, or API integration patterns.'
-argument-hint: 'What OpenCode model interaction should be built, fixed, or reviewed?'
+description: Implement and debug model interactions using the OpenCode SDK API. Use when prompts mention OpenCode, opencode.ai SDK docs, model calls, chat/completions, streaming output, provider configuration, tool calling, token limits, retries, or API integration patterns.
+argument-hint: What OpenCode model interaction should be built, fixed, or reviewed?
 user-invocable: true
 disable-model-invocation: false
 ---

@@ -126,7 +126,11 @@ export default function TemplateDetailScreen() {
 		>
 			<View className="flex-row items-center gap-3 px-4 py-3 border-b border-border dark:border-border-dark">
 				<TouchableOpacity onPress={() => router.back()}>
-					<Ionicons name="arrow-back" size={22} color="#7c3aed" />
+					<Ionicons
+						name="arrow-back"
+						size={22}
+						color="#7c3aed"
+					/>
 				</TouchableOpacity>
 				<Text
 					className="flex-1 text-text dark:text-text-dark font-semibold"
@@ -135,7 +139,11 @@ export default function TemplateDetailScreen() {
 					{template.name}
 				</Text>
 				<TouchableOpacity onPress={handleDelete}>
-					<Ionicons name="trash-outline" size={20} color="#ef4444" />
+					<Ionicons
+						name="trash-outline"
+						size={20}
+						color="#ef4444"
+					/>
 				</TouchableOpacity>
 			</View>
 
@@ -179,7 +187,11 @@ export default function TemplateDetailScreen() {
 					className="bg-primary rounded-2xl py-3.5 items-center flex-row justify-center gap-2"
 					onPress={handleInstantiate}
 				>
-					<Ionicons name="play" size={16} color="white" />
+					<Ionicons
+						name="play"
+						size={16}
+						color="white"
+					/>
 					<Text className="text-white font-semibold">Launch Agent</Text>
 				</TouchableOpacity>
 

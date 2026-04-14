@@ -63,7 +63,10 @@ export function UserForm({
 	}
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-4">
+		<form
+			onSubmit={handleSubmit}
+			className="space-y-4"
+		>
 			{error && (
 				<div className="px-3 py-2 text-sm border rounded-lg text-kumo-danger bg-kumo-danger/10 border-kumo-danger/20">
 					{error}
@@ -118,7 +121,10 @@ export function UserForm({
 					className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default focus:outline-none focus:ring-2 focus:ring-kumo-ring"
 				>
 					{roles.map(r => (
-						<option key={r} value={r}>
+						<option
+							key={r}
+							value={r}
+						>
 							{r}
 						</option>
 					))}
@@ -189,7 +195,12 @@ export function UserForm({
 				>
 					Cancel
 				</Button>
-				<Button variant="primary" size="sm" disabled={loading} type="submit">
+				<Button
+					variant="primary"
+					size="sm"
+					disabled={loading}
+					type="submit"
+				>
 					{loading ? 'Saving...' : isCreate ? 'Create User' : 'Save Changes'}
 				</Button>
 			</div>

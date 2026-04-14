@@ -178,7 +178,10 @@ export default function AdminRolesPage() {
 
 	return (
 		<div className="space-y-6">
-			<ToastContainer toasts={toasts} onDismiss={dismissToast} />
+			<ToastContainer
+				toasts={toasts}
+				onDismiss={dismissToast}
+			/>
 
 			<div className="flex items-center justify-between">
 				<div>
@@ -223,7 +226,10 @@ export default function AdminRolesPage() {
 							>
 								<div className="flex items-start justify-between">
 									<div className="flex items-center gap-2">
-										<ShieldCheckIcon size={18} className="text-kumo-accent" />
+										<ShieldCheckIcon
+											size={18}
+											className="text-kumo-accent"
+										/>
 										<div>
 											<h3 className="font-semibold text-kumo-default">
 												{role.name}

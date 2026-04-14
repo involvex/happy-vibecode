@@ -63,7 +63,12 @@ export function Nav({onLogout}: NavProps) {
 				href="/dashboard"
 				className="flex items-center gap-2 mr-6 font-semibold text-kumo-default"
 			>
-				<Image src="/icon.png" alt="icon" width="35" height="35" />
+				<Image
+					src="/icon.png"
+					alt="icon"
+					width="35"
+					height="35"
+				/>
 				<span>Happy Vibecode</span>
 			</Link>
 

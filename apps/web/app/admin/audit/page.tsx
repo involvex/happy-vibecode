@@ -139,7 +139,10 @@ export default function AdminAuditPage() {
 						.map(([k, v]) => `${k}: ${v}`)
 						.join(', ')
 					return (
-						<span className="text-xs text-kumo-secondary" title={l.details}>
+						<span
+							className="text-xs text-kumo-secondary"
+							title={l.details}
+						>
 							{summary.length > 60 ? summary.slice(0, 60) + '...' : summary}
 						</span>
 					)
@@ -194,7 +197,10 @@ export default function AdminAuditPage() {
 					>
 						<option value="">All Actions</option>
 						{actionTypes.map(at => (
-							<option key={at} value={at}>
+							<option
+								key={at}
+								value={at}
+							>
 								{at.replace(/\./g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
 							</option>
 						))}

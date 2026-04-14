@@ -73,7 +73,10 @@ export default function NewTemplatePage() {
 					</div>
 				)}
 
-				<form onSubmit={handleSubmit} className="space-y-4">
+				<form
+					onSubmit={handleSubmit}
+					className="space-y-4"
+				>
 					<div>
 						<label className="block text-sm font-medium text-kumo-secondary mb-1">
 							Name *
@@ -140,7 +143,10 @@ export default function NewTemplatePage() {
 					</div>
 
 					<div className="flex gap-3 pt-2">
-						<Button type="submit" disabled={loading}>
+						<Button
+							type="submit"
+							disabled={loading}
+						>
 							{loading ? 'Creating...' : 'Create Template'}
 						</Button>
 						<Link href="/templates">

@@ -484,7 +484,10 @@ export default function SettingsPage() {
 				{/* Account */}
 				<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
 					<div className="flex items-center gap-2 font-semibold text-kumo-default">
-						<ShieldCheckIcon size={18} weight="duotone" />
+						<ShieldCheckIcon
+							size={18}
+							weight="duotone"
+						/>
 						Account
 					</div>
 					<div className="space-y-1 text-sm">
@@ -493,7 +496,10 @@ export default function SettingsPage() {
 						<p className="text-kumo-secondary">Role</p>
 						<p className="text-sm text-kumo-info">{Role}</p>
 						{isAdmin ? (
-							<Link href="/admin" className="text-sm text-kumo-info-tint">
+							<Link
+								href="/admin"
+								className="text-sm text-kumo-info-tint"
+							>
 								Go to Admin Dashboard
 							</Link>
 						) : (
@@ -502,7 +508,11 @@ export default function SettingsPage() {
 					</div>
 					{profileLoading ? (
 						<div className="flex items-center gap-2 text-sm text-kumo-inactive">
-							<CircleIcon size={14} weight="duotone" className="animate-spin" />
+							<CircleIcon
+								size={14}
+								weight="duotone"
+								className="animate-spin"
+							/>
 							Loading...
 						</div>
 					) : (
@@ -542,10 +552,16 @@ export default function SettingsPage() {
 				{isGitHubUser && (
 					<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
 						<div className="flex items-center gap-2 font-semibold text-kumo-default">
-							<EnvelopeSimpleIcon size={18} weight="duotone" />
+							<EnvelopeSimpleIcon
+								size={18}
+								weight="duotone"
+							/>
 							Link Email Address
 						</div>
-						<Text size="sm" variant="secondary">
+						<Text
+							size="sm"
+							variant="secondary"
+						>
 							Link an email address to your account to enable password sign-in.
 						</Text>
 						<form
@@ -553,7 +569,10 @@ export default function SettingsPage() {
 							className="space-y-3"
 						>
 							<div>
-								<label htmlFor="email" className="sr-only">
+								<label
+									htmlFor="email"
+									className="sr-only"
+								>
 									Email
 								</label>
 								<input
@@ -587,10 +606,16 @@ export default function SettingsPage() {
 				{(canSetPassword || canChangePassword) && (
 					<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
 						<div className="flex items-center gap-2 font-semibold text-kumo-default">
-							<LockIcon size={18} weight="duotone" />
+							<LockIcon
+								size={18}
+								weight="duotone"
+							/>
 							Password
 						</div>
-						<Text size="sm" variant="secondary">
+						<Text
+							size="sm"
+							variant="secondary"
+						>
 							{canSetPassword
 								? 'Set a password to enable email/password sign-in.'
 								: 'Change your password to keep your account secure.'}
@@ -623,7 +648,10 @@ export default function SettingsPage() {
 							>
 								{showPasswordForm === 'change' && (
 									<div>
-										<label htmlFor="currentPassword" className="sr-only">
+										<label
+											htmlFor="currentPassword"
+											className="sr-only"
+										>
 											Current Password
 										</label>
 										<input
@@ -677,7 +705,10 @@ export default function SettingsPage() {
 									)}
 								</div>
 								<div>
-									<label htmlFor="confirmPassword" className="sr-only">
+									<label
+										htmlFor="confirmPassword"
+										className="sr-only"
+									>
 										Confirm Password
 									</label>
 									<input
@@ -740,7 +771,10 @@ export default function SettingsPage() {
 				{/* API Token */}
 				<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
 					<div className="flex items-center gap-2 font-semibold text-kumo-default">
-						<KeyIcon size={18} weight="duotone" />
+						<KeyIcon
+							size={18}
+							weight="duotone"
+						/>
 						API Token
 					</div>
 
@@ -823,7 +857,10 @@ export default function SettingsPage() {
 				{/* GitHub Repositories */}
 				<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
 					<div className="flex items-center gap-2 font-semibold text-kumo-default">
-						<GitBranchIcon size={18} weight="duotone" />
+						<GitBranchIcon
+							size={18}
+							weight="duotone"
+						/>
 						GitHub Repositories
 					</div>
 
@@ -899,7 +936,10 @@ export default function SettingsPage() {
 							disabled={linkingRepo || !linkRepoInput.trim()}
 							icon={
 								linkingRepo ? (
-									<SpinnerIcon size={14} className="animate-spin" />
+									<SpinnerIcon
+										size={14}
+										className="animate-spin"
+									/>
 								) : (
 									<PlusIcon size={14} />
 								)
@@ -912,11 +952,18 @@ export default function SettingsPage() {
 					{/* Linked Repos List */}
 					{reposLoading ? (
 						<div className="flex items-center gap-2 text-sm text-kumo-inactive">
-							<CircleIcon size={14} weight="duotone" className="animate-spin" />
+							<CircleIcon
+								size={14}
+								weight="duotone"
+								className="animate-spin"
+							/>
 							Loading repos...
 						</div>
 					) : linkedRepos.length === 0 ? (
-						<Text size="sm" variant="secondary">
+						<Text
+							size="sm"
+							variant="secondary"
+						>
 							No repositories linked yet. Add a GitHub token and link a repo
 							above.
 						</Text>
@@ -928,7 +975,10 @@ export default function SettingsPage() {
 									className="flex items-center justify-between px-3 py-2 rounded-lg bg-kumo-control"
 								>
 									<div className="flex items-center gap-2">
-										<GitBranchIcon size={14} className="text-kumo-inactive" />
+										<GitBranchIcon
+											size={14}
+											className="text-kumo-inactive"
+										/>
 										<span className="text-sm text-kumo-default">
 											{repo.fullName}
 										</span>
@@ -952,7 +1002,10 @@ export default function SettingsPage() {
 										title="Unlink"
 									>
 										{unlinkingRepoId === repo.id ? (
-											<SpinnerIcon size={14} className="animate-spin" />
+											<SpinnerIcon
+												size={14}
+												className="animate-spin"
+											/>
 										) : (
 											<TrashIcon size={14} />
 										)}
@@ -966,7 +1019,10 @@ export default function SettingsPage() {
 				{/* LLM Provider Config */}
 				<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
 					<div className="flex items-center gap-2 font-semibold text-kumo-default">
-						<GearIcon size={18} weight="duotone" />
+						<GearIcon
+							size={18}
+							weight="duotone"
+						/>
 						LLM Provider
 					</div>
 
@@ -976,7 +1032,10 @@ export default function SettingsPage() {
 						</div>
 					)}
 
-					<Text size="sm" variant="secondary">
+					<Text
+						size="sm"
+						variant="secondary"
+					>
 						Select the default LLM provider and model for agent sessions.
 					</Text>
 
@@ -1005,7 +1064,10 @@ export default function SettingsPage() {
 							>
 								<option value="">Select a provider</option>
 								{Object.entries(providerCapabilities).map(([id, caps]) => (
-									<option key={id} value={id}>
+									<option
+										key={id}
+										value={id}
+									>
 										{caps.displayName}
 									</option>
 								))}
@@ -1048,7 +1110,10 @@ export default function SettingsPage() {
 												className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
 											>
 												{models.map(model => (
-													<option key={model} value={model}>
+													<option
+														key={model}
+														value={model}
+													>
 														{model}
 													</option>
 												))}
@@ -1072,7 +1137,10 @@ export default function SettingsPage() {
 				{/* Provider Fallback Chain */}
 				<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
 					<div className="flex items-center gap-2 font-semibold text-kumo-default">
-						<ShieldCheckIcon size={18} weight="duotone" />
+						<ShieldCheckIcon
+							size={18}
+							weight="duotone"
+						/>
 						Provider Fallback Chain
 					</div>
 
@@ -1082,7 +1150,10 @@ export default function SettingsPage() {
 						</div>
 					)}
 
-					<Text size="sm" variant="secondary">
+					<Text
+						size="sm"
+						variant="secondary"
+					>
 						Configure automatic fallback to alternate providers when the primary
 						provider fails. The chain is tried in order.
 					</Text>
@@ -1116,7 +1187,10 @@ export default function SettingsPage() {
 									className="flex-1 px-2 py-1.5 text-sm border rounded-lg border-kumo-line bg-kumo-base text-kumo-default"
 								>
 									{Object.entries(providerCapabilities).map(([id, caps]) => (
-										<option key={id} value={id}>
+										<option
+											key={id}
+											value={id}
+										>
 											{caps.displayName}
 										</option>
 									))}
@@ -1160,7 +1234,10 @@ export default function SettingsPage() {
 											className="flex-1 px-2 py-1.5 text-sm border rounded-lg border-kumo-line bg-kumo-base text-kumo-default"
 										>
 											{models.map(model => (
-												<option key={model} value={model}>
+												<option
+													key={model}
+													value={model}
+												>
 													{model}
 												</option>
 											))}
@@ -1204,13 +1281,23 @@ export default function SettingsPage() {
 				{/* Danger zone */}
 				<section className="p-6 space-y-4 border bg-kumo-base border-kumo-danger/30 rounded-2xl">
 					<div className="flex items-center gap-2 font-semibold text-kumo-danger">
-						<TrashIcon size={18} weight="duotone" />
+						<TrashIcon
+							size={18}
+							weight="duotone"
+						/>
 						Danger Zone
 					</div>
-					<Text size="sm" variant="secondary">
+					<Text
+						size="sm"
+						variant="secondary"
+					>
 						Logging out will remove your credentials from this browser.
 					</Text>
-					<Button variant="destructive" size="sm" onClick={handleLogout}>
+					<Button
+						variant="destructive"
+						size="sm"
+						onClick={handleLogout}
+					>
 						Sign Out
 					</Button>
 				</section>

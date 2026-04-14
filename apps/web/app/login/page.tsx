@@ -98,7 +98,12 @@ function LoginForm() {
 			<div className="w-full max-w-sm">
 				{/* Logo */}
 				<div className="flex items-center justify-center gap-3 mb-8">
-					<Image src="/icon.png" alt="icon" width="35" height="35" />
+					<Image
+						src="/icon.png"
+						alt="icon"
+						width="35"
+						height="35"
+					/>
 					<h1 className="text-2xl font-bold text-kumo-default">
 						Happy Vibecode
 					</h1>
@@ -164,7 +169,10 @@ function LoginForm() {
 						))}
 					</div>
 
-					<form onSubmit={handleSubmit} className="space-y-4">
+					<form
+						onSubmit={handleSubmit}
+						className="space-y-4"
+					>
 						{mode === 'register' ? (
 							<>
 								<div>
@@ -305,7 +313,10 @@ function LoginForm() {
 					</form>
 				</div>
 
-				<Text size="xs" variant="secondary">
+				<Text
+					size="xs"
+					variant="secondary"
+				>
 					Need help? Run: <br />
 					<code className="text-kumo-accent">happy-vibecode login --help</code>
 					<br />

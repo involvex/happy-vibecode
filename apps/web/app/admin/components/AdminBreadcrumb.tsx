@@ -10,12 +10,21 @@ interface BreadcrumbItem {
 export function AdminBreadcrumb({items}: {items: BreadcrumbItem[]}) {
 	return (
 		<nav className="flex items-center gap-1 text-sm text-kumo-secondary">
-			<Link href="/admin" className="hover:text-kumo-default transition-colors">
+			<Link
+				href="/admin"
+				className="hover:text-kumo-default transition-colors"
+			>
 				Admin
 			</Link>
 			{items.map((item, i) => (
-				<span key={i} className="flex items-center gap-1">
-					<CaretRightIcon size={12} className="text-kumo-inactive" />
+				<span
+					key={i}
+					className="flex items-center gap-1"
+				>
+					<CaretRightIcon
+						size={12}
+						className="text-kumo-inactive"
+					/>
 					{item.href ? (
 						<Link
 							href={item.href}

@@ -6,7 +6,11 @@ type IconName = React.ComponentProps<typeof Ionicons>['name']
 
 function TabIcon({name, focused}: {name: IconName; focused: boolean}) {
 	return (
-		<Ionicons name={name} size={24} color={focused ? '#7c3aed' : '#94a3b8'} />
+		<Ionicons
+			name={name}
+			size={24}
+			color={focused ? '#7c3aed' : '#94a3b8'}
+		/>
 	)
 }
 
@@ -33,7 +37,10 @@ export default function TabLayout() {
 				options={{
 					title: 'Chat',
 					tabBarIcon: ({focused}) => (
-						<TabIcon name="chatbubble-outline" focused={focused} />
+						<TabIcon
+							name="chatbubble-outline"
+							focused={focused}
+						/>
 					),
 				}}
 			/>
@@ -42,7 +49,10 @@ export default function TabLayout() {
 				options={{
 					title: 'Gallery',
 					tabBarIcon: ({focused}) => (
-						<TabIcon name="grid-outline" focused={focused} />
+						<TabIcon
+							name="grid-outline"
+							focused={focused}
+						/>
 					),
 				}}
 			/>
@@ -51,7 +61,10 @@ export default function TabLayout() {
 				options={{
 					title: 'History',
 					tabBarIcon: ({focused}) => (
-						<TabIcon name="time-outline" focused={focused} />
+						<TabIcon
+							name="time-outline"
+							focused={focused}
+						/>
 					),
 				}}
 			/>
@@ -60,7 +73,10 @@ export default function TabLayout() {
 				options={{
 					title: 'Profile',
 					tabBarIcon: ({focused}) => (
-						<TabIcon name="person-outline" focused={focused} />
+						<TabIcon
+							name="person-outline"
+							focused={focused}
+						/>
 					),
 				}}
 			/>
@@ -69,7 +85,10 @@ export default function TabLayout() {
 				options={{
 					title: 'Settings',
 					tabBarIcon: ({focused}) => (
-						<TabIcon name="settings-outline" focused={focused} />
+						<TabIcon
+							name="settings-outline"
+							focused={focused}
+						/>
 					),
 				}}
 			/>

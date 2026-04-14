@@ -126,7 +126,11 @@ Corrected:
 	disabled={!input.trim()}
 	accessibilityLabel="Send message"
 >
-	<Ionicons name="arrow-up" size={18} color="white" />
+	<Ionicons
+		name="arrow-up"
+		size={18}
+		color="white"
+	/>
 </TouchableOpacity>
 ```
 
@@ -287,13 +291,21 @@ Corrected:
 Current:
 
 ```tsx
-<Ionicons name="flash-outline" size={16} color="#3b82f6" />
+<Ionicons
+	name="flash-outline"
+	size={16}
+	color="#3b82f6"
+/>
 ```
 
 Corrected:
 
 ```tsx
-<Ionicons name="flash-outline" size={16} color="#7c3aed" />
+<Ionicons
+	name="flash-outline"
+	size={16}
+	color="#7c3aed"
+/>
 ```
 
 **Lines 395-404 — Save button top margin (S3)**
@@ -548,13 +560,21 @@ Corrected:
 Current:
 
 ```tsx
-<Ionicons name="checkmark-circle" size={14} color="#3b82f6" />
+<Ionicons
+	name="checkmark-circle"
+	size={14}
+	color="#3b82f6"
+/>
 ```
 
 Corrected:
 
 ```tsx
-<Ionicons name="checkmark-circle" size={14} color="#7c3aed" />
+<Ionicons
+	name="checkmark-circle"
+	size={14}
+	color="#7c3aed"
+/>
 ```
 
 **Lines 763-769 — Workspace toggle checkmark color (C3)**
@@ -721,7 +741,10 @@ Corrected:
 Current:
 
 ```tsx
-<Text className="text-text dark:text-text-dark font-semibold" numberOfLines={1}>
+<Text
+	className="text-text dark:text-text-dark font-semibold"
+	numberOfLines={1}
+>
 	Session {roomId.slice(0, 8)}…
 </Text>
 ```

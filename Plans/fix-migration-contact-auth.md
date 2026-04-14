@@ -3,8 +3,8 @@ goal: Fix migration error, contact page button, and enhance auth system
 version: 1.0
 date_created: 2026-03-26
 last_updated: 2026-03-26
-status: 'Planned'
-tags: ['bug', 'feature', 'migration']
+status: Planned
+tags: [bug, feature, migration]
 ---
 
 # Introduction

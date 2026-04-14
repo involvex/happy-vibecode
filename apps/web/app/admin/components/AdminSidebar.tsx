@@ -75,16 +75,32 @@ export function AdminSidebar({
 				{/* Header */}
 				<div className="flex items-center justify-between px-4 py-3 border-b border-kumo-line">
 					{!collapsed && (
-						<Link href="/admin" className="flex items-center gap-2">
-							<Image src="/icon.png" alt="icon" width={28} height={28} />
+						<Link
+							href="/admin"
+							className="flex items-center gap-2"
+						>
+							<Image
+								src="/icon.png"
+								alt="icon"
+								width={28}
+								height={28}
+							/>
 							<span className="font-semibold text-kumo-default text-sm">
 								Admin Panel
 							</span>
 						</Link>
 					)}
 					{collapsed && (
-						<Link href="/admin" className="mx-auto">
-							<Image src="/icon.png" alt="icon" width={24} height={24} />
+						<Link
+							href="/admin"
+							className="mx-auto"
+						>
+							<Image
+								src="/icon.png"
+								alt="icon"
+								width={24}
+								height={24}
+							/>
 						</Link>
 					)}
 					<button

@@ -16,7 +16,10 @@ export function DateRangePicker({
 	return (
 		<div className="flex items-center gap-3">
 			<div>
-				<label htmlFor="start-date" className="sr-only">
+				<label
+					htmlFor="start-date"
+					className="sr-only"
+				>
 					Start Date
 				</label>
 				<input
@@ -29,7 +32,10 @@ export function DateRangePicker({
 			</div>
 			<span className="text-kumo-inactive text-sm">to</span>
 			<div>
-				<label htmlFor="end-date" className="sr-only">
+				<label
+					htmlFor="end-date"
+					className="sr-only"
+				>
 					End Date
 				</label>
 				<input

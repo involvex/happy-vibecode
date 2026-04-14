@@ -13,18 +13,29 @@ export default function TermsPage() {
 						className="flex items-center gap-2 mr-6 font-semibold text-kumo-default"
 					>
 						<div className="flex items-center gap-2 text-lg font-bold text-kumo-default">
-							<Image src="/icon.png" alt="icon" width="35" height="35" /> Happy
-							Vibecode
+							<Image
+								src="/icon.png"
+								alt="icon"
+								width="35"
+								height="35"
+							/>{' '}
+							Happy Vibecode
 						</div>
 					</Link>
 					<div className="flex items-center gap-3">
 						<Link href="/login">
-							<Button variant="secondary" size="sm">
+							<Button
+								variant="secondary"
+								size="sm"
+							>
 								Sign In
 							</Button>
 						</Link>
 						<Link href="/login">
-							<Button variant="primary" size="sm">
+							<Button
+								variant="primary"
+								size="sm"
+							>
 								Get Started
 							</Button>
 						</Link>
@@ -116,7 +127,10 @@ export default function TermsPage() {
 						</h2>
 						<p>
 							For questions about these Terms,{' '}
-							<Link href="/privacy" className="underline text-kumo-accent">
+							<Link
+								href="/privacy"
+								className="underline text-kumo-accent"
+							>
 								review our Privacy Policy
 							</Link>{' '}
 							or reach out through{' '}

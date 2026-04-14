@@ -13,16 +13,29 @@ export default function Footer() {
 					© {new Date().getFullYear()} Happy Vibecode. All rights reserved.
 				</span>
 				<span className="mx-1">|</span>
-				<Link href="/terms" className="hover:underline">
+				<Link
+					href="/terms"
+					className="hover:underline"
+				>
 					Terms of Service
 				</Link>
 				<span className="mx-1">|</span>
-				<Link href="/privacy" className="hover:underline">
+				<Link
+					href="/privacy"
+					className="hover:underline"
+				>
 					Privacy Policy
 				</Link>
 				<span className="mx-1">|</span>
-				<Link href="/funding" className="hover:underline">
-					<PaypalLogoIcon size={16} weight="duotone" /> Funding
+				<Link
+					href="/funding"
+					className="hover:underline"
+				>
+					<PaypalLogoIcon
+						size={16}
+						weight="duotone"
+					/>{' '}
+					Funding
 				</Link>
 				<span className="mx-1">|</span>
 				<a
@@ -31,7 +44,11 @@ export default function Footer() {
 					rel="noopener noreferrer"
 					className="hover:underline"
 				>
-					<BookOpenIcon size={16} weight="duotone" /> Docs
+					<BookOpenIcon
+						size={16}
+						weight="duotone"
+					/>{' '}
+					Docs
 				</a>
 			</div>
 		</footer>

@@ -63,7 +63,10 @@ export function DataTable<T>({
 							Array.from({length: 5}).map((_, i) => (
 								<tr key={i}>
 									{columns.map(col => (
-										<td key={col.key} className="px-4 py-3">
+										<td
+											key={col.key}
+											className="px-4 py-3"
+										>
 											<div className="h-4 bg-kumo-control rounded animate-pulse w-24" />
 										</td>
 									))}

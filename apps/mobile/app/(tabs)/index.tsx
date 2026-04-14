@@ -444,7 +444,10 @@ export default function ChatTab() {
 
 	if (!bridgeCode) {
 		return (
-			<KeyboardAvoidingView className="flex-1" behavior="padding">
+			<KeyboardAvoidingView
+				className="flex-1"
+				behavior="padding"
+			>
 				<SafeAreaView
 					className="flex-1 items-center justify-center px-6 bg-surface dark:bg-surface-dark"
 					edges={['top']}
@@ -557,7 +560,10 @@ export default function ChatTab() {
 				</View>
 			</View>
 
-			<KeyboardAvoidingView className="flex-1" behavior="padding">
+			<KeyboardAvoidingView
+				className="flex-1"
+				behavior="padding"
+			>
 				{/* Messages */}
 				<FlatList
 					ref={flatListRef}
@@ -566,7 +572,10 @@ export default function ChatTab() {
 					className="flex-1 px-4"
 					contentContainerStyle={{paddingTop: 12, paddingBottom: 4, gap: 8}}
 					refreshControl={
-						<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+						<RefreshControl
+							refreshing={refreshing}
+							onRefresh={onRefresh}
+						/>
 					}
 					renderItem={({item}) => (
 						<View
@@ -662,7 +671,11 @@ export default function ChatTab() {
 						disabled={!input.trim()}
 						accessibilityLabel="Send message"
 					>
-						<Ionicons name="arrow-up" size={18} color="white" />
+						<Ionicons
+							name="arrow-up"
+							size={18}
+							color="white"
+						/>
 					</TouchableOpacity>
 				</View>
 			</KeyboardAvoidingView>

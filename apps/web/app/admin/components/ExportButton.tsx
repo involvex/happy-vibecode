@@ -22,7 +22,10 @@ export function ExportButton({onExportCSV, onExportPDF}: ExportButtonProps) {
 			</button>
 			{open && (
 				<>
-					<div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+					<div
+						className="fixed inset-0 z-40"
+						onClick={() => setOpen(false)}
+					/>
 					<div className="absolute right-0 top-full mt-1 bg-kumo-base border border-kumo-line rounded-lg shadow-lg z-50 w-36 py-1">
 						<button
 							type="button"

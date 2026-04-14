@@ -168,7 +168,11 @@ A comprehensive audit of all mobile app screens and components identified **28 s
 - **Current**: Chat tab uses `<Text className="text-base text-white">↑</Text>` (unicode arrow), session uses `<Ionicons name="arrow-up" size={18} color="white" />`
 - **Fix**: Replace unicode arrow in `index.tsx:525` with:
   ```tsx
-  <Ionicons name="arrow-up" size={18} color="white" />
+  <Ionicons
+  	name="arrow-up"
+  	size={18}
+  	color="white"
+  />
   ```
 - **Why**: Unicode arrow renders differently across platforms. Ionicons is consistent and already used elsewhere.
 

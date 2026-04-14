@@ -42,7 +42,11 @@ export default function CreateTemplateScreen() {
 		>
 			<View className="flex-row items-center gap-3 px-4 py-3 border-b border-border dark:border-border-dark">
 				<TouchableOpacity onPress={() => router.back()}>
-					<Ionicons name="arrow-back" size={22} color="#7c3aed" />
+					<Ionicons
+						name="arrow-back"
+						size={22}
+						color="#7c3aed"
+					/>
 				</TouchableOpacity>
 				<Text className="text-text dark:text-text-dark font-semibold">
 					New Template
@@ -58,7 +62,10 @@ export default function CreateTemplateScreen() {
 					contentContainerStyle={{padding: 16}}
 					keyboardShouldPersistTaps="handled"
 				>
-					<TemplateForm onSubmit={handleSubmit} submitLabel="Create Template" />
+					<TemplateForm
+						onSubmit={handleSubmit}
+						submitLabel="Create Template"
+					/>
 				</ScrollView>
 			</KeyboardAvoidingView>
 		</SafeAreaView>

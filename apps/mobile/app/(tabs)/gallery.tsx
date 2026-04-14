@@ -84,7 +84,11 @@ export default function GalleryScreen() {
 				</View>
 			) : sessions.length === 0 ? (
 				<View className="flex-1 items-center justify-center px-6 gap-3">
-					<Ionicons name="sparkles-outline" size={40} color="#94a3b8" />
+					<Ionicons
+						name="sparkles-outline"
+						size={40}
+						color="#94a3b8"
+					/>
 					<Text className="text-sm text-muted dark:text-muted-dark text-center">
 						No sessions yet.{'\n'}Connect a local agent via the CLI to get
 						started.
@@ -127,12 +131,20 @@ export default function GalleryScreen() {
 							</View>
 							<View className="flex-row items-center justify-between">
 								<View className="flex-row items-center gap-1">
-									<Ionicons name="time-outline" size={12} color="#94a3b8" />
+									<Ionicons
+										name="time-outline"
+										size={12}
+										color="#94a3b8"
+									/>
 									<Text className="text-muted dark:text-muted-dark text-xs">
 										{formatRelative(item.updatedAt ?? item.createdAt)}
 									</Text>
 								</View>
-								<Ionicons name="arrow-forward" size={16} color="#7c3aed" />
+								<Ionicons
+									name="arrow-forward"
+									size={16}
+									color="#7c3aed"
+								/>
 							</View>
 						</TouchableOpacity>
 					)}

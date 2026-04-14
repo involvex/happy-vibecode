@@ -167,25 +167,45 @@ export default function AdminAnalyticsPage() {
 			) : overview ? (
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 					<StatCard
-						icon={<UsersIcon size={22} weight="duotone" />}
+						icon={
+							<UsersIcon
+								size={22}
+								weight="duotone"
+							/>
+						}
 						label="Total Users"
 						value={overview.totalUsers}
 					/>
 					<StatCard
-						icon={<WifiHighIcon size={22} weight="duotone" />}
+						icon={
+							<WifiHighIcon
+								size={22}
+								weight="duotone"
+							/>
+						}
 						label="DAU / WAU / MAU"
 						value={`${overview.activeUsers.dau}`}
 						subValue={`${overview.activeUsers.wau} weekly / ${overview.activeUsers.mau} monthly`}
 						color="text-kumo-success"
 					/>
 					<StatCard
-						icon={<ChartLineUpIcon size={22} weight="duotone" />}
+						icon={
+							<ChartLineUpIcon
+								size={22}
+								weight="duotone"
+							/>
+						}
 						label="New Signups (Month)"
 						value={overview.newSignupsMonth}
 						color="text-kumo-accent"
 					/>
 					<StatCard
-						icon={<DevicesIcon size={22} weight="duotone" />}
+						icon={
+							<DevicesIcon
+								size={22}
+								weight="duotone"
+							/>
+						}
 						label="Active Sessions"
 						value={overview.activeSessions}
 						subValue={`${overview.totalSessions} total`}
@@ -204,7 +224,10 @@ export default function AdminAnalyticsPage() {
 							User Growth
 						</h3>
 						<div className="h-64">
-							<ResponsiveContainer width="100%" height="100%">
+							<ResponsiveContainer
+								width="100%"
+								height="100%"
+							>
 								<LineChart data={signups}>
 									<CartesianGrid
 										strokeDasharray="3 3"
@@ -254,7 +277,10 @@ export default function AdminAnalyticsPage() {
 							Role Distribution
 						</h3>
 						<div className="h-64">
-							<ResponsiveContainer width="100%" height="100%">
+							<ResponsiveContainer
+								width="100%"
+								height="100%"
+							>
 								<PieChart>
 									<Pie
 										data={roles}
@@ -297,7 +323,10 @@ export default function AdminAnalyticsPage() {
 							Session Activity
 						</h3>
 						<div className="h-64">
-							<ResponsiveContainer width="100%" height="100%">
+							<ResponsiveContainer
+								width="100%"
+								height="100%"
+							>
 								<BarChart data={sessions}>
 									<CartesianGrid
 										strokeDasharray="3 3"

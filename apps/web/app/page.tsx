@@ -21,22 +21,42 @@ interface Feature {
 
 const FEATURES: Feature[] = [
 	{
-		icon: <WifiHighIcon size={24} weight="duotone" />,
+		icon: (
+			<WifiHighIcon
+				size={24}
+				weight="duotone"
+			/>
+		),
 		title: 'Remote Control',
 		desc: 'Control your local AI agents from anywhere in the world.',
 	},
 	{
-		icon: <LightningIcon size={24} weight="duotone" />,
+		icon: (
+			<LightningIcon
+				size={24}
+				weight="duotone"
+			/>
+		),
 		title: 'Real-time Streaming',
 		desc: 'WebSocket bridge for instant, streaming responses.',
 	},
 	{
-		icon: <TerminalWindowIcon size={24} weight="duotone" />,
+		icon: (
+			<TerminalWindowIcon
+				size={24}
+				weight="duotone"
+			/>
+		),
 		title: 'Any CLI Agent',
 		desc: 'Works with Gemini, Claude, Codex, or any CLI-based agent.',
 	},
 	{
-		icon: <ChatCircleDotsIcon size={24} weight="duotone" />,
+		icon: (
+			<ChatCircleDotsIcon
+				size={24}
+				weight="duotone"
+			/>
+		),
 		title: 'Multi-platform',
 		desc: 'Access from web, mobile, or any connected device.',
 	},
@@ -75,18 +95,29 @@ export default function HomePage() {
 						className="flex items-center gap-2 mr-6 font-semibold text-kumo-default"
 					>
 						<div className="flex items-center gap-2 text-lg font-bold text-kumo-default">
-							<Image src="/icon.png" alt="icon" width="35" height="35" /> Happy
-							Vibecode
+							<Image
+								src="/icon.png"
+								alt="icon"
+								width="35"
+								height="35"
+							/>{' '}
+							Happy Vibecode
 						</div>
 					</Link>
 					<div className="flex items-center gap-3">
 						<Link href="/login">
-							<Button variant="secondary" size="sm">
+							<Button
+								variant="secondary"
+								size="sm"
+							>
 								Sign In
 							</Button>
 						</Link>
 						<Link href="/login">
-							<Button variant="primary" size="sm">
+							<Button
+								variant="primary"
+								size="sm"
+							>
 								Get Started
 							</Button>
 						</Link>
@@ -98,7 +129,11 @@ export default function HomePage() {
 			<section className="px-6 py-20 text-center">
 				<div className="max-w-3xl mx-auto">
 					<div className="inline-flex items-center gap-2 px-3 py-1 mb-6 text-sm border rounded-full bg-kumo-base border-kumo-line text-kumo-secondary">
-						<CircleIcon size={8} weight="fill" className="text-kumo-success" />
+						<CircleIcon
+							size={8}
+							weight="fill"
+							className="text-kumo-success"
+						/>
 						Powered by Cloudflare Workers
 					</div>
 					<h1 className="mb-6 text-5xl font-extrabold tracking-tight text-kumo-default">
@@ -111,7 +146,10 @@ export default function HomePage() {
 					</p>
 					<div className="flex flex-wrap items-center justify-center gap-3">
 						<Link href="/login">
-							<Button variant="primary" size="lg">
+							<Button
+								variant="primary"
+								size="lg"
+							>
 								Start for free
 							</Button>
 						</Link>
@@ -132,7 +170,10 @@ export default function HomePage() {
 								{step: '2', cmd: 'happy-vibecode login'},
 								{step: '3', cmd: 'happy-vibecode connect gemini'},
 							].map(({step, cmd}) => (
-								<div key={step} className="flex items-center gap-3">
+								<div
+									key={step}
+									className="flex items-center gap-3"
+								>
 									<span className="flex items-center justify-center flex-none w-6 h-6 font-sans text-xs font-medium rounded-full bg-kumo-control text-kumo-secondary">
 										{step}
 									</span>

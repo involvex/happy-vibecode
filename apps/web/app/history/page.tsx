@@ -145,7 +145,10 @@ export default function HistoryPage() {
 						<h1 className="text-2xl font-bold text-kumo-default">
 							Session History
 						</h1>
-						<Text variant="secondary" size="sm">
+						<Text
+							variant="secondary"
+							size="sm"
+						>
 							Browse and resume past agent sessions
 						</Text>
 					</div>
@@ -194,7 +197,10 @@ export default function HistoryPage() {
 				) : (
 					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 						{filtered.map(s => (
-							<SessionCard key={s.id} session={s} />
+							<SessionCard
+								key={s.id}
+								session={s}
+							/>
 						))}
 					</div>
 				)}

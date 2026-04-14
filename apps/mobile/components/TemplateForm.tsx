@@ -138,7 +138,11 @@ export function TemplateForm({
 						>
 							<Text className="text-primary text-xs">{tag}</Text>
 							<TouchableOpacity onPress={() => handleRemoveTag(tag)}>
-								<Ionicons name="close" size={12} color="#7c3aed" />
+								<Ionicons
+									name="close"
+									size={12}
+									color="#7c3aed"
+								/>
 							</TouchableOpacity>
 						</View>
 					))}
@@ -157,7 +161,11 @@ export function TemplateForm({
 						className="bg-primary rounded-xl px-4 justify-center"
 						onPress={handleAddTag}
 					>
-						<Ionicons name="add" size={18} color="white" />
+						<Ionicons
+							name="add"
+							size={18}
+							color="white"
+						/>
 					</TouchableOpacity>
 				</View>
 			</View>

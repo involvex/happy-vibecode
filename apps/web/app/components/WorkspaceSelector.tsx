@@ -49,7 +49,10 @@ export function WorkspaceSelector({
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-2 text-kumo-default font-semibold">
-					<FolderSimpleIcon size={18} weight="duotone" />
+					<FolderSimpleIcon
+						size={18}
+						weight="duotone"
+					/>
 					Workspaces
 				</div>
 				<Button
@@ -65,7 +68,10 @@ export function WorkspaceSelector({
 			{showAddForm && (
 				<div className="bg-kumo-control rounded-lg p-4 space-y-3">
 					<div>
-						<label htmlFor="ws-name" className="sr-only">
+						<label
+							htmlFor="ws-name"
+							className="sr-only"
+						>
 							Workspace Name
 						</label>
 						<input
@@ -78,7 +84,10 @@ export function WorkspaceSelector({
 						/>
 					</div>
 					<div>
-						<label htmlFor="ws-path" className="sr-only">
+						<label
+							htmlFor="ws-path"
+							className="sr-only"
+						>
 							Directory Path
 						</label>
 						<input
@@ -92,7 +101,10 @@ export function WorkspaceSelector({
 					</div>
 					<div className="grid grid-cols-2 gap-2">
 						<div>
-							<label htmlFor="ws-provider" className="sr-only">
+							<label
+								htmlFor="ws-provider"
+								className="sr-only"
+							>
 								Default Provider
 							</label>
 							<select
@@ -110,7 +122,10 @@ export function WorkspaceSelector({
 							</select>
 						</div>
 						<div>
-							<label htmlFor="ws-model" className="sr-only">
+							<label
+								htmlFor="ws-model"
+								className="sr-only"
+							>
 								Default Model
 							</label>
 							<input
@@ -124,7 +139,11 @@ export function WorkspaceSelector({
 						</div>
 					</div>
 					<div className="flex gap-2">
-						<Button variant="primary" size="sm" onClick={handleAdd}>
+						<Button
+							variant="primary"
+							size="sm"
+							onClick={handleAdd}
+						>
 							Add Workspace
 						</Button>
 						<Button

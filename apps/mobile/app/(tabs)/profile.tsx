@@ -201,7 +201,11 @@ export default function ProfileScreen() {
 					{/* Nickname */}
 					<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
 						<View className="flex-row items-center gap-2">
-							<Ionicons name="person-outline" size={18} color={mutedColor} />
+							<Ionicons
+								name="person-outline"
+								size={18}
+								color={mutedColor}
+							/>
 							<Text className="text-base font-semibold text-text dark:text-text-dark">
 								Nickname
 							</Text>
@@ -293,7 +297,11 @@ export default function ProfileScreen() {
 					{/* Language */}
 					<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
 						<View className="flex-row items-center gap-2">
-							<Ionicons name="language-outline" size={18} color={mutedColor} />
+							<Ionicons
+								name="language-outline"
+								size={18}
+								color={mutedColor}
+							/>
 							<Text className="text-base font-semibold text-text dark:text-text-dark">
 								Language
 							</Text>
@@ -329,7 +337,11 @@ export default function ProfileScreen() {
 					{/* Subscription */}
 					<View className="gap-3 p-4 border bg-card dark:bg-card-dark border-border dark:border-border-dark rounded-2xl">
 						<View className="flex-row items-center gap-2">
-							<Ionicons name="card-outline" size={18} color={mutedColor} />
+							<Ionicons
+								name="card-outline"
+								size={18}
+								color={mutedColor}
+							/>
 							<Text className="text-base font-semibold text-text dark:text-text-dark">
 								Subscription
 							</Text>
@@ -367,7 +379,11 @@ export default function ProfileScreen() {
 							)}
 							{subscription?.isPro ? (
 								<View className="flex-row items-center gap-2 px-3 py-2 rounded-lg bg-primary/10">
-									<Ionicons name="flash-outline" size={16} color="#7c3aed" />
+									<Ionicons
+										name="flash-outline"
+										size={16}
+										color="#7c3aed"
+									/>
 									<Text className="text-sm text-text dark:text-text-dark">
 										Your account currently has Pro access.
 									</Text>

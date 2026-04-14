@@ -182,7 +182,10 @@ export default function EditTemplatePage() {
 					</div>
 				)}
 
-				<form onSubmit={handleSubmit} className="space-y-4">
+				<form
+					onSubmit={handleSubmit}
+					className="space-y-4"
+				>
 					<div>
 						<label className="block text-sm font-medium text-kumo-secondary mb-1">
 							Name *
@@ -257,7 +260,10 @@ export default function EditTemplatePage() {
 					</div>
 
 					<div className="flex gap-3 pt-2">
-						<Button type="submit" disabled={saving}>
+						<Button
+							type="submit"
+							disabled={saving}
+						>
 							{saving ? 'Saving...' : 'Save Changes'}
 						</Button>
 						<Link href={`/templates/${template.id}`}>

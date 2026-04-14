@@ -39,7 +39,10 @@ export function BiometricGate({
 	if (isLoading) {
 		return (
 			<View className="flex-1 items-center justify-center bg-surface dark:bg-surface-dark">
-				<ActivityIndicator size="large" color="#7c3aed" />
+				<ActivityIndicator
+					size="large"
+					color="#7c3aed"
+				/>
 			</View>
 		)
 	}
@@ -64,7 +67,10 @@ export function BiometricGate({
 					style={{opacity: unlocking ? 0.6 : 1}}
 				>
 					{unlocking ? (
-						<ActivityIndicator size="small" color="white" />
+						<ActivityIndicator
+							size="small"
+							color="white"
+						/>
 					) : (
 						<Text
 							className="text-white font-semibold text-base"

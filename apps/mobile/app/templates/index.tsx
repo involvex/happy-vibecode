@@ -82,7 +82,11 @@ export default function TemplatesScreen() {
 				<TouchableOpacity
 					onPress={() => router.push('/templates/create' as never)}
 				>
-					<Ionicons name="add-circle-outline" size={26} color="#7c3aed" />
+					<Ionicons
+						name="add-circle-outline"
+						size={26}
+						color="#7c3aed"
+					/>
 				</TouchableOpacity>
 			</View>
 
@@ -142,7 +146,11 @@ export default function TemplatesScreen() {
 										{item.name}
 									</Text>
 									{item.isPublic && (
-										<Ionicons name="globe-outline" size={14} color="#7c3aed" />
+										<Ionicons
+											name="globe-outline"
+											size={14}
+											color="#7c3aed"
+										/>
 									)}
 								</View>
 								{item.description && (
@@ -176,7 +184,11 @@ export default function TemplatesScreen() {
 								className="flex-1 bg-primary rounded-xl py-2 items-center flex-row justify-center gap-1.5"
 								onPress={() => handleInstantiate(item.id, item.name)}
 							>
-								<Ionicons name="play" size={14} color="white" />
+								<Ionicons
+									name="play"
+									size={14}
+									color="white"
+								/>
 								<Text className="text-white text-xs font-semibold">Launch</Text>
 							</TouchableOpacity>
 							<TouchableOpacity
@@ -184,14 +196,22 @@ export default function TemplatesScreen() {
 								onPress={() => router.push(`/templates/${item.id}` as never)}
 								accessibilityLabel="View template details"
 							>
-								<Ionicons name="eye-outline" size={18} color="#94a3b8" />
+								<Ionicons
+									name="eye-outline"
+									size={18}
+									color="#94a3b8"
+								/>
 							</TouchableOpacity>
 							<TouchableOpacity
 								className="bg-surface dark:bg-surface-dark rounded-xl p-2"
 								onPress={() => handleDuplicate(item.id)}
 								accessibilityLabel="Duplicate template"
 							>
-								<Ionicons name="copy-outline" size={18} color="#94a3b8" />
+								<Ionicons
+									name="copy-outline"
+									size={18}
+									color="#94a3b8"
+								/>
 							</TouchableOpacity>
 							<TouchableOpacity
 								className="bg-surface dark:bg-surface-dark rounded-xl p-2"
@@ -211,14 +231,22 @@ export default function TemplatesScreen() {
 								onPress={() => handleDelete(item.id, item.name)}
 								accessibilityLabel="Delete template"
 							>
-								<Ionicons name="trash-outline" size={18} color="#ef4444" />
+								<Ionicons
+									name="trash-outline"
+									size={18}
+									color="#ef4444"
+								/>
 							</TouchableOpacity>
 						</View>
 					</View>
 				)}
 				ListEmptyComponent={
 					<View className="items-center py-12">
-						<Ionicons name="document-text-outline" size={48} color="#64748b" />
+						<Ionicons
+							name="document-text-outline"
+							size={48}
+							color="#64748b"
+						/>
 						<Text className="text-muted dark:text-muted-dark text-sm mt-3">
 							{search ? 'No templates match your search' : 'No templates yet'}
 						</Text>

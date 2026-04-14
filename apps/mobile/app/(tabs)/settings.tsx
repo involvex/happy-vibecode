@@ -372,7 +372,11 @@ export default function SettingsScreen() {
 										</Text>
 									</View>
 								</View>
-								<Ionicons name="chevron-forward" size={18} color="#94a3b8" />
+								<Ionicons
+									name="chevron-forward"
+									size={18}
+									color="#94a3b8"
+								/>
 							</TouchableOpacity>
 						</View>
 					)}
@@ -467,7 +471,11 @@ export default function SettingsScreen() {
 								onPress={handleGithubSignIn}
 								disabled={githubLoading}
 							>
-								<Ionicons name="logo-github" size={20} color={iconColor} />
+								<Ionicons
+									name="logo-github"
+									size={20}
+									color={iconColor}
+								/>
 								<Text className="text-text dark:text-text-dark font-semibold">
 									{githubLoading ? 'Opening browser...' : 'Sign in with GitHub'}
 								</Text>

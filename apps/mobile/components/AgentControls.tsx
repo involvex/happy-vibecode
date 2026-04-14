@@ -140,7 +140,11 @@ export function AgentControls({
 					disabled={agentStatus === 'running'}
 					accessibilityLabel="Start agent"
 				>
-					<Ionicons name="play" size={14} color="#22c55e" />
+					<Ionicons
+						name="play"
+						size={14}
+						color="#22c55e"
+					/>
 					<Text className="text-success font-semibold text-sm">Start</Text>
 				</TouchableOpacity>
 				<TouchableOpacity
@@ -153,7 +157,11 @@ export function AgentControls({
 					disabled={agentStatus !== 'running'}
 					accessibilityLabel="Stop agent"
 				>
-					<Ionicons name="stop" size={14} color="#ef4444" />
+					<Ionicons
+						name="stop"
+						size={14}
+						color="#ef4444"
+					/>
 					<Text className="text-error font-semibold text-sm">Stop</Text>
 				</TouchableOpacity>
 			</View>
@@ -173,7 +181,11 @@ export function AgentControls({
 								{key}: {value}
 							</Text>
 							<TouchableOpacity onPress={() => handleRemoveParam(key)}>
-								<Ionicons name="close-circle" size={16} color="#ef4444" />
+								<Ionicons
+									name="close-circle"
+									size={16}
+									color="#ef4444"
+								/>
 							</TouchableOpacity>
 						</View>
 					))}
@@ -196,7 +208,11 @@ export function AgentControls({
 							className="bg-primary rounded-lg px-3 justify-center"
 							onPress={handleAddParam}
 						>
-							<Ionicons name="add" size={16} color="white" />
+							<Ionicons
+								name="add"
+								size={16}
+								color="white"
+							/>
 						</TouchableOpacity>
 					</View>
 					{Object.keys(params).length > 0 && (

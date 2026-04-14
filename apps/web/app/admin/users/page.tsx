@@ -325,7 +325,10 @@ export default function AdminUsersPage() {
 
 	return (
 		<div className="space-y-6">
-			<ToastContainer toasts={toasts} onDismiss={dismissToast} />
+			<ToastContainer
+				toasts={toasts}
+				onDismiss={dismissToast}
+			/>
 
 			<div className="flex items-center justify-between">
 				<div>
@@ -363,7 +366,11 @@ export default function AdminUsersPage() {
 							className="w-full pl-9 pr-3 py-1.5 rounded-lg border border-kumo-line bg-kumo-base text-kumo-default text-sm placeholder-kumo-inactive focus:outline-none focus:ring-2 focus:ring-kumo-ring"
 						/>
 					</div>
-					<Button variant="secondary" size="sm" onClick={handleSearch}>
+					<Button
+						variant="secondary"
+						size="sm"
+						onClick={handleSearch}
+					>
 						Search
 					</Button>
 				</div>

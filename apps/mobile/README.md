@@ -294,10 +294,20 @@ function LoginScreen() {
 	const {signIn, signOut, session} = useAuth()
 
 	if (session) {
-		return <Button onPress={signOut} title="Sign Out" />
+		return (
+			<Button
+				onPress={signOut}
+				title="Sign Out"
+			/>
+		)
 	}
 
-	return <Button onPress={() => signIn('github')} title="Sign In with GitHub" />
+	return (
+		<Button
+			onPress={() => signIn('github')}
+			title="Sign In with GitHub"
+		/>
+	)
 }
 ```
 

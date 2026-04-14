@@ -500,7 +500,10 @@ export default function ContactPage() {
 									className="w-full px-3 py-2 rounded-lg border border-kumo-line bg-kumo-base text-kumo-default focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
 								>
 									{TOPICS.map(t => (
-										<option key={t.value} value={t.value}>
+										<option
+											key={t.value}
+											value={t.value}
+										>
 											{t.label}
 										</option>
 									))}

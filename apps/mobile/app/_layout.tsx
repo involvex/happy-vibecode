@@ -31,10 +31,17 @@ export default function RootLayout() {
 
 	return (
 		<GestureHandlerRootView className="flex-1">
-			<BiometricGate isLocked={isLocked} isLoading={isLoading} unlock={unlock}>
+			<BiometricGate
+				isLocked={isLocked}
+				isLoading={isLoading}
+				unlock={unlock}
+			>
 				<Stack screenOptions={{headerShown: false}}>
 					<Stack.Screen name="(tabs)" />
-					<Stack.Screen name="session/[id]" options={{presentation: 'card'}} />
+					<Stack.Screen
+						name="session/[id]"
+						options={{presentation: 'card'}}
+					/>
 					<Stack.Screen name="templates/index" />
 					<Stack.Screen
 						name="templates/[id]"

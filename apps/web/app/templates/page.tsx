@@ -149,7 +149,10 @@ export default function TemplatesPage() {
 				<Nav onLogout={logout} />
 				<main className="p-6">
 					<Text>Please sign in to view templates.</Text>
-					<Link href="/login" className="ml-2 text-kumo-primary">
+					<Link
+						href="/login"
+						className="ml-2 text-kumo-primary"
+					>
 						Sign in
 					</Link>
 				</main>
@@ -207,7 +210,10 @@ export default function TemplatesPage() {
 							{search ? 'No templates match your search' : 'No templates yet'}
 						</p>
 						{!search && (
-							<Link href="/templates/new" className="mt-3 inline-block">
+							<Link
+								href="/templates/new"
+								className="mt-3 inline-block"
+							>
 								<Button>Create your first template</Button>
 							</Link>
 						)}
@@ -229,7 +235,10 @@ export default function TemplatesPage() {
 													{template.name}
 												</p>
 												{isPublic && (
-													<GlobeIcon size={14} className="text-kumo-primary" />
+													<GlobeIcon
+														size={14}
+														className="text-kumo-primary"
+													/>
 												)}
 											</div>
 											{template.description && (
@@ -259,7 +268,10 @@ export default function TemplatesPage() {
 											onClick={() => handleInstantiate(template.id)}
 											className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-kumo-primary text-white text-xs font-medium hover:opacity-90 transition-opacity"
 										>
-											<PlayIcon size={14} weight="fill" />
+											<PlayIcon
+												size={14}
+												weight="fill"
+											/>
 											Launch
 										</button>
 										<Link

@@ -190,7 +190,11 @@ export default function SessionScreen() {
 			{/* Header */}
 			<View className="flex-row items-center gap-3 px-4 py-3 border-b border-border dark:border-border-dark">
 				<TouchableOpacity onPress={() => router.back()}>
-					<Ionicons name="arrow-back" size={22} color="#7c3aed" />
+					<Ionicons
+						name="arrow-back"
+						size={22}
+						color="#7c3aed"
+					/>
 				</TouchableOpacity>
 				<View className="flex-1">
 					<Text
@@ -230,7 +234,10 @@ export default function SessionScreen() {
 				</View>
 			) : null}
 
-			<KeyboardAvoidingView className="flex-1" behavior="padding">
+			<KeyboardAvoidingView
+				className="flex-1"
+				behavior="padding"
+			>
 				<FlatList
 					ref={flatListRef}
 					data={messages}
@@ -304,7 +311,11 @@ export default function SessionScreen() {
 						disabled={!input.trim()}
 						accessibilityLabel="Send message"
 					>
-						<Ionicons name="arrow-up" size={18} color="white" />
+						<Ionicons
+							name="arrow-up"
+							size={18}
+							color="white"
+						/>
 					</TouchableOpacity>
 				</View>
 			</KeyboardAvoidingView>

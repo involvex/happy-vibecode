@@ -9,19 +9,34 @@ const DONATION_LINKS = [
 		name: 'Buy Me a Coffee',
 		description: 'Support the project with a one-time donation.',
 		url: 'https://buymeacoffee.com/involvex',
-		icon: <CoffeeIcon size={32} weight="duotone" />,
+		icon: (
+			<CoffeeIcon
+				size={32}
+				weight="duotone"
+			/>
+		),
 	},
 	{
 		name: 'PayPal',
 		description: 'Send a donation via PayPal.',
 		url: 'https://paypal.me/involvex',
-		icon: <HeartIcon size={32} weight="duotone" />,
+		icon: (
+			<HeartIcon
+				size={32}
+				weight="duotone"
+			/>
+		),
 	},
 	{
 		name: 'GitHub Sponsors',
 		description: 'Sponsor the project on GitHub.',
 		url: 'https://github.com/sponsors/involvex',
-		icon: <GithubLogoIcon size={32} weight="duotone" />,
+		icon: (
+			<GithubLogoIcon
+				size={32}
+				weight="duotone"
+			/>
+		),
 	},
 ]
 
@@ -36,18 +51,29 @@ export default function FundingPage() {
 						className="flex items-center gap-2 mr-6 font-semibold text-kumo-default"
 					>
 						<div className="flex items-center gap-2 text-lg font-bold text-kumo-default">
-							<Image src="/icon.png" alt="icon" width="35" height="35" /> Happy
-							Vibecode
+							<Image
+								src="/icon.png"
+								alt="icon"
+								width="35"
+								height="35"
+							/>{' '}
+							Happy Vibecode
 						</div>
 					</Link>
 					<div className="flex items-center gap-3">
 						<Link href="/login">
-							<Button variant="secondary" size="sm">
+							<Button
+								variant="secondary"
+								size="sm"
+							>
 								Sign In
 							</Button>
 						</Link>
 						<Link href="/login">
-							<Button variant="primary" size="sm">
+							<Button
+								variant="primary"
+								size="sm"
+							>
 								Get Started
 							</Button>
 						</Link>

@@ -62,7 +62,10 @@ function ThemeToggle() {
 
 	const icon =
 		pref === 'system' ? (
-			<CircleIcon size={16} weight="duotone" />
+			<CircleIcon
+				size={16}
+				weight="duotone"
+			/>
 		) : pref === 'dark' ? (
 			<SunIcon size={16} />
 		) : (
@@ -577,7 +580,10 @@ function CustomAgentForm({
 	)
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-3">
+		<form
+			onSubmit={handleSubmit}
+			className="space-y-3"
+		>
 			{field('Name *', 'name', 'e.g. Claude Code Evolved')}
 			{field('Command *', 'command', 'e.g. claude-evolved')}
 			{field(
@@ -601,10 +607,20 @@ function CustomAgentForm({
 			</div>
 			{error && <p className="text-xs text-red-500">{error}</p>}
 			<div className="flex gap-2 justify-end pt-1">
-				<Button variant="secondary" size="sm" type="button" onClick={onCancel}>
+				<Button
+					variant="secondary"
+					size="sm"
+					type="button"
+					onClick={onCancel}
+				>
 					Cancel
 				</Button>
-				<Button variant="primary" size="sm" type="submit" disabled={loading}>
+				<Button
+					variant="primary"
+					size="sm"
+					type="submit"
+					disabled={loading}
+				>
 					{loading ? 'Saving…' : initial ? 'Update' : 'Create'}
 				</Button>
 			</div>
@@ -929,12 +945,19 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 								<span className="mr-2">⛅</span>Agent Chat
 							</h1>
 							<Badge variant="secondary">
-								<ChatCircleDotsIcon size={12} weight="bold" className="mr-1" />
+								<ChatCircleDotsIcon
+									size={12}
+									weight="bold"
+									className="mr-1"
+								/>
 								{wsStatus === 'cli_connected' ? 'CLI Connected' : 'Bridge'}
 							</Badge>
 							{bridgeCode && (
 								<Badge variant="outline">
-									<LinkIcon size={10} className="mr-1" />
+									<LinkIcon
+										size={10}
+										className="mr-1"
+									/>
 									{bridgeCode}
 								</Badge>
 							)}
@@ -955,7 +978,10 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 													: 'text-kumo-danger'
 									}
 								/>
-								<Text size="xs" variant="secondary">
+								<Text
+									size="xs"
+									variant="secondary"
+								>
 									{wsStatus === 'cli_connected'
 										? 'CLI ready'
 										: wsStatus === 'cli_disconnected'
@@ -989,14 +1015,20 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 									aria-label="Active workspace"
 								>
 									{workspaces.map(w => (
-										<option key={w.id} value={w.id}>
+										<option
+											key={w.id}
+											value={w.id}
+										>
 											{w.name}
 										</option>
 									))}
 								</select>
 							)}
 							<div className="flex items-center gap-1.5">
-								<BugIcon size={14} className="text-kumo-inactive" />
+								<BugIcon
+									size={14}
+									className="text-kumo-inactive"
+								/>
 								<Switch
 									checked={showDebug}
 									onCheckedChange={setShowDebug}
@@ -1046,9 +1078,15 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 					<div className="flex items-center justify-center flex-1">
 						<div className="w-full max-w-md px-5 mx-auto space-y-6 text-center">
 							<div className="space-y-2">
-								<LinkIcon size={48} className="mx-auto text-kumo-inactive" />
+								<LinkIcon
+									size={48}
+									className="mx-auto text-kumo-inactive"
+								/>
 								<Text size="lg">Pair with CLI</Text>
-								<Text size="sm" variant="secondary">
+								<Text
+									size="sm"
+									variant="secondary"
+								>
 									Run{' '}
 									<code className="bg-kumo-control px-1.5 py-0.5 rounded text-kumo-default">
 										happy-vibecode connect {'<agent>'}
@@ -1135,7 +1173,10 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 												index === messages.length - 1
 
 											return (
-												<div key={message.id} className="space-y-2">
+												<div
+													key={message.id}
+													className="space-y-2"
+												>
 													{showDebug && (
 														<pre className="text-[11px] text-kumo-subtle bg-kumo-control rounded-lg p-3 overflow-auto max-h-64">
 															{JSON.stringify(message, null, 2)}

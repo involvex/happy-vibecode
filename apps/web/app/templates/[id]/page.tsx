@@ -118,7 +118,10 @@ export default function TemplateDetailPage() {
 				<Nav onLogout={logout} />
 				<main className="p-6">
 					<Text>Template not found.</Text>
-					<Link href="/templates" className="ml-2 text-kumo-primary">
+					<Link
+						href="/templates"
+						className="ml-2 text-kumo-primary"
+					>
 						Back to templates
 					</Link>
 				</main>
@@ -145,11 +148,19 @@ export default function TemplateDetailPage() {
 						<h1 className="text-2xl font-bold text-kumo-default">
 							{template.name}
 						</h1>
-						{isPublic && <GlobeIcon size={16} className="text-kumo-primary" />}
+						{isPublic && (
+							<GlobeIcon
+								size={16}
+								className="text-kumo-primary"
+							/>
+						)}
 					</div>
 					<div className="flex items-center gap-2">
 						<Link href={`/templates/${template.id}/edit`}>
-							<Button variant="secondary" size="sm">
+							<Button
+								variant="secondary"
+								size="sm"
+							>
 								Edit
 							</Button>
 						</Link>
@@ -182,7 +193,12 @@ export default function TemplateDetailPage() {
 				)}
 
 				<Button
-					icon={<PlayIcon size={16} weight="fill" />}
+					icon={
+						<PlayIcon
+							size={16}
+							weight="fill"
+						/>
+					}
 					onClick={handleInstantiate}
 					className="mb-6"
 				>

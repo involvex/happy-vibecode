@@ -238,7 +238,10 @@ export function ModelSettingsModal({
 						{/* Header */}
 						<div className="flex items-center justify-between px-5 py-3.5 border-b border-kumo-line">
 							<div className="flex items-center gap-2">
-								<GearSixIcon size={16} className="text-kumo-inactive" />
+								<GearSixIcon
+									size={16}
+									className="text-kumo-inactive"
+								/>
 								<span className="text-sm font-semibold text-kumo-default">
 									Model Settings
 								</span>
@@ -306,7 +309,10 @@ export function ModelSettingsModal({
 						<div className="flex-1 overflow-y-auto p-3">
 							{loading[activeTab] ? (
 								<div className="flex items-center justify-center gap-2 py-12 text-kumo-inactive">
-									<SpinnerGapIcon size={18} className="animate-spin" />
+									<SpinnerGapIcon
+										size={18}
+										className="animate-spin"
+									/>
 									<span className="text-sm">Loading models…</span>
 								</div>
 							) : displayed.length === 0 ? (

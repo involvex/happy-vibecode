@@ -13,7 +13,10 @@ export function SkeletonTable({
 				<thead>
 					<tr className="border-b border-kumo-line">
 						{Array.from({length: cols}).map((_, i) => (
-							<th key={i} className="px-4 py-3">
+							<th
+								key={i}
+								className="px-4 py-3"
+							>
 								<div className="h-3 bg-kumo-control rounded animate-pulse w-20" />
 							</th>
 						))}
@@ -23,7 +26,10 @@ export function SkeletonTable({
 					{Array.from({length: rows}).map((_, ri) => (
 						<tr key={ri}>
 							{Array.from({length: cols}).map((_, ci) => (
-								<td key={ci} className="px-4 py-3">
+								<td
+									key={ci}
+									className="px-4 py-3"
+								>
 									<div
 										className="h-4 bg-kumo-control rounded animate-pulse"
 										style={{width: `${40 + Math.random() * 60}%`}}

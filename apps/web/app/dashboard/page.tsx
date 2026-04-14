@@ -75,8 +75,15 @@ function SessionCard({session}: {session: Session}) {
 				Updated {timeAgo(session.updatedAt)}
 			</div>
 			<div className="flex gap-2 pt-1">
-				<Link href={`/chat?room=${session.id}`} className="flex-1">
-					<Button variant="primary" size="sm" className="w-full">
+				<Link
+					href={`/chat?room=${session.id}`}
+					className="flex-1"
+				>
+					<Button
+						variant="primary"
+						size="sm"
+						className="w-full"
+					>
 						<ChatCircleDotsIcon size={14} />
 						Open Chat
 					</Button>
@@ -164,7 +171,12 @@ export default function DashboardPage() {
 				<div className="grid grid-cols-2 gap-4 mb-10 lg:grid-cols-4">
 					{[
 						{
-							icon: <DevicesIcon size={22} weight="duotone" />,
+							icon: (
+								<DevicesIcon
+									size={22}
+									weight="duotone"
+								/>
+							),
 							label: 'Total sessions',
 							value: sessions.length,
 						},
@@ -180,7 +192,12 @@ export default function DashboardPage() {
 							value: activeSessions.length,
 						},
 						{
-							icon: <ClockIcon size={22} weight="duotone" />,
+							icon: (
+								<ClockIcon
+									size={22}
+									weight="duotone"
+								/>
+							),
 							label: 'Closed',
 							value: sessions.length - activeSessions.length,
 						},
@@ -219,7 +236,10 @@ export default function DashboardPage() {
 							/>
 						</Button>
 						<Link href="/chat">
-							<Button variant="primary" size="sm">
+							<Button
+								variant="primary"
+								size="sm"
+							>
 								<ChatCircleDotsIcon size={14} />
 								New Chat
 							</Button>
@@ -253,7 +273,10 @@ export default function DashboardPage() {
 				) : (
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 						{sessions.map(s => (
-							<SessionCard key={s.id} session={s} />
+							<SessionCard
+								key={s.id}
+								session={s}
+							/>
 						))}
 					</div>
 				)}

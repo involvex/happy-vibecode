@@ -232,14 +232,23 @@ export default function ProfilePage() {
 						{/* Nickname */}
 						<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
 							<div className="flex items-center gap-2 font-semibold text-kumo-default">
-								<UserIcon size={18} weight="duotone" />
+								<UserIcon
+									size={18}
+									weight="duotone"
+								/>
 								Nickname
 							</div>
-							<Text size="sm" variant="secondary">
+							<Text
+								size="sm"
+								variant="secondary"
+							>
 								This is how you'll appear to others.
 							</Text>
 							<div>
-								<label htmlFor="nickname" className="sr-only">
+								<label
+									htmlFor="nickname"
+									className="sr-only"
+								>
 									Nickname
 								</label>
 								<input
@@ -261,15 +270,24 @@ export default function ProfilePage() {
 						{/* Theme */}
 						<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
 							<div className="flex items-center gap-2 font-semibold text-kumo-default">
-								<PaletteIcon size={18} weight="duotone" />
+								<PaletteIcon
+									size={18}
+									weight="duotone"
+								/>
 								Theme
 							</div>
-							<Text size="sm" variant="secondary">
+							<Text
+								size="sm"
+								variant="secondary"
+							>
 								Choose your preferred color scheme.
 							</Text>
 							<div className="flex gap-3">
 								{(['light', 'dark', 'system'] as const).map(theme => (
-									<label key={theme} className="flex-1 cursor-pointer">
+									<label
+										key={theme}
+										className="flex-1 cursor-pointer"
+									>
 										<input
 											type="radio"
 											value={theme}
@@ -293,10 +311,16 @@ export default function ProfilePage() {
 						{/* Notifications */}
 						<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
 							<div className="flex items-center gap-2 font-semibold text-kumo-default">
-								<BellIcon size={18} weight="duotone" />
+								<BellIcon
+									size={18}
+									weight="duotone"
+								/>
 								Notifications
 							</div>
-							<Text size="sm" variant="secondary">
+							<Text
+								size="sm"
+								variant="secondary"
+							>
 								Receive updates about your agent sessions.
 							</Text>
 							<label className="flex items-center gap-3 cursor-pointer">
@@ -312,14 +336,23 @@ export default function ProfilePage() {
 						{/* Language */}
 						<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
 							<div className="flex items-center gap-2 font-semibold text-kumo-default">
-								<TranslateIcon size={18} weight="duotone" />
+								<TranslateIcon
+									size={18}
+									weight="duotone"
+								/>
 								Language
 							</div>
-							<Text size="sm" variant="secondary">
+							<Text
+								size="sm"
+								variant="secondary"
+							>
 								Select your preferred language.
 							</Text>
 							<div>
-								<label htmlFor="language" className="sr-only">
+								<label
+									htmlFor="language"
+									className="sr-only"
+								>
 									Language
 								</label>
 								<select
@@ -328,7 +361,10 @@ export default function ProfilePage() {
 									className="w-full px-3 py-2 border rounded-lg border-kumo-line bg-kumo-base text-kumo-default focus:outline-none focus:ring-2 focus:ring-kumo-ring focus:border-transparent"
 								>
 									{LANGUAGES.map(lang => (
-										<option key={lang.code} value={lang.code}>
+										<option
+											key={lang.code}
+											value={lang.code}
+										>
 											{lang.label}
 										</option>
 									))}
@@ -338,10 +374,16 @@ export default function ProfilePage() {
 
 						<section className="p-6 space-y-4 border bg-kumo-base border-kumo-line rounded-2xl">
 							<div className="flex items-center gap-2 font-semibold text-kumo-default">
-								<CreditCardIcon size={18} weight="duotone" />
+								<CreditCardIcon
+									size={18}
+									weight="duotone"
+								/>
 								Subscription
 							</div>
-							<Text size="sm" variant="secondary">
+							<Text
+								size="sm"
+								variant="secondary"
+							>
 								Manage your plan from the web profile. Mobile will read the same
 								subscription state later.
 							</Text>
@@ -372,12 +414,18 @@ export default function ProfilePage() {
 								)}
 								{subscription?.isPro ? (
 									<div className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg bg-kumo-accent/10 text-kumo-default">
-										<LightningIcon size={16} weight="duotone" />
+										<LightningIcon
+											size={16}
+											weight="duotone"
+										/>
 										Your account currently has Pro access.
 									</div>
 								) : (
 									<div className="space-y-3">
-										<Text size="sm" variant="secondary">
+										<Text
+											size="sm"
+											variant="secondary"
+										>
 											Upgrade to Pro for €8.99/month when you are ready.
 										</Text>
 										<Button

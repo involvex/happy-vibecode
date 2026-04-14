@@ -4,7 +4,7 @@ version: 1.0
 date_created: 2026-03-28
 last_updated: 2026-03-28
 owner: Happy Vibecode Team
-status: 'Planned'
+status: Planned
 tags: [feature, mobile, agent-templates, push-notifications, biometric, offline]
 ---
 

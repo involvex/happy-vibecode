@@ -89,7 +89,10 @@ export function RoleForm({
 	}
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-4">
+		<form
+			onSubmit={handleSubmit}
+			className="space-y-4"
+		>
 			{error && (
 				<div className="text-sm text-kumo-danger bg-kumo-danger/10 border border-kumo-danger/20 rounded-lg px-3 py-2">
 					{error}
@@ -160,7 +163,10 @@ export function RoleForm({
 										{module}
 									</td>
 									{ACTIONS.map(action => (
-										<td key={action} className="px-3 py-2 text-center">
+										<td
+											key={action}
+											className="px-3 py-2 text-center"
+										>
 											<input
 												type="checkbox"
 												checked={hasPermission(module, action)}
@@ -186,7 +192,12 @@ export function RoleForm({
 				>
 					Cancel
 				</Button>
-				<Button variant="primary" size="sm" disabled={loading} type="submit">
+				<Button
+					variant="primary"
+					size="sm"
+					disabled={loading}
+					type="submit"
+				>
 					{loading ? 'Saving...' : isCreate ? 'Create Role' : 'Save Changes'}
 				</Button>
 			</div>

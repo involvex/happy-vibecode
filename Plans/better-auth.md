@@ -6,7 +6,12 @@ description: Integrate Better Auth with Expo.
 Expo is a popular framework for building cross-platform apps with React Native. Better Auth supports both Expo native and web apps.
 
 <Callout type="info">
-This guide is written for **Expo SDK 55** (React Native 0.83, React 19.2). SDK 55 requires the [New Architecture](https://docs.expo.dev/guides/new-architecture/) — the Legacy Architecture is no longer supported. If you're upgrading from an older SDK, see the [Expo SDK 55 upgrade guide](https://expo.dev/blog/upgrading-to-sdk-55).
+	This guide is written for **Expo SDK 55** (React Native 0.83, React 19.2). SDK
+	55 requires the [New
+	Architecture](https://docs.expo.dev/guides/new-architecture/) — the Legacy
+	Architecture is no longer supported. If you're upgrading from an older SDK,
+	see the [Expo SDK 55 upgrade
+	guide](https://expo.dev/blog/upgrading-to-sdk-55).
 </Callout>
 
 ## Installation
@@ -329,7 +334,10 @@ export default function SocialSignIn() {
 ````
 
 <Callout type="info">
-On native (iOS/Android), `signIn.social` does not navigate automatically. Handle navigation yourself after it resolves. Note that the underlying browser behavior differs by platform. For more information, see [here](https://docs.expo.dev/versions/latest/sdk/webbrowser/#webbrowseropenauthsessionasyncurl-redirecturl-options).
+	On native (iOS/Android), `signIn.social` does not navigate automatically.
+	Handle navigation yourself after it resolves. Note that the underlying browser
+	behavior differs by platform. For more information, see
+	[here](https://docs.expo.dev/versions/latest/sdk/webbrowser/#webbrowseropenauthsessionasyncurl-redirecturl-options).
 </Callout>
 
 #### IdToken Sign-In
@@ -472,7 +480,10 @@ export function TRPCProvider(props: {children: React.ReactNode}) {
 	)
 
 	return (
-		<api.Provider client={trpcClient} queryClient={queryClient}>
+		<api.Provider
+			client={trpcClient}
+			queryClient={queryClient}
+		>
 			<QueryClientProvider client={queryClient}>
 				{props.children}
 			</QueryClientProvider>
@@ -572,7 +583,12 @@ const authClient = createAuthClient({
 ```
 
 <Callout type="info">
-  **Important:** If you're using plugins like passkey with a custom `webAuthnChallengeCookie` option, make sure to include the cookie prefix in the `cookiePrefix` array. For example, if you set `webAuthnChallengeCookie: "my-app-passkey"`, include `"my-app"` in your `cookiePrefix`. See the [Passkey plugin documentation](/docs/plugins/passkey#expo-integration) for more details.
+	**Important:** If you're using plugins like passkey with a custom
+	`webAuthnChallengeCookie` option, make sure to include the cookie prefix in
+	the `cookiePrefix` array. For example, if you set `webAuthnChallengeCookie:
+	"my-app-passkey"`, include `"my-app"` in your `cookiePrefix`. See the [Passkey
+	plugin documentation](/docs/plugins/passkey#expo-integration) for more
+	details.
 </Callout>
 
 ### Expo Servers
@@ -651,7 +667,8 @@ For OAuth apps, you don't have to do anything special (just follow the steps abo
 That's all! Now you can copy the Client ID and Client Secret of your app!
 
 <Callout>
-If you get "email_not_found" error, it's because you selected a Github app & did not configure this part!
+	If you get "email_not_found" error, it's because you selected a Github app &
+	did not configure this part!
 </Callout>
 
 ### Why don't I have a refresh token?

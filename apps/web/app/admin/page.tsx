@@ -93,35 +93,65 @@ export default function AdminOverviewPage() {
 				<>
 					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 						<StatCard
-							icon={<UsersIcon size={22} weight="duotone" />}
+							icon={
+								<UsersIcon
+									size={22}
+									weight="duotone"
+								/>
+							}
 							label="Total Users"
 							value={data.totalUsers}
 						/>
 						<StatCard
-							icon={<WifiHighIcon size={22} weight="duotone" />}
+							icon={
+								<WifiHighIcon
+									size={22}
+									weight="duotone"
+								/>
+							}
 							label="Daily Active Users"
 							value={data.activeUsers.dau}
 							color="text-kumo-success"
 						/>
 						<StatCard
-							icon={<ChartLineUpIcon size={22} weight="duotone" />}
+							icon={
+								<ChartLineUpIcon
+									size={22}
+									weight="duotone"
+								/>
+							}
 							label="New Signups (Week)"
 							value={data.newSignupsWeek}
 							color="text-kumo-accent"
 						/>
 						<StatCard
-							icon={<DevicesIcon size={22} weight="duotone" />}
+							icon={
+								<DevicesIcon
+									size={22}
+									weight="duotone"
+								/>
+							}
 							label="Total Sessions"
 							value={data.totalSessions}
 						/>
 						<StatCard
-							icon={<WifiHighIcon size={22} weight="duotone" />}
+							icon={
+								<WifiHighIcon
+									size={22}
+									weight="duotone"
+								/>
+							}
 							label="Active Sessions"
 							value={data.activeSessions}
 							color="text-kumo-success"
 						/>
 						<StatCard
-							icon={<UsersIcon size={22} weight="duotone" />}
+							icon={
+								<UsersIcon
+									size={22}
+									weight="duotone"
+								/>
+							}
 							label="Monthly Active Users"
 							value={data.activeUsers.mau}
 						/>

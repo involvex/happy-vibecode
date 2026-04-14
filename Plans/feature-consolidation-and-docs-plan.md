@@ -144,8 +144,9 @@ name: Deploy Documentation
 on:
   push:
     branches: [main]
-    paths: ['docs/**']
-  workflow_dispatch: # Allow manual trigger
+    paths: [docs/**]
+  workflow_dispatch:
+    # Allow manual trigger
 
 permissions:
   pages: write

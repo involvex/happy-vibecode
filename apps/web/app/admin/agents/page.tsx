@@ -95,7 +95,10 @@ function AgentModal({
 	)
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-3">
+		<form
+			onSubmit={handleSubmit}
+			className="space-y-3"
+		>
 			{field('Name *', 'name', 'e.g. Claude Code')}
 			{field('Command *', 'command', 'e.g. claude')}
 			{field(
@@ -127,10 +130,20 @@ function AgentModal({
 			</label>
 			{error && <p className="text-xs text-kumo-danger">{error}</p>}
 			<div className="flex gap-2 justify-end pt-1">
-				<Button variant="secondary" size="sm" type="button" onClick={onCancel}>
+				<Button
+					variant="secondary"
+					size="sm"
+					type="button"
+					onClick={onCancel}
+				>
 					Cancel
 				</Button>
-				<Button variant="primary" size="sm" type="submit" disabled={loading}>
+				<Button
+					variant="primary"
+					size="sm"
+					type="submit"
+					disabled={loading}
+				>
 					{loading ? 'Saving\u2026' : initial ? 'Update Agent' : 'Create Agent'}
 				</Button>
 			</div>
@@ -372,7 +385,10 @@ export default function AdminAgentsPage() {
 
 	return (
 		<div className="space-y-6">
-			<ToastContainer toasts={toasts} onDismiss={dismissToast} />
+			<ToastContainer
+				toasts={toasts}
+				onDismiss={dismissToast}
+			/>
 
 			<div className="flex items-center justify-between">
 				<div>

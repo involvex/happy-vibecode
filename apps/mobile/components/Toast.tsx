@@ -91,7 +91,11 @@ function ToastItem({
 				marginTop: dp(50),
 			}}
 		>
-			<Ionicons name={styles.icon} size={dp(20)} color={styles.iconColor} />
+			<Ionicons
+				name={styles.icon}
+				size={dp(20)}
+				color={styles.iconColor}
+			/>
 			<Text className="text-text dark:text-text-dark text-sm flex-1 font-medium">
 				{message}
 			</Text>

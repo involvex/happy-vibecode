@@ -51,11 +51,24 @@ export function SkeletonCard({className}: {className?: string}) {
 			className={`bg-card dark:bg-card-dark rounded-2xl p-4 border border-border dark:border-border-dark gap-3 ${className ?? ''}`}
 		>
 			<View className="flex-row items-center justify-between">
-				<LoadingSkeleton width="60%" height={14} />
-				<LoadingSkeleton width={60} height={20} className="rounded-full" />
+				<LoadingSkeleton
+					width="60%"
+					height={14}
+				/>
+				<LoadingSkeleton
+					width={60}
+					height={20}
+					className="rounded-full"
+				/>
 			</View>
-			<LoadingSkeleton width="80%" height={12} />
-			<LoadingSkeleton width="40%" height={12} />
+			<LoadingSkeleton
+				width="80%"
+				height={12}
+			/>
+			<LoadingSkeleton
+				width="40%"
+				height={12}
+			/>
 		</View>
 	)
 }

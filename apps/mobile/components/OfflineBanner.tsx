@@ -22,7 +22,11 @@ export function OfflineBanner({
 		>
 			{!isConnected ? (
 				<>
-					<Ionicons name="cloud-offline-outline" size={14} color="#f59e0b" />
+					<Ionicons
+						name="cloud-offline-outline"
+						size={14}
+						color="#f59e0b"
+					/>
 					<Text className="text-xs font-medium text-warning">
 						You&apos;re offline
 						{pendingCount > 0
@@ -32,7 +36,11 @@ export function OfflineBanner({
 				</>
 			) : isSyncing ? (
 				<>
-					<Ionicons name="sync-outline" size={14} color="#7c3aed" />
+					<Ionicons
+						name="sync-outline"
+						size={14}
+						color="#7c3aed"
+					/>
 					<Text className="text-xs font-medium text-primary">
 						Syncing {pendingCount} action{pendingCount > 1 ? 's' : ''}...
 					</Text>

@@ -23,7 +23,11 @@ export function HeaderBar({title, showBack, onBack, right}: HeaderBarProps) {
 					className="mr-3 p-1 -ml-1"
 					hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
 				>
-					<Ionicons name="arrow-back" size={dp(22)} color={iconColor} />
+					<Ionicons
+						name="arrow-back"
+						size={dp(22)}
+						color={iconColor}
+					/>
 				</TouchableOpacity>
 			)}
 			<Text
