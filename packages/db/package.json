@@ -11,7 +11,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"drizzle-orm": "^0.44.2"
+		"drizzle-orm": "^0.45.2"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20260429.1",

@@ -12,9 +12,9 @@
 	"dependencies": {
 		"@happy-vibecode/db": "workspace:*",
 		"@happy-vibecode/shared": "workspace:*",
-		"drizzle-orm": "^0.44.2",
-		"hono": "^4.12.15",
-		"zod": "^4.3.6"
+		"drizzle-orm": "^0.45.2",
+		"hono": "^4.12.14",
+		"zod": "^4.4.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20260429.1",

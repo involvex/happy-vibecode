@@ -289,7 +289,7 @@ export default function AdminAnalyticsPage() {
 										cx="50%"
 										cy="50%"
 										outerRadius={80}
-										label={({role, count}) => `${role}: ${count}`}
+										label={({payload}) => `${payload.role}: ${payload.count}`}
 										labelLine={false}
 										fontSize={11}
 									>
