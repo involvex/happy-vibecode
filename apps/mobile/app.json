@@ -2,7 +2,7 @@
 	"expo": {
 		"name": "Happy Vibecode",
 		"slug": "happy-vibecode",
-		"version": "0.0.12",
+		"version": "0.0.13",
 		"orientation": "portrait",
 		"icon": "assets/icon512x512.png",
 		"userInterfaceStyle": "automatic",
@@ -28,7 +28,7 @@
 				"backgroundColor": "#0f0f0f"
 			},
 			"icon": "assets/icon512x512.png",
-			"versionCode": 12,
+			"versionCode": 13,
 			"userInterfaceStyle": "automatic",
 			"package": "com.happyvibecode.app",
 			"googleServicesFile": "./google-services.json",
