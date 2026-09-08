@@ -1,3 +1,8 @@
+import {Ionicons} from '@expo/vector-icons'
+import {useRouter} from 'expo-router'
+import * as SecureStore from 'expo-secure-store'
+import {useColorScheme} from 'nativewind'
+import {useCallback, useEffect, useRef, useState} from 'react'
 import {
 	Animated,
 	FlatList,
@@ -10,14 +15,9 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native'
-import {useCallback, useEffect, useRef, useState} from 'react'
-import {usePromptPresets} from '../../hooks/usePromptPresets'
 import {SafeAreaView} from 'react-native-safe-area-context'
-import * as SecureStore from 'expo-secure-store'
 import {useAuth} from '../../hooks/useAuth'
-import {Ionicons} from '@expo/vector-icons'
-import {useColorScheme} from 'nativewind'
-import {useRouter} from 'expo-router'
+import {usePromptPresets} from '../../hooks/usePromptPresets'
 
 const BRIDGE_CODE_KEY = 'happy-bridge-code'
 const MODEL_SETTINGS_KEY = 'happy-model-settings'

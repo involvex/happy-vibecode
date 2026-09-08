@@ -1,7 +1,7 @@
-import {ensureOpencodeServer} from '../utils/opencode-server.js'
 import {createOpencodeClient} from '@opencode-ai/sdk'
-import {debug} from '../utils/log.js'
 import {Command} from 'commander'
+import {debug} from '../utils/log.js'
+import {ensureOpencodeServer} from '../utils/opencode-server.js'
 
 export const providersCommand = new Command('providers')
 	.description('List available providers and models from the opencode server')

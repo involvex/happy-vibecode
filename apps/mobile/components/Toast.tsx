@@ -1,6 +1,6 @@
+import {Ionicons} from '@expo/vector-icons'
 import {useCallback, useEffect, useRef, useState} from 'react'
 import {Animated, Text, View} from 'react-native'
-import {Ionicons} from '@expo/vector-icons'
 import {dp} from '../lib/scale'
 
 type ToastVariant = 'success' | 'error' | 'info'

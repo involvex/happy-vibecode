@@ -1,10 +1,10 @@
 'use client'
-import {useAuth} from '../../hooks/useAuth'
-import {useRouter} from 'next/navigation'
-import {Nav} from '../../components/Nav'
 import {Button} from '@cloudflare/kumo'
-import {useState} from 'react'
 import Link from 'next/link'
+import {useRouter} from 'next/navigation'
+import {useState} from 'react'
+import {Nav} from '../../components/Nav'
+import {useAuth} from '../../hooks/useAuth'
 
 export default function NewTemplatePage() {
 	const {apiToken, logout} = useAuth()

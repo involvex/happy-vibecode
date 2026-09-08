@@ -1,3 +1,6 @@
+import {Ionicons} from '@expo/vector-icons'
+import {useRouter} from 'expo-router'
+import {useCallback, useEffect, useState} from 'react'
 import {
 	ActivityIndicator,
 	FlatList,
@@ -8,10 +11,7 @@ import {
 	View,
 } from 'react-native'
 import {SafeAreaView} from 'react-native-safe-area-context'
-import {useCallback, useEffect, useState} from 'react'
 import {useAuth} from '../../hooks/useAuth'
-import {Ionicons} from '@expo/vector-icons'
-import {useRouter} from 'expo-router'
 
 interface Session {
 	id: string

@@ -1,8 +1,8 @@
 'use client'
 import {
 	CheckCircleIcon,
-	XCircleIcon,
 	InfoIcon,
+	XCircleIcon,
 	XIcon,
 } from '@phosphor-icons/react'
 import {useEffect, useState} from 'react'

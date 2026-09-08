@@ -1,10 +1,10 @@
 import {DEFAULT_AGENTS} from '../utils/agents-config.js'
 // import type {AgentsConfig} from '../types/llm-provider.js'
-import {existsSync, mkdirSync, writeFileSync} from 'fs'
-import {readConfig} from '../config.js'
 import {Command} from 'commander'
+import {existsSync, mkdirSync, writeFileSync} from 'fs'
 import {homedir} from 'os'
 import {join} from 'path'
+import {readConfig} from '../config.js'
 const HAPPY_DIR = join(homedir(), '.happy')
 const AGENTS_FILE = join(HAPPY_DIR, 'agents.json')
 

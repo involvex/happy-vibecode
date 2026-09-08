@@ -1,10 +1,10 @@
-import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
-import {createDb, authAccount, users} from '@happy-vibecode/db'
+import {authAccount, createDb} from '@happy-vibecode/db'
 import {createLinkedRepoSchema} from '@happy-vibecode/shared'
-import {RepoIndexer} from '../services/repo-indexer.js'
-import {GitHubService} from '../services/github.js'
-import {eq, and} from 'drizzle-orm'
+import {and, eq} from 'drizzle-orm'
 import {Hono} from 'hono'
+import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
+import {GitHubService} from '../services/github.js'
+import {RepoIndexer} from '../services/repo-indexer.js'
 
 export const reposRouter = new Hono<{
 	Bindings: ApiEnv

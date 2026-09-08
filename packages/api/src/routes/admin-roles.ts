@@ -1,13 +1,13 @@
+import {createDb} from '@happy-vibecode/db'
 import {
+	bulkAssignRoleSchema,
 	createRoleSchema,
 	updateRoleSchema,
-	bulkAssignRoleSchema,
 } from '@happy-vibecode/shared/schema/admin'
-import {adminMiddleware, type ApiEnv} from '../middleware/admin.js'
-import {logAuditEvent} from '../lib/audit.js'
-import {createDb} from '@happy-vibecode/db'
-import {count, desc, eq} from 'drizzle-orm'
+import {count, eq} from 'drizzle-orm'
 import {Hono} from 'hono'
+import {logAuditEvent} from '../lib/audit.js'
+import {adminMiddleware, type ApiEnv} from '../middleware/admin.js'
 
 export const adminRolesRouter = new Hono<{
 	Bindings: ApiEnv

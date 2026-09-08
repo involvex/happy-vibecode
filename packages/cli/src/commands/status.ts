@@ -1,6 +1,6 @@
-import {debug, debugTime} from '../utils/log.js'
-import {requireConfig} from '../config.js'
 import {Command} from 'commander'
+import {requireConfig} from '../config.js'
+import {debug, debugTime} from '../utils/log.js'
 
 interface HealthResponse {
 	status: string

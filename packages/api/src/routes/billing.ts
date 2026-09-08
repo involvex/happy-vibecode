@@ -1,16 +1,11 @@
-import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
-import {mapUserSubscription} from '../utils/subscription.js'
 import {createDb} from '@happy-vibecode/db'
 import {eq} from 'drizzle-orm'
 import {Hono} from 'hono'
+import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
+import {mapUserSubscription} from '../utils/subscription.js'
 
 type StripeSubscriptionStatus =
-	| 'inactive'
-	| 'trialing'
-	| 'active'
-	| 'past_due'
-	| 'canceled'
-	| 'unpaid'
+	'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid'
 
 type StripeEvent = {
 	type: string

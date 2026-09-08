@@ -1,6 +1,6 @@
-import {debug, debugTime} from '../utils/log.js'
-import {readConfig} from '../config.js'
 import {Command} from 'commander'
+import {readConfig} from '../config.js'
+import {debug, debugTime} from '../utils/log.js'
 
 interface VerifyResponse {
 	userId: string

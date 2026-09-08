@@ -1,15 +1,15 @@
 'use client'
 import {
+	ChartLineUpIcon,
+	CircleIcon,
+	ClockCounterClockwiseIcon,
+	DevicesIcon,
 	UsersIcon,
 	WifiHighIcon,
-	DevicesIcon,
-	ChartLineUpIcon,
-	ClockCounterClockwiseIcon,
-	CircleIcon,
 } from '@phosphor-icons/react'
+import {useEffect, useState} from 'react'
 import {SkeletonCards} from '../components/LoadingSkeletons'
 import {StatCard} from '../components/StatCard'
-import {useEffect, useState} from 'react'
 import {useAuth} from '../hooks/useAuth'
 
 interface OverviewData {

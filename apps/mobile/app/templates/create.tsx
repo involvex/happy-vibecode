@@ -1,18 +1,18 @@
+import {Ionicons} from '@expo/vector-icons'
+import {useRouter} from 'expo-router'
 import {
 	Alert,
 	KeyboardAvoidingView,
 	Platform,
 	ScrollView,
-	View,
 	Text,
 	TouchableOpacity,
+	View,
 } from 'react-native'
 import {SafeAreaView} from 'react-native-safe-area-context'
 import {TemplateForm} from '../../components/TemplateForm'
-import {useTemplates} from '../../hooks/useTemplates'
 import {useAuth} from '../../hooks/useAuth'
-import {Ionicons} from '@expo/vector-icons'
-import {useRouter} from 'expo-router'
+import {useTemplates} from '../../hooks/useTemplates'
 
 export default function CreateTemplateScreen() {
 	const {apiToken, serverUrl} = useAuth()

@@ -1,31 +1,31 @@
 'use client'
+import {Button, Link, Text} from '@cloudflare/kumo'
+import {providerCapabilities} from '@happy-vibecode/shared'
+import {zodResolver} from '@hookform/resolvers/zod'
 import {
 	CircleIcon,
 	CopyIcon,
+	EnvelopeSimpleIcon,
 	EyeIcon,
 	EyeSlashIcon,
+	GearIcon,
+	GitBranchIcon,
 	KeyIcon,
 	LockIcon,
-	ShieldCheckIcon,
-	TrashIcon,
-	EnvelopeSimpleIcon,
-	GitBranchIcon,
 	PlusIcon,
+	ShieldCheckIcon,
 	SpinnerIcon,
-	GearIcon,
+	TrashIcon,
 } from '@phosphor-icons/react'
-import {WorkspaceSelector} from '../components/WorkspaceSelector'
-import {providerCapabilities} from '@happy-vibecode/shared'
-import {useWorkspaces} from '../hooks/useWorkspaces'
-import {zodResolver} from '@hookform/resolvers/zod'
-import {Button, Link, Text} from '@cloudflare/kumo'
-import {secureStorage} from '../../lib/storage'
 import {useRouter} from 'next/navigation'
 import {useEffect, useState} from 'react'
-import {useAuth} from '../hooks/useAuth'
 import {useForm} from 'react-hook-form'
-import {Nav} from '../components/Nav'
 import {z} from 'zod'
+import {secureStorage} from '../../lib/storage'
+import {Nav} from '../components/Nav'
+import {WorkspaceSelector} from '../components/WorkspaceSelector'
+import {useAuth} from '../hooks/useAuth'
+import {useWorkspaces} from '../hooks/useWorkspaces'
 
 const linkEmailSchema = z.object({
 	email: z.string().email('Please enter a valid email address'),

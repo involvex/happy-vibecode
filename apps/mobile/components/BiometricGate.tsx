@@ -1,5 +1,5 @@
-import {View, Text, ActivityIndicator} from 'react-native'
 import {useCallback, useEffect, useState} from 'react'
+import {ActivityIndicator, Text, View} from 'react-native'
 import {useBiometric} from '../hooks/useBiometric'
 
 interface BiometricGateProps {

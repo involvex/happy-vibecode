@@ -1,13 +1,13 @@
+import {Command} from 'commander'
+import {existsSync} from 'fs'
 import {
 	addWorkspace,
 	listWorkspaces,
+	loadWorkspaces,
 	removeWorkspace,
 	setActiveWorkspace,
 	updateWorkspace,
 } from '../config/workspace.js'
-import {loadWorkspaces} from '../config/workspace.js'
-import {Command} from 'commander'
-import {existsSync} from 'fs'
 
 const workspaceCommand = new Command('workspace').description(
 	'Manage workspace directories',

@@ -1,3 +1,6 @@
+import {Ionicons} from '@expo/vector-icons'
+import {useRouter} from 'expo-router'
+import {useState} from 'react'
 import {
 	Alert,
 	FlatList,
@@ -8,11 +11,8 @@ import {
 	View,
 } from 'react-native'
 import {SafeAreaView} from 'react-native-safe-area-context'
-import {useTemplates} from '../../hooks/useTemplates'
 import {useAuth} from '../../hooks/useAuth'
-import {Ionicons} from '@expo/vector-icons'
-import {useRouter} from 'expo-router'
-import {useState} from 'react'
+import {useTemplates} from '../../hooks/useTemplates'
 
 export default function TemplatesScreen() {
 	const {apiToken, serverUrl} = useAuth()

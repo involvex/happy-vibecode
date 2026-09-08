@@ -1,10 +1,10 @@
 'use client'
-import {useRouter, useSearchParams} from 'next/navigation'
 import {CircleIcon} from '@phosphor-icons/react'
-import {useAuth} from '../hooks/useAuth'
-import {Nav} from '../components/Nav'
 import dynamic from 'next/dynamic'
+import {useRouter, useSearchParams} from 'next/navigation'
 import {useEffect} from 'react'
+import {Nav} from '../components/Nav'
+import {useAuth} from '../hooks/useAuth'
 
 const ChatComponent = dynamic(() => import('./Chat'), {ssr: false})
 

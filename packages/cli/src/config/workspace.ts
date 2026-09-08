@@ -1,7 +1,7 @@
-import type {WorkspaceConfig, AgentsConfig} from '../types/llm-provider.js'
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'fs'
 import {homedir} from 'os'
 import {join} from 'path'
+import type {AgentsConfig, WorkspaceConfig} from '../types/llm-provider.js'
 
 const HAPPY_DIR = join(homedir(), '.happy')
 const AGENTS_FILE = join(HAPPY_DIR, 'agents.json')

@@ -1,19 +1,19 @@
 'use client'
+import {Button} from '@cloudflare/kumo'
 import {
 	MagnifyingGlassIcon,
-	PlusIcon,
-	PencilIcon,
-	TrashIcon,
 	PauseIcon,
+	PencilIcon,
 	PlayIcon,
+	PlusIcon,
+	TrashIcon,
 } from '@phosphor-icons/react'
-import {ToastContainer, useToasts} from '../../components/Toast'
+import {useEffect, useState} from 'react'
 import {ConfirmModal} from '../../components/ConfirmModal'
+import {ToastContainer, useToasts} from '../../components/Toast'
+import {useAuth} from '../../hooks/useAuth'
 import {DataTable} from '../components/DataTable'
 import {UserForm} from '../components/UserForm'
-import {useAuth} from '../../hooks/useAuth'
-import {useEffect, useState} from 'react'
-import {Button} from '@cloudflare/kumo'
 
 interface UserRow {
 	id: string

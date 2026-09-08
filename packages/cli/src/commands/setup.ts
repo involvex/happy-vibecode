@@ -1,15 +1,15 @@
+import * as clack from '@clack/prompts'
+import {Command} from 'commander'
+import {execSync, spawnSync} from 'node:child_process'
+import {existsSync, readFileSync, writeFileSync} from 'node:fs'
+import {homedir} from 'node:os'
+import {join, resolve} from 'node:path'
+import {envFileToString} from '../utils/env-validator.js'
 import {
 	detectPrereqs,
 	getInstallHint,
 	getPrereqSummary,
 } from '../utils/prereqs.js'
-import {existsSync, readFileSync, writeFileSync} from 'node:fs'
-import {envFileToString} from '../utils/env-validator.js'
-import {execSync, spawnSync} from 'node:child_process'
-import * as clack from '@clack/prompts'
-import {join, resolve} from 'node:path'
-import {Command} from 'commander'
-import {homedir} from 'node:os'
 
 const REPO_ROOT = resolve(import.meta.dirname, '../../../../')
 const WRANGLER_CONFIG = join(REPO_ROOT, 'apps', 'web', 'wrangler.jsonc')

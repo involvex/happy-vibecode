@@ -1,7 +1,7 @@
-import {authMiddleware, type ApiEnv} from './auth.js'
-import {createMiddleware} from 'hono/factory'
 import {createDb} from '@happy-vibecode/db'
 import {sql} from 'drizzle-orm'
+import {createMiddleware} from 'hono/factory'
+import {authMiddleware, type ApiEnv} from './auth.js'
 
 export const adminMiddleware = createMiddleware<{
 	Bindings: ApiEnv

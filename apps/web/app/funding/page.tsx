@@ -1,6 +1,6 @@
 'use client'
-import {HeartIcon, CoffeeIcon, GithubLogoIcon} from '@phosphor-icons/react'
 import {Button} from '@cloudflare/kumo'
+import {CoffeeIcon, GithubLogoIcon, HeartIcon} from '@phosphor-icons/react'
 import Image from 'next/image'
 import Link from 'next/link'
 

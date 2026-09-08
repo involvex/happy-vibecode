@@ -31,12 +31,7 @@ This plan addresses comprehensive enhancements to support multiple LLM providers
 
 ```typescript
 export type LLMProvider =
-	| 'gemini'
-	| 'claude'
-	| 'codex'
-	| 'opencode-ai'
-	| 'copilot'
-	| 'custom'
+	'gemini' | 'claude' | 'codex' | 'opencode-ai' | 'copilot' | 'custom'
 
 export interface LLMProviderConfig {
 	id: LLMProvider | string

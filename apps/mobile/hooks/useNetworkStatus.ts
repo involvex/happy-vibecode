@@ -1,5 +1,5 @@
-import {useCallback, useEffect, useState} from 'react'
 import * as Network from 'expo-network'
+import {useCallback, useEffect, useState} from 'react'
 
 export interface NetworkStatus {
 	isConnected: boolean

@@ -1,5 +1,5 @@
-import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
 import {Hono} from 'hono'
+import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
 
 export const bridgeRouter = new Hono<{
 	Bindings: ApiEnv

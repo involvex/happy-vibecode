@@ -1,18 +1,18 @@
 'use client'
+import {Button} from '@cloudflare/kumo'
 import {
+	PencilIcon,
 	// CircleIcon,
 	PlusIcon,
-	PencilIcon,
-	TrashIcon,
 	ShieldCheckIcon,
+	TrashIcon,
 	UsersIcon,
 } from '@phosphor-icons/react'
-import {ToastContainer, useToasts} from '../../components/Toast'
-import {ConfirmModal} from '../../components/ConfirmModal'
-import {RoleForm} from '../components/RoleForm'
-import {useAuth} from '../../hooks/useAuth'
 import {useEffect, useState} from 'react'
-import {Button} from '@cloudflare/kumo'
+import {ConfirmModal} from '../../components/ConfirmModal'
+import {ToastContainer, useToasts} from '../../components/Toast'
+import {useAuth} from '../../hooks/useAuth'
+import {RoleForm} from '../components/RoleForm'
 
 interface RoleRow {
 	id: string

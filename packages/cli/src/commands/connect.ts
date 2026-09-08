@@ -1,24 +1,24 @@
+import {Command} from 'commander'
+import {existsSync, readFileSync} from 'fs'
+import ora from 'ora'
+import {homedir} from 'os'
+import {join} from 'path'
+import WebSocket from 'ws'
+import {OpencodeBridgeAdapter} from '../bridge/opencode-adapter.js'
+import {SubprocessAdapter} from '../bridge/subprocess-adapter.js'
+import {generateBridgeCode, requireConfig, writeConfig} from '../config.js'
+import {PtyManager} from '../services/pty-manager.js'
 import type {
 	AgentDefinition,
 	AgentsConfig,
 	WorkspaceConfig,
 } from '../types/llm-provider.js'
+import {DEFAULT_AGENTS} from '../utils/agents-config.js'
+import {debug, debugTime} from '../utils/log.js'
 import {
 	ensureOpencodeServer,
 	type OpencodeServerInfo,
 } from '../utils/opencode-server.js'
-import {requireConfig, writeConfig, generateBridgeCode} from '../config.js'
-import {OpencodeBridgeAdapter} from '../bridge/opencode-adapter.js'
-import {SubprocessAdapter} from '../bridge/subprocess-adapter.js'
-import {DEFAULT_AGENTS} from '../utils/agents-config.js'
-import {PtyManager} from '../services/pty-manager.js'
-import {debug, debugTime} from '../utils/log.js'
-import {existsSync, readFileSync} from 'fs'
-import {Command} from 'commander'
-import WebSocket from 'ws'
-import {homedir} from 'os'
-import {join} from 'path'
-import ora from 'ora'
 
 interface WsPrompt {
 	type: 'prompt'

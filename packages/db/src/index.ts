@@ -7,5 +7,5 @@ export function createDb(d1: D1Database) {
 	return drizzle(d1, {schema})
 }
 
-export {schema}
 export * from './schema.js'
+export {schema}

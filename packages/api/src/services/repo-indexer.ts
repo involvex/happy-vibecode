@@ -1,6 +1,6 @@
 import {createDb, linkedRepos, repoFiles} from '@happy-vibecode/db'
-import {GitHubService, type GitHubEnv} from './github.js'
 import {eq, sql} from 'drizzle-orm'
+import {GitHubService, type GitHubEnv} from './github.js'
 
 export interface RepoIndexerEnv extends GitHubEnv {}
 

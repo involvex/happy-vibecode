@@ -1,14 +1,14 @@
-import {discoverAgents} from '../services/agent-discovery.js'
-import {isOpencodeRunning} from '../utils/opencode-server.js'
-import type {AgentsConfig} from '../types/llm-provider.js'
-import {existsSync, readFileSync, writeFileSync} from 'fs'
-import {DEFAULT_AGENTS} from '../utils/agents-config.js'
-import {detectPrereqs} from '../utils/prereqs.js'
-import {readConfig} from '../config.js'
 import {execSync} from 'child_process'
 import {Command} from 'commander'
+import {existsSync, readFileSync, writeFileSync} from 'fs'
 import {homedir} from 'os'
 import {join} from 'path'
+import {readConfig} from '../config.js'
+import {discoverAgents} from '../services/agent-discovery.js'
+import type {AgentsConfig} from '../types/llm-provider.js'
+import {DEFAULT_AGENTS} from '../utils/agents-config.js'
+import {isOpencodeRunning} from '../utils/opencode-server.js'
+import {detectPrereqs} from '../utils/prereqs.js'
 
 const HAPPY_DIR = join(homedir(), '.happy')
 const AGENTS_FILE = join(HAPPY_DIR, 'agents.json')

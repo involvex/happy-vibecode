@@ -1,5 +1,5 @@
-import {readConfig} from '../config.js'
 import {Command} from 'commander'
+import {readConfig} from '../config.js'
 
 type ExportFormat = 'markdown' | 'json' | 'html'
 

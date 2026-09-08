@@ -1,16 +1,16 @@
 'use client'
+import {Button, Empty, Text} from '@cloudflare/kumo'
 import {
+	ArrowSquareOutIcon,
 	ChatCircleDotsIcon,
 	CircleIcon,
 	ClockIcon,
-	ArrowSquareOutIcon,
 	MagnifyingGlassIcon,
 } from '@phosphor-icons/react'
-import {Text, Button, Empty} from '@cloudflare/kumo'
 import {useRouter} from 'next/navigation'
 import {useEffect, useState} from 'react'
-import {useAuth} from '../hooks/useAuth'
 import {Nav} from '../components/Nav'
+import {useAuth} from '../hooks/useAuth'
 
 interface Message {
 	id: string

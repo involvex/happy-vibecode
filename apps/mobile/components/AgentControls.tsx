@@ -1,3 +1,5 @@
+import {Ionicons} from '@expo/vector-icons'
+import {useState} from 'react'
 import {
 	Alert,
 	ScrollView,
@@ -6,8 +8,6 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native'
-import {Ionicons} from '@expo/vector-icons'
-import {useState} from 'react'
 
 interface AgentControlsProps {
 	connected: boolean

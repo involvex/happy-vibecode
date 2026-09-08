@@ -1,20 +1,20 @@
 'use client'
 import {
+	CaretLeftIcon,
+	CaretRightIcon,
 	ChartBarIcon,
+	ClockCounterClockwiseIcon,
+	HouseIcon,
+	ListIcon,
 	RobotIcon,
 	ShieldCheckIcon,
 	UsersIcon,
-	ClockCounterClockwiseIcon,
 	UsersThreeIcon,
-	ListIcon,
 	XIcon,
-	CaretLeftIcon,
-	CaretRightIcon,
-	HouseIcon,
 } from '@phosphor-icons/react'
-import {usePathname} from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import {usePathname} from 'next/navigation'
 
 interface SidebarItem {
 	href: string

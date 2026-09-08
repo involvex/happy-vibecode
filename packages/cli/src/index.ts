@@ -1,19 +1,19 @@
 #!/usr/bin/env bun
-import {workspaceCommand} from './commands/workspace.js'
-import {providersCommand} from './commands/providers.js'
-import pkg from '../package.json' with {type: 'json'}
-import {connectCommand} from './commands/connect.js'
-import {whoamiCommand} from './commands/whoami.js'
-import {statusCommand} from './commands/status.js'
-import {exportCommand} from './commands/export.js'
-import {doctorCommand} from './commands/doctor.js'
-import {configCommand} from './commands/config.js'
-import {setupCommand} from './commands/setup.js'
-import {serveCommand} from './commands/serve.js'
-import {loginCommand} from './commands/login.js'
-import {initCommand} from './commands/init.js'
-import {setDebug} from './utils/log.js'
 import {program} from 'commander'
+import pkg from '../package.json' with {type: 'json'}
+import {configCommand} from './commands/config.js'
+import {connectCommand} from './commands/connect.js'
+import {doctorCommand} from './commands/doctor.js'
+import {exportCommand} from './commands/export.js'
+import {initCommand} from './commands/init.js'
+import {loginCommand} from './commands/login.js'
+import {providersCommand} from './commands/providers.js'
+import {serveCommand} from './commands/serve.js'
+import {setupCommand} from './commands/setup.js'
+import {statusCommand} from './commands/status.js'
+import {whoamiCommand} from './commands/whoami.js'
+import {workspaceCommand} from './commands/workspace.js'
+import {setDebug} from './utils/log.js'
 
 program
 	.name('happy')

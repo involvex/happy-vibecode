@@ -1,8 +1,8 @@
-import {useCallback, useEffect, useRef, useState} from 'react'
+import * as Device from 'expo-device'
 import * as Notifications from 'expo-notifications'
 import * as SecureStore from 'expo-secure-store'
+import {useCallback, useEffect, useRef, useState} from 'react'
 import {Platform} from 'react-native'
-import * as Device from 'expo-device'
 
 Notifications.setNotificationHandler({
 	handleNotification: async () => ({

@@ -1,9 +1,8 @@
-import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
-import {agents as agentsTable} from '@happy-vibecode/db'
-import {createDb} from '@happy-vibecode/db'
-import {eq, or, isNull} from 'drizzle-orm'
+import {agents as agentsTable, createDb} from '@happy-vibecode/db'
+import {eq, isNull, or} from 'drizzle-orm'
 import {Hono} from 'hono'
 import {z} from 'zod'
+import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
 
 const createAgentSchema = z.object({
 	name: z.string().min(1),

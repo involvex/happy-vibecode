@@ -1,5 +1,5 @@
-import {useCallback, useEffect, useState} from 'react'
 import * as SecureStore from 'expo-secure-store'
+import {useCallback, useEffect, useState} from 'react'
 import {authClient} from '../lib/auth-client'
 
 const KEYS = {

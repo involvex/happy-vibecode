@@ -1,9 +1,8 @@
-import {execSync} from 'child_process'
-import {debug} from '../utils/log.js'
-import {spawn} from 'child_process'
-import {existsSync} from 'node:fs'
+import {execSync, spawn} from 'child_process'
 import crypto from 'node:crypto'
+import {existsSync} from 'node:fs'
 import os from 'node:os'
+import {debug} from '../utils/log.js'
 
 export interface PromptResponse {
 	text: string

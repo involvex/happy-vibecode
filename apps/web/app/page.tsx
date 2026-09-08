@@ -1,4 +1,5 @@
 'use client'
+import {Button} from '@cloudflare/kumo'
 import {
 	ChatCircleDotsIcon,
 	CircleIcon,
@@ -6,11 +7,10 @@ import {
 	TerminalWindowIcon,
 	WifiHighIcon,
 } from '@phosphor-icons/react'
-import {useEffect, useState} from 'react'
-import {Button} from '@cloudflare/kumo'
-import {useAuth} from './hooks/useAuth'
 import Image from 'next/image'
 import Link from 'next/link'
+import {useEffect, useState} from 'react'
+import {useAuth} from './hooks/useAuth'
 // import '../public/icon.svg' with {as: 'svg'}
 
 interface Feature {

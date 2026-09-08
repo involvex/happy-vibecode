@@ -1,9 +1,9 @@
 'use client'
 import {
-	CaretLeftIcon,
-	CaretRightIcon,
 	CaretDoubleLeftIcon,
 	CaretDoubleRightIcon,
+	CaretLeftIcon,
+	CaretRightIcon,
 } from '@phosphor-icons/react'
 
 interface DataTableColumn<T> {

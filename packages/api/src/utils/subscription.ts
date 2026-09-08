@@ -3,12 +3,7 @@ import type {SubscriptionStatus, UserSubscription} from '@happy-vibecode/shared'
 type UserSubscriptionFields = {
 	planTier: 'free' | 'pro'
 	subscriptionStatus:
-		| 'inactive'
-		| 'trialing'
-		| 'active'
-		| 'past_due'
-		| 'canceled'
-		| 'unpaid'
+		'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid'
 	stripeCustomerId: string | null
 	stripeSubscriptionId: string | null
 	stripePriceId: string | null

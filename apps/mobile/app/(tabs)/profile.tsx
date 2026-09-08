@@ -1,3 +1,6 @@
+import {Ionicons} from '@expo/vector-icons'
+import {useColorScheme} from 'nativewind'
+import {useCallback, useEffect, useState} from 'react'
 import {
 	Alert,
 	KeyboardAvoidingView,
@@ -11,10 +14,7 @@ import {
 	View,
 } from 'react-native'
 import {SafeAreaView} from 'react-native-safe-area-context'
-import {useCallback, useEffect, useState} from 'react'
 import {useAuth} from '../../hooks/useAuth'
-import {Ionicons} from '@expo/vector-icons'
-import {useColorScheme} from 'nativewind'
 
 const LANGUAGES = [
 	{code: 'en', label: 'English'},
@@ -31,12 +31,7 @@ type Theme = (typeof THEMES)[number]
 interface UserSubscription {
 	planTier: 'free' | 'pro'
 	status:
-		| 'inactive'
-		| 'trialing'
-		| 'active'
-		| 'past_due'
-		| 'canceled'
-		| 'unpaid'
+		'inactive' | 'trialing' | 'active' | 'past_due' | 'canceled' | 'unpaid'
 	stripeCustomerId: string | null
 	stripeSubscriptionId: string | null
 	stripePriceId: string | null

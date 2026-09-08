@@ -1,7 +1,7 @@
-import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
 import {createDb} from '@happy-vibecode/db'
 import {eq} from 'drizzle-orm'
 import {Hono} from 'hono'
+import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
 
 export const sessionsRouter = new Hono<{
 	Bindings: ApiEnv

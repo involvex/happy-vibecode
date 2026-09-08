@@ -1,14 +1,14 @@
-import {
-	readConfig,
-	writeConfig,
-	DEFAULT_SERVER_URL,
-	type HappyConfig,
-} from '../config.js'
 import {Command} from 'commander'
 import {existsSync} from 'fs'
+import fs from 'node:fs'
 import {homedir} from 'os'
 import {join} from 'path'
-import fs from 'node:fs'
+import {
+	DEFAULT_SERVER_URL,
+	readConfig,
+	writeConfig,
+	type HappyConfig,
+} from '../config.js'
 
 const configCommand = new Command('config').description(
 	'Manage Happy Vibecode configuration',

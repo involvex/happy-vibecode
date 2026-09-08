@@ -15,7 +15,7 @@
 	},
 	"dependencies": {
 		"@better-auth/expo": "^1.6.9",
-		"@cloudflare/kumo": "^1.19.0",
+		"@cloudflare/kumo": "^2.13.2",
 		"@happy-vibecode/api": "workspace:*",
 		"@happy-vibecode/db": "workspace:*",
 		"@happy-vibecode/shared": "workspace:*",
@@ -24,7 +24,7 @@
 		"@vitejs/plugin-rsc": "^0.5.24",
 		"better-auth": "^1.6.9",
 		"drizzle-orm": "0.44.7",
-		"hono": "^4.12.12",
+		"hono": "^4.13.7",
 		"next": "16.2.4",
 		"react": "19.2.5",
 		"react-dom": "19.2.5",
@@ -34,7 +34,7 @@
 		"zod": "^4.4.0"
 	},
 	"devDependencies": {
-		"@cloudflare/vite-plugin": "^1.34.0",
+		"@cloudflare/vite-plugin": "^1.54.6",
 		"@tailwindcss/postcss": "^4.2.4",
 		"@types/node": "^25.6.0",
 		"@types/react": "^19",
@@ -46,7 +46,7 @@
 		"vinext": "^0.0.45",
 		"vite": "^8.0.10",
 		"vite-plugin-devtools-json": "^1.0.0",
-		"wrangler": "^4.86.0"
+		"wrangler": "^4.130.0"
 	},
 	"trustedDependencies": [
 		"core-js-pure"

@@ -1,5 +1,5 @@
-import type {ApiEnv} from '../middleware/auth.js'
 import {Hono} from 'hono'
+import type {ApiEnv} from '../middleware/auth.js'
 
 interface ModelEntry {
 	id: string
@@ -55,8 +55,7 @@ modelsRouter.get('/kilo', async c => {
 		})
 		if (!res.ok) throw new Error(`HTTP ${res.status}`)
 		const raw = (await res.json()) as
-			| {data?: ModelEntry[]; models?: ModelEntry[]}
-			| ModelEntry[]
+			{data?: ModelEntry[]; models?: ModelEntry[]} | ModelEntry[]
 		const models: ModelEntry[] = Array.isArray(raw)
 			? raw
 			: ((raw as {data?: ModelEntry[]}).data ??

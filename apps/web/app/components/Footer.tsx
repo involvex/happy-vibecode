@@ -1,7 +1,7 @@
 'use client'
 import {BookOpenIcon, PaypalLogoIcon} from '@phosphor-icons/react'
-import {usePathname} from 'next/navigation'
 import Link from 'next/link'
+import {usePathname} from 'next/navigation'
 
 export default function Footer() {
 	const pathname = usePathname()

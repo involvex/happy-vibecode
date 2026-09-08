@@ -1,10 +1,10 @@
+import {Command} from 'commander'
+import ora from 'ora'
+import {debug} from '../utils/log.js'
 import {
 	ensureOpencodeServer,
 	isOpencodeRunning,
 } from '../utils/opencode-server.js'
-import {debug} from '../utils/log.js'
-import {Command} from 'commander'
-import ora from 'ora'
 
 export const serveCommand = new Command('serve')
 	.description('Start the opencode server backend (required for vibe connect)')

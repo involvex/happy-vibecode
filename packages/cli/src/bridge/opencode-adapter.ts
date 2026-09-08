@@ -1,6 +1,6 @@
-import {debug} from '../utils/log.js'
 import {spawn} from 'child_process'
 import crypto from 'node:crypto'
+import {debug} from '../utils/log.js'
 
 export interface PromptResponse {
 	text: string

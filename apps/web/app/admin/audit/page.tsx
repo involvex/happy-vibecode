@@ -1,8 +1,8 @@
 'use client'
 import {MagnifyingGlassIcon} from '@phosphor-icons/react'
-import {DataTable} from '../components/DataTable'
-import {useAuth} from '../../hooks/useAuth'
 import {useEffect, useState} from 'react'
+import {useAuth} from '../../hooks/useAuth'
+import {DataTable} from '../components/DataTable'
 
 interface AuditEntry {
 	id: string

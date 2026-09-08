@@ -67,8 +67,7 @@ export function useOpencodeClient(
 				clearTimeout(timer)
 				if (!res.ok) return []
 				const data = (await res.json()) as
-					| {sessions?: OpencodeSession[]}
-					| OpencodeSession[]
+					{sessions?: OpencodeSession[]} | OpencodeSession[]
 				if (Array.isArray(data)) return data
 				return data.sessions ?? []
 			} catch {

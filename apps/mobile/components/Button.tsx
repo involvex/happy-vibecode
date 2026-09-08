@@ -1,3 +1,4 @@
+import {Ionicons} from '@expo/vector-icons'
 import {
 	ActivityIndicator,
 	Text,
@@ -5,7 +6,6 @@ import {
 	View,
 	type TouchableOpacityProps,
 } from 'react-native'
-import {Ionicons} from '@expo/vector-icons'
 import {dp} from '../lib/scale'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost'

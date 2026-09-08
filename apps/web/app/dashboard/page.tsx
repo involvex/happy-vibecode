@@ -1,18 +1,18 @@
 'use client'
+import {Button, Text} from '@cloudflare/kumo'
 import {
 	ArrowClockwiseIcon,
-	CircleIcon,
 	ChatCircleDotsIcon,
+	CircleIcon,
 	ClockIcon,
 	DevicesIcon,
 	WifiHighIcon,
 } from '@phosphor-icons/react'
-import {useCallback, useEffect, useState} from 'react'
-import {Button, Text} from '@cloudflare/kumo'
-import {useRouter} from 'next/navigation'
-import {useAuth} from '../hooks/useAuth'
-import {Nav} from '../components/Nav'
 import Link from 'next/link'
+import {useRouter} from 'next/navigation'
+import {useCallback, useEffect, useState} from 'react'
+import {Nav} from '../components/Nav'
+import {useAuth} from '../hooks/useAuth'
 
 interface Session {
 	id: string

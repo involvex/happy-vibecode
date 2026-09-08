@@ -1,3 +1,7 @@
+import {Ionicons} from '@expo/vector-icons'
+import {useLocalSearchParams, useRouter} from 'expo-router'
+import * as SecureStore from 'expo-secure-store'
+import {useEffect, useRef, useState} from 'react'
 import {
 	FlatList,
 	KeyboardAvoidingView,
@@ -6,14 +10,10 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native'
-import {useOpencodeClient} from '../../hooks/useOpencodeClient'
-import {AgentControls} from '../../components/AgentControls'
 import {SafeAreaView} from 'react-native-safe-area-context'
-import {useLocalSearchParams, useRouter} from 'expo-router'
-import {useEffect, useRef, useState} from 'react'
-import * as SecureStore from 'expo-secure-store'
+import {AgentControls} from '../../components/AgentControls'
 import {useAuth} from '../../hooks/useAuth'
-import {Ionicons} from '@expo/vector-icons'
+import {useOpencodeClient} from '../../hooks/useOpencodeClient'
 
 const BRIDGE_CODE_KEY = 'happy-bridge-code'
 

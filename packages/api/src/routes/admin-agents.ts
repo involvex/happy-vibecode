@@ -1,9 +1,8 @@
-import {adminMiddleware, type ApiEnv} from '../middleware/admin.js'
-import {agents as agentsTable} from '@happy-vibecode/db'
-import {createDb} from '@happy-vibecode/db'
+import {agents as agentsTable, createDb} from '@happy-vibecode/db'
 import {eq} from 'drizzle-orm'
 import {Hono} from 'hono'
 import {z} from 'zod'
+import {adminMiddleware, type ApiEnv} from '../middleware/admin.js'
 
 const createAgentSchema = z.object({
 	name: z.string().min(1),

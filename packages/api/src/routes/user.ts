@@ -1,17 +1,17 @@
+import {createDb} from '@happy-vibecode/db'
+import {hashPassword, verifyPassword} from '@happy-vibecode/shared/crypto'
 import {
 	changePasswordSchema,
 	linkEmailSchema,
 	setPasswordSchema,
+	updateProfileSchema,
 	userSchema,
 	userSubscriptionSchema,
-	updateProfileSchema,
 } from '@happy-vibecode/shared/schema/user'
-import {hashPassword, verifyPassword} from '@happy-vibecode/shared/crypto'
-import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
-import {mapUserSubscription} from '../utils/subscription.js'
-import {createDb} from '@happy-vibecode/db'
 import {eq, sql} from 'drizzle-orm'
 import {Hono} from 'hono'
+import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
+import {mapUserSubscription} from '../utils/subscription.js'
 
 export const userRouter = new Hono<{
 	Bindings: ApiEnv

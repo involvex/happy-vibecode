@@ -1,10 +1,10 @@
+import {Ionicons} from '@expo/vector-icons'
+import {useLocalSearchParams, useRouter} from 'expo-router'
+import {useEffect, useState} from 'react'
 import {Alert, ScrollView, Text, TouchableOpacity, View} from 'react-native'
 import {SafeAreaView} from 'react-native-safe-area-context'
-import {useLocalSearchParams, useRouter} from 'expo-router'
-import {useTemplates} from '../../hooks/useTemplates'
 import {useAuth} from '../../hooks/useAuth'
-import {Ionicons} from '@expo/vector-icons'
-import {useEffect, useState} from 'react'
+import {useTemplates} from '../../hooks/useTemplates'
 
 interface AgentTemplate {
 	id: string

@@ -1,6 +1,6 @@
-import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
 import {createDb} from '@happy-vibecode/db'
 import {Hono} from 'hono'
+import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
 
 export const syncRouter = new Hono<{
 	Bindings: ApiEnv

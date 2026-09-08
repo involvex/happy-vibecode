@@ -1,22 +1,22 @@
 'use client'
 import {
-	GearSixIcon,
-	HouseIcon,
 	ChatCircleDotsIcon,
 	ClockIcon,
 	EnvelopeSimpleIcon,
+	FileTextIcon,
+	GearSixIcon,
+	HouseIcon,
+	ListIcon,
+	ShieldCheckIcon,
 	SignOutIcon,
 	UserIcon,
-	ListIcon,
 	XIcon,
-	ShieldCheckIcon,
-	FileTextIcon,
 } from '@phosphor-icons/react'
-import {usePathname} from 'next/navigation'
-import {useAuth} from '../hooks/useAuth'
 import Image from 'next/image'
-import {useState} from 'react'
 import Link from 'next/link'
+import {usePathname} from 'next/navigation'
+import {useState} from 'react'
+import {useAuth} from '../hooks/useAuth'
 
 interface NavItem {
 	href: string

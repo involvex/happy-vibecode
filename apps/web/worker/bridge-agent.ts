@@ -59,12 +59,9 @@ export class BridgeAgent extends DurableObject<Env> {
 		}
 
 		const clientType = (url.searchParams.get('type') ?? 'web') as
-			| 'cli'
-			| 'web'
-			| 'mobile'
+			'cli' | 'web' | 'mobile'
 		const clientMode = (url.searchParams.get('mode') ?? 'chat') as
-			| 'chat'
-			| 'pty'
+			'chat' | 'pty'
 		// Read userId from authenticated header set by the worker
 		// Falls back to query param for backward compatibility
 		const userId =
@@ -570,8 +567,7 @@ export class BridgeAgent extends DurableObject<Env> {
 
 			// Import push service dynamically to avoid circular deps
 			const fcmKey = (this.env as any).FCM_SERVICE_ACCOUNT_KEY as
-				| string
-				| undefined
+				string | undefined
 			const _apnsKey = (this.env as any).APNS_AUTH_KEY as string | undefined
 			const _apnsKeyId = (this.env as any).APNS_KEY_ID as string | undefined
 			const _apnsTeamId = (this.env as any).APNS_TEAM_ID as string | undefined

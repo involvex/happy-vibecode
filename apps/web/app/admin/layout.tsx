@@ -1,9 +1,9 @@
 'use client'
-import {AdminSidebar, AdminMobileMenuButton} from './components/AdminSidebar'
 import {CircleIcon} from '@phosphor-icons/react'
 import {useRouter} from 'next/navigation'
 import {useEffect, useState} from 'react'
 import {useAuth} from '../hooks/useAuth'
+import {AdminMobileMenuButton, AdminSidebar} from './components/AdminSidebar'
 
 export default function AdminLayout({children}: {children: React.ReactNode}) {
 	const {isAuthed, isLoaded, apiToken} = useAuth()

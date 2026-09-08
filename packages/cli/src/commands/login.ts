@@ -1,7 +1,7 @@
+import {Command} from 'commander'
+import {createInterface} from 'readline'
 import {DEFAULT_SERVER_URL, writeConfig} from '../config.js'
 import {debug, debugTime} from '../utils/log.js'
-import {createInterface} from 'readline'
-import {Command} from 'commander'
 
 async function prompt(question: string, hidden = false): Promise<string> {
 	const rl = createInterface({input: process.stdin, output: process.stdout})

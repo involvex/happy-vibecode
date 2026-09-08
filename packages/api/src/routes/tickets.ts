@@ -1,12 +1,12 @@
+import {createDb} from '@happy-vibecode/db'
 import {
 	createTicketSchema,
 	ticketResponseSchema,
 	updateTicketStatusSchema,
 } from '@happy-vibecode/shared/schema/ticket'
-import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
-import {createDb} from '@happy-vibecode/db'
-import {and, desc, eq} from 'drizzle-orm'
+import {desc, eq} from 'drizzle-orm'
 import {Hono} from 'hono'
+import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
 
 export const ticketsRouter = new Hono<{
 	Bindings: ApiEnv

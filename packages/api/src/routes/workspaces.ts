@@ -1,9 +1,8 @@
-import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
-import {workspaces as workspacesTable} from '@happy-vibecode/db'
-import {createDb} from '@happy-vibecode/db'
-import {eq, and} from 'drizzle-orm'
+import {createDb, workspaces as workspacesTable} from '@happy-vibecode/db'
+import {and, eq} from 'drizzle-orm'
 import {Hono} from 'hono'
 import {z} from 'zod'
+import {authMiddleware, type ApiEnv} from '../middleware/auth.js'
 
 const createWorkspaceSchema = z.object({
 	name: z.string().min(1),

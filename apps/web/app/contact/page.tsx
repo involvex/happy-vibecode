@@ -1,20 +1,20 @@
 'use client'
-import {
-	CircleIcon,
-	ChatCircleDotsIcon,
-	ArrowLeftIcon,
-	CheckIcon,
-	XIcon,
-	EnvelopeSimpleIcon,
-} from '@phosphor-icons/react'
-import {useEffect, useRef, useState, useCallback} from 'react'
-import {zodResolver} from '@hookform/resolvers/zod'
 import {Button, Text} from '@cloudflare/kumo'
+import {zodResolver} from '@hookform/resolvers/zod'
+import {
+	ArrowLeftIcon,
+	ChatCircleDotsIcon,
+	CheckIcon,
+	CircleIcon,
+	EnvelopeSimpleIcon,
+	XIcon,
+} from '@phosphor-icons/react'
 import {useRouter} from 'next/navigation'
-import {useAuth} from '../hooks/useAuth'
+import {useCallback, useEffect, useRef, useState} from 'react'
 import {useForm} from 'react-hook-form'
-import {Nav} from '../components/Nav'
 import {z} from 'zod'
+import {Nav} from '../components/Nav'
+import {useAuth} from '../hooks/useAuth'
 
 const TOPICS = [
 	{value: 'bug', label: 'Bug Report'},

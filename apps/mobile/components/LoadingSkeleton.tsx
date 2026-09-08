@@ -1,5 +1,5 @@
-import {Animated, View} from 'react-native'
 import {useEffect, useRef} from 'react'
+import {Animated, View} from 'react-native'
 
 interface LoadingSkeletonProps {
 	width?: number | string

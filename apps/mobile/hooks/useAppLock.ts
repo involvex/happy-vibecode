@@ -1,6 +1,6 @@
+import * as SecureStore from 'expo-secure-store'
 import {useCallback, useEffect, useRef, useState} from 'react'
 import {AppState, type AppStateStatus} from 'react-native'
-import * as SecureStore from 'expo-secure-store'
 import {useBiometric} from './useBiometric'
 
 const BIOMETRIC_ENABLED_KEY = 'happy-biometric-enabled'

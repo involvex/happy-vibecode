@@ -1,3 +1,8 @@
+import {Ionicons} from '@expo/vector-icons'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import {useRouter} from 'expo-router'
+import {useColorScheme} from 'nativewind'
+import {useState} from 'react'
 import {
 	Alert,
 	KeyboardAvoidingView,
@@ -9,19 +14,14 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native'
-import {usePushNotifications} from '../../hooks/usePushNotifications'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import {usePromptPresets} from '../../hooks/usePromptPresets'
 import {SafeAreaView} from 'react-native-safe-area-context'
-import {useWorkspaces} from '../../hooks/useWorkspaces'
-import {useBiometric} from '../../hooks/useBiometric'
 import {useAppLock} from '../../hooks/useAppLock'
-import {authClient} from '../../lib/auth-client'
 import {useAuth} from '../../hooks/useAuth'
-import {Ionicons} from '@expo/vector-icons'
-import {useColorScheme} from 'nativewind'
-import {useRouter} from 'expo-router'
-import {useState} from 'react'
+import {useBiometric} from '../../hooks/useBiometric'
+import {usePromptPresets} from '../../hooks/usePromptPresets'
+import {usePushNotifications} from '../../hooks/usePushNotifications'
+import {useWorkspaces} from '../../hooks/useWorkspaces'
+import {authClient} from '../../lib/auth-client'
 
 const DEFAULT_URL = 'https://happy-vibecode.involvex.workers.dev'
 const COLOR_SCHEME_KEY = 'happy-color-scheme'

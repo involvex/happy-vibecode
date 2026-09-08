@@ -1,9 +1,9 @@
-import {handleImageOptimization} from 'vinext/server/image-optimization'
-import {createDb, authUser} from '@happy-vibecode/db'
-import handler from 'vinext/server/app-router-entry'
 import {api} from '@happy-vibecode/api'
-import {createAuth} from './auth'
+import {authUser, createDb} from '@happy-vibecode/db'
 import {eq} from 'drizzle-orm'
+import handler from 'vinext/server/app-router-entry'
+import {handleImageOptimization} from 'vinext/server/image-optimization'
+import {createAuth} from './auth'
 
 export {BridgeAgent} from './bridge-agent'
 

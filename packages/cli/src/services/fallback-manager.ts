@@ -15,9 +15,7 @@ export interface FallbackResult {
 }
 
 export type FallbackEventType =
-	| 'fallback_triggered'
-	| 'fallback_exhausted'
-	| 'attempt_start'
+	'fallback_triggered' | 'fallback_exhausted' | 'attempt_start'
 
 export interface FallbackEvent {
 	type: FallbackEventType

@@ -1,22 +1,22 @@
 'use client'
+import {Button, Text} from '@cloudflare/kumo'
+import type {UserSubscription} from '@happy-vibecode/shared'
+import {zodResolver} from '@hookform/resolvers/zod'
 import {
-	CircleIcon,
-	PaletteIcon,
 	BellIcon,
-	TranslateIcon,
-	UserIcon,
+	CircleIcon,
 	CreditCardIcon,
 	LightningIcon,
+	PaletteIcon,
+	TranslateIcon,
+	UserIcon,
 } from '@phosphor-icons/react'
-import type {UserSubscription} from '@happy-vibecode/shared'
 import {useRouter, useSearchParams} from 'next/navigation'
-import {zodResolver} from '@hookform/resolvers/zod'
-import {Button, Text} from '@cloudflare/kumo'
 import {useEffect, useState} from 'react'
-import {useAuth} from '../hooks/useAuth'
 import {useForm} from 'react-hook-form'
-import {Nav} from '../components/Nav'
 import {z} from 'zod'
+import {Nav} from '../components/Nav'
+import {useAuth} from '../hooks/useAuth'
 
 const updateProfileSchema = z.object({
 	nickname: z

@@ -1,29 +1,28 @@
 'use client'
 
+import {Badge, Button, Empty, InputArea, Switch, Text} from '@cloudflare/kumo'
 import {
-	PaperPlaneRightIcon,
-	StopIcon,
-	TrashIcon,
+	BugIcon,
 	ChatCircleDotsIcon,
 	CircleIcon,
-	MoonIcon,
-	SunIcon,
-	BugIcon,
-	LinkIcon,
 	LinkBreakIcon,
-	TerminalWindowIcon,
-	UploadSimpleIcon,
-	RobotIcon,
-	PlusIcon,
+	LinkIcon,
+	MoonIcon,
+	PaperPlaneRightIcon,
 	PencilIcon,
+	PlusIcon,
+	RobotIcon,
+	StopIcon,
+	SunIcon,
+	TerminalWindowIcon,
+	TrashIcon,
+	UploadSimpleIcon,
 } from '@phosphor-icons/react'
-import {Suspense, useCallback, useState, useEffect, useRef} from 'react'
-import {Button, Badge, InputArea, Empty, Text} from '@cloudflare/kumo'
-import {ModelSettingsModal} from '../components/ModelSettingsModal'
-import {ModelSelector} from '../components/ModelSelector'
-import {useWorkspaces} from '../hooks/useWorkspaces'
-import {Switch} from '@cloudflare/kumo'
+import {Suspense, useCallback, useEffect, useRef, useState} from 'react'
 import {Streamdown} from 'streamdown'
+import {ModelSelector} from '../components/ModelSelector'
+import {ModelSettingsModal} from '../components/ModelSettingsModal'
+import {useWorkspaces} from '../hooks/useWorkspaces'
 
 // ── Small components ──────────────────────────────────────────────────
 

@@ -4,8 +4,7 @@ type ChalkInstance = typeof import('chalk').default
 
 let _chalk: ChalkInstance | undefined
 let _highlight:
-	| ((code: string, opts?: Record<string, unknown>) => string)
-	| undefined
+	((code: string, opts?: Record<string, unknown>) => string) | undefined
 
 async function getChalk(): Promise<ChalkInstance> {
 	if (!_chalk) {

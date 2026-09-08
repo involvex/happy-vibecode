@@ -1,13 +1,13 @@
 'use client'
+import {Button} from '@cloudflare/kumo'
 import {
+	CheckIcon,
 	FolderSimpleIcon,
 	PlusIcon,
 	TrashIcon,
-	CheckIcon,
 } from '@phosphor-icons/react'
-import type {Workspace} from '../hooks/useWorkspaces'
-import {Button} from '@cloudflare/kumo'
 import {useState} from 'react'
+import type {Workspace} from '../hooks/useWorkspaces'
 
 interface WorkspaceSelectorProps {
 	workspaces: Workspace[]

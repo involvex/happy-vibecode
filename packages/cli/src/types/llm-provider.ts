@@ -1,6 +1,6 @@
 import type {
-	LLMProvider as SharedLLMProvider,
 	AgentConfig,
+	LLMProvider as SharedLLMProvider,
 } from '@happy-vibecode/shared'
 
 export type LLMProvider = SharedLLMProvider

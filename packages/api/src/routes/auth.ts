@@ -1,8 +1,8 @@
-import {hashPassword, verifyPassword} from '../utils/password.js'
-import {createDb, authUser} from '@happy-vibecode/db'
-import {type ApiEnv} from '../middleware/auth.js'
+import {authUser, createDb} from '@happy-vibecode/db'
 import {eq} from 'drizzle-orm'
 import {Hono} from 'hono'
+import {type ApiEnv} from '../middleware/auth.js'
+import {hashPassword, verifyPassword} from '../utils/password.js'
 
 export const authRouter = new Hono<{Bindings: ApiEnv}>()
 
