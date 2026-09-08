@@ -84,12 +84,24 @@ export class BridgeAgent extends DurableObject<Env> {
 		})
 		this.aliveMap.set(server, true)
 		this.dropCounters.set(server, 0)
+		console.log(
+			'[BridgeAgent] Client connected:',
+			clientType,
+			'userId:',
+			userId,
+		)
 
 		server.addEventListener('message', event => {
 			this.handleMessage(server, event.data as string)
 		})
 
 		server.addEventListener('close', () => {
+			console.log(
+				'[BridgeAgent] Client disconnected:',
+				clientType,
+				'userId:',
+				userId,
+			)
 			this.sessions.delete(server)
 			this.aliveMap.delete(server)
 			this.dropCounters.delete(server)
@@ -248,6 +260,12 @@ export class BridgeAgent extends DurableObject<Env> {
 				msg.type === 'error' ||
 				msg.type === 'status'
 			) {
+				console.log(
+					'[BridgeAgent] CLI→ response/error/status:',
+					msg.type,
+					'sessionId:',
+					msg.sessionId,
+				)
 				this.broadcast(data, 'cli')
 				if (msg.type === 'response' && !msg.done && msg.content) {
 					// Accumulate streamed chunks; the final done:true carries empty content
@@ -661,8 +679,10 @@ export class BridgeAgent extends DurableObject<Env> {
 	}
 
 	private broadcast(data: string, excludeType?: 'cli' | 'web' | 'mobile') {
+		let webClients = 0
 		for (const [ws, session] of this.sessions) {
 			if (session.type === excludeType) continue
+			if (session.type === 'web') webClients++
 			// Backpressure: skip slow clients whose send buffer is too full
 			if (ws.bufferedAmount > BACKPRESSURE_LIMIT_BYTES) {
 				const drops = (this.dropCounters.get(ws) ?? 0) + 1
@@ -682,6 +702,9 @@ export class BridgeAgent extends DurableObject<Env> {
 			} catch {
 				// Client disconnected — cleanup happens in the 'close' event handler
 			}
+		}
+		if (webClients === 0) {
+			console.warn('[BridgeAgent] No web clients to broadcast to!')
 		}
 	}
 

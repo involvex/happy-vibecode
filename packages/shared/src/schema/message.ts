@@ -22,12 +22,12 @@ export const wsMessageSchema = z.discriminatedUnion('type', [
 	z.object({
 		type: z.literal('prompt'),
 		content: z.string(),
-		sessionId: z.string(),
+		sessionId: z.string().optional(),
 	}),
 	z.object({
 		type: z.literal('response'),
 		content: z.string(),
-		sessionId: z.string(),
+		sessionId: z.string().optional(),
 		done: z.boolean().optional(),
 	}),
 	z.object({

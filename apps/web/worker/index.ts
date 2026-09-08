@@ -128,11 +128,25 @@ export default {
 			const headers = new Headers(request.headers)
 			headers.set('X-Authenticated-UserId', userId)
 
+			// Use original request with added header for WebSocket upgrade passthrough.
+			// duplex: 'half' is required for Cloudflare Workers WebSocket upgrades.
 			const authenticatedRequest = new Request(request.url, {
 				method: request.method,
 				headers,
 				body: request.body,
+				// @ts-expect-error duplex is needed for WebSocket upgrade
+				duplex: 'half',
 			})
+
+			console.log(
+				'[Worker] Forwarding to BridgeAgent:',
+				'roomId:',
+				roomId,
+				'userId:',
+				userId,
+				'url:',
+				request.url,
+			)
 
 			const id = env.BridgeAgent.idFromName(roomId)
 			const stub = env.BridgeAgent.get(id)

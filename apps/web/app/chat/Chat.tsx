@@ -129,6 +129,7 @@ function useBridgeAgent(roomId: string) {
 	const currentModelRef = useRef<{provider: string; model: string} | null>(null)
 	const wsRef = useRef<WebSocket | null>(null)
 	const streamingIdRef = useRef<string | null>(null)
+	const accumulatedResponseRef = useRef<string>('')
 	const reconnectAttemptsRef = useRef(0)
 	const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const intentionalCloseRef = useRef(false)
@@ -157,7 +158,13 @@ function useBridgeAgent(roomId: string) {
 			while (pendingMessagesRef.current.length > 0) {
 				const pending = pendingMessagesRef.current.shift()
 				if (pending && ws.readyState === WebSocket.OPEN) {
-					ws.send(JSON.stringify({type: 'prompt', content: pending.content}))
+					ws.send(
+						JSON.stringify({
+							type: 'prompt',
+							content: pending.content,
+							sessionId: roomIdRef.current,
+						}),
+					)
 				}
 			}
 		}
@@ -225,6 +232,10 @@ function useBridgeAgent(roomId: string) {
 
 				if (msg.type === 'response') {
 					const chunk = msg.content ?? ''
+					// Accumulate streaming chunks
+					if (chunk) {
+						accumulatedResponseRef.current += chunk
+					}
 					if (!streamingIdRef.current) {
 						const id = crypto.randomUUID()
 						streamingIdRef.current = id
@@ -234,7 +245,7 @@ function useBridgeAgent(roomId: string) {
 							{
 								id,
 								role: 'assistant',
-								content: chunk,
+								content: accumulatedResponseRef.current || '[Processing...]',
 								model: currentModelRef.current?.model,
 							},
 						])
@@ -242,13 +253,16 @@ function useBridgeAgent(roomId: string) {
 						const id = streamingIdRef.current
 						setMessages(prev =>
 							prev.map(m =>
-								m.id === id ? {...m, content: m.content + chunk} : m,
+								m.id === id
+									? {...m, content: accumulatedResponseRef.current}
+									: m,
 							),
 						)
 					}
 					if (msg.done) {
 						streamingIdRef.current = null
 						setIsStreaming(false)
+						accumulatedResponseRef.current = ''
 					}
 				} else if (msg.type === 'status') {
 					const s = msg.status ?? ''
@@ -259,7 +273,11 @@ function useBridgeAgent(roomId: string) {
 					const id = crypto.randomUUID()
 					setMessages(prev => [
 						...prev,
-						{id, role: 'assistant', content: `⚠️ ${msg.message ?? 'Error'}`},
+						{
+							id,
+							role: 'assistant',
+							content: `Error: ${msg.message ?? 'Unknown error'}`,
+						},
 					])
 					setIsStreaming(false)
 					streamingIdRef.current = null
@@ -318,7 +336,13 @@ function useBridgeAgent(roomId: string) {
 			...prev,
 			{id: crypto.randomUUID(), role: 'user' as const, content},
 		])
-		wsRef.current.send(JSON.stringify({type: 'prompt', content}))
+		wsRef.current.send(
+			JSON.stringify({
+				type: 'prompt',
+				content,
+				sessionId: roomIdRef.current,
+			}),
+		)
 	}, [])
 
 	const sendInput = useCallback((content: string) => {
