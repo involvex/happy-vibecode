@@ -1,4 +1,4 @@
-import {useEffect, useRef} from 'react'
+import {useEffect, useState} from 'react'
 import {Animated, View} from 'react-native'
 
 interface LoadingSkeletonProps {
@@ -12,7 +12,7 @@ export function LoadingSkeleton({
 	height = 16,
 	className,
 }: LoadingSkeletonProps) {
-	const opacity = useRef(new Animated.Value(0.3)).current
+	const [opacity] = useState(() => new Animated.Value(0.3))
 
 	useEffect(() => {
 		const animation = Animated.loop(

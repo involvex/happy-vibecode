@@ -110,8 +110,50 @@ export default function ProfileScreen() {
 	}, [apiToken, baseUrl])
 
 	useEffect(() => {
-		loadProfile()
-	}, [loadProfile])
+		let cancelled = false
+		const run = async () => {
+			if (!apiToken || !baseUrl) {
+				if (!cancelled) setLoading(false)
+				return
+			}
+			if (!cancelled) setLoading(true)
+			try {
+				const [profileRes, subRes] = await Promise.all([
+					fetch(`${baseUrl}/api/user/profile`, {
+						headers: {Authorization: `Bearer ${apiToken}`},
+					}),
+					fetch(`${baseUrl}/api/user/subscription`, {
+						headers: {Authorization: `Bearer ${apiToken}`},
+					}),
+				])
+				if (!cancelled) {
+					if (!profileRes.ok) {
+						throw new Error('Failed to load profile')
+					}
+					const profile = (await profileRes.json()) as UserProfile
+					setNickname(profile.nickname ?? '')
+					setTheme(profile.preferences?.theme ?? 'system')
+					setNotifications(profile.preferences?.notifications ?? true)
+					setLanguage(profile.preferences?.language ?? 'en')
+					setSubscription(
+						subRes.ok
+							? ((await subRes.json()) as UserSubscription)
+							: profile.subscription,
+					)
+				}
+			} catch (err) {
+				if (!cancelled) {
+					Alert.alert('Error', (err as Error).message)
+				}
+			} finally {
+				if (!cancelled) setLoading(false)
+			}
+		}
+		run()
+		return () => {
+			cancelled = true
+		}
+	}, [apiToken, baseUrl])
 
 	const handleSave = async () => {
 		if (!apiToken || !baseUrl) return

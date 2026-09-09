@@ -37,20 +37,35 @@ export default function GalleryScreen() {
 	const [error, setError] = useState<string | null>(null)
 
 	useEffect(() => {
-		if (!isAuthed || !apiToken) {
-			setLoading(false)
-			return
+		let cancelled = false
+		const run = async () => {
+			if (!isAuthed || !apiToken) {
+				if (!cancelled) setLoading(false)
+				return
+			}
+			const base = serverUrl ?? 'https://happy-vibecode.involvex.workers.dev'
+			try {
+				const r = await fetch(`${base}/api/sessions`, {
+					headers: {Authorization: `Bearer ${apiToken}`},
+				})
+				if (!cancelled) {
+					if (r.ok) {
+						const data = (await r.json()) as {sessions: Session[]}
+						setSessions(data.sessions ?? [])
+					} else {
+						setError('Failed to load sessions')
+					}
+				}
+			} catch {
+				if (!cancelled) setError('Failed to load sessions')
+			} finally {
+				if (!cancelled) setLoading(false)
+			}
 		}
-		const base = serverUrl ?? 'https://happy-vibecode.involvex.workers.dev'
-		fetch(`${base}/api/sessions`, {
-			headers: {Authorization: `Bearer ${apiToken}`},
-		})
-			.then(r =>
-				r.ok ? (r.json() as Promise<{sessions: Session[]}>) : Promise.reject(r),
-			)
-			.then(data => setSessions(data.sessions ?? []))
-			.catch(() => setError('Failed to load sessions'))
-			.finally(() => setLoading(false))
+		run()
+		return () => {
+			cancelled = true
+		}
 	}, [isAuthed, apiToken, serverUrl])
 
 	if (!isAuthed) {

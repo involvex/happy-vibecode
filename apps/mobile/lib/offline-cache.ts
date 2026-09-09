@@ -76,7 +76,7 @@ export function useCachedData<T>(
 	}, [key, fetcher, isConnected, ttl])
 
 	useEffect(() => {
-		load()
+		load() // eslint-disable-line react-hooks/set-state-in-effect
 	}, [load])
 
 	return {data, isLoading, isStale, refresh: load}

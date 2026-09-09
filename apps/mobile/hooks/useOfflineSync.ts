@@ -44,7 +44,11 @@ export function useOfflineSync(
 	}, [])
 
 	useEffect(() => {
-		loadQueue()
+		const run = async () => {
+			await loadQueue()
+		}
+		run()
+		return () => {}
 	}, [loadQueue])
 
 	// Auto-flush when connected and queue has items

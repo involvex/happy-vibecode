@@ -1,0 +1,19 @@
+[versions]
+react-native = "0.86.3"
+expo = "57.0.21"
+agp = "8.12.0"
+kotlin = "2.1.20"
+compileSdk = "36"
+targetSdk = "36"
+minSdk = "24"
+buildTools = "36.0.0"
+ndk = "27.1.12297006"
+
+[libraries]
+react-native = { module = "com.facebook.react:react-android", version.ref = "react-native" }
+hermes = { module = "com.facebook.react:hermes-android", version.ref = "react-native" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

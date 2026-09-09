@@ -33,7 +33,8 @@ expoAutolinking.useExpoModules()
 
 rootProject.name = 'Happy Vibecode'
 
-expoAutolinking.useExpoVersionCatalog()
+// Use our explicit version catalog instead of Expo's auto-generated one
+// expoAutolinking.useExpoVersionCatalog()  // DISABLED: using explicit gradle/libs.versions.toml
 
 include ':app'
 includeBuild(expoAutolinking.reactNativeGradlePlugin)

@@ -25,10 +25,21 @@ export function useNetworkStatus(): NetworkStatus {
 	}, [])
 
 	useEffect(() => {
-		checkConnection().finally(() => setIsLoading(false))
-
-		const interval = setInterval(checkConnection, 10000)
-		return () => clearInterval(interval)
+		let cancelled = false
+		let interval: ReturnType<typeof setInterval> | null = null
+		const run = async () => {
+			try {
+				await checkConnection()
+			} finally {
+				if (!cancelled) setIsLoading(false)
+			}
+			interval = setInterval(checkConnection, 10000)
+		}
+		run()
+		return () => {
+			cancelled = true
+			if (interval) clearInterval(interval)
+		}
 	}, [checkConnection])
 
 	return {isConnected, isLoading, checkConnection}

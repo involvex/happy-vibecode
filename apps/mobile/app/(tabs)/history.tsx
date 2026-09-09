@@ -1,6 +1,6 @@
 import {Ionicons} from '@expo/vector-icons'
 import {useRouter} from 'expo-router'
-import {useCallback, useEffect, useState} from 'react'
+import {useCallback, useEffect, useMemo, useState} from 'react'
 import {
 	ActivityIndicator,
 	FlatList,
@@ -32,10 +32,17 @@ export default function HistoryScreen() {
 	const {isAuthed, apiToken, serverUrl} = useAuth()
 	const router = useRouter()
 	const [sessions, setSessions] = useState<Session[]>([])
-	const [filtered, setFiltered] = useState<Session[]>([])
 	const [loading, setLoading] = useState(true)
 	const [query, setQuery] = useState('')
 	const [refreshing, setRefreshing] = useState(false)
+	const filtered = useMemo(() => {
+		const q = query.toLowerCase()
+		return q
+			? sessions.filter(
+					s => s.agentType?.toLowerCase().includes(q) || s.id.includes(q),
+				)
+			: sessions
+	}, [query, sessions])
 
 	const fetchSessions = useCallback(async () => {
 		if (!isAuthed || !apiToken) return
@@ -46,20 +53,29 @@ export default function HistoryScreen() {
 			})
 			if (r.ok) {
 				const data = (await r.json()) as {sessions: Session[]}
-				const list = data.sessions ?? []
-				setSessions(list)
-				setFiltered(list)
+				setSessions(data.sessions ?? [])
 			}
 		} catch {}
 	}, [isAuthed, apiToken, serverUrl])
 
 	useEffect(() => {
-		if (!isAuthed || !apiToken) {
-			setLoading(false)
-			return
+		let cancelled = false
+		const run = async () => {
+			if (!isAuthed || !apiToken) {
+				if (!cancelled) setLoading(false)
+				return
+			}
+			if (!cancelled) setLoading(true)
+			try {
+				await fetchSessions()
+			} finally {
+				if (!cancelled) setLoading(false)
+			}
 		}
-		setLoading(true)
-		fetchSessions().finally(() => setLoading(false))
+		run()
+		return () => {
+			cancelled = true
+		}
 	}, [isAuthed, apiToken, fetchSessions])
 
 	const onRefresh = useCallback(async () => {
@@ -67,17 +83,6 @@ export default function HistoryScreen() {
 		await fetchSessions()
 		setRefreshing(false)
 	}, [fetchSessions])
-
-	useEffect(() => {
-		const q = query.toLowerCase()
-		setFiltered(
-			q
-				? sessions.filter(
-						s => s.agentType?.toLowerCase().includes(q) || s.id.includes(q),
-					)
-				: sessions,
-		)
-	}, [query, sessions])
 
 	if (!isAuthed) {
 		return (

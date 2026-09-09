@@ -137,9 +137,11 @@ export function useTemplates(
 	)
 
 	useEffect(() => {
-		if (apiToken) {
-			fetchTemplates()
+		if (!apiToken) return
+		const run = async () => {
+			await fetchTemplates()
 		}
+		run()
 	}, [apiToken, fetchTemplates])
 
 	return {

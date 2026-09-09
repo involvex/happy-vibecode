@@ -39,8 +39,8 @@ export function useOpencodeClient(
 ): OpencodeClientState {
 	const [directReachable, setDirectReachable] = useState(false)
 	const [sessions, setSessions] = useState<OpencodeSession[]>([])
+	const [recheckCount, setRecheckCount] = useState(0)
 	const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-	const recheckRef = useRef(0)
 
 	const checkHealth = useCallback(async (url: string): Promise<boolean> => {
 		try {
@@ -92,18 +92,20 @@ export function useOpencodeClient(
 	)
 
 	const recheck = useCallback(() => {
-		recheckRef.current += 1
+		setRecheckCount(c => c + 1)
 	}, [])
 
 	useEffect(() => {
 		if (!opencodeUrl) {
-			setDirectReachable(false)
-			setSessions([])
+			Promise.resolve().then(() => {
+				setDirectReachable(false)
+				setSessions([])
+			})
 			return
 		}
 
 		// Immediate check on mount or URL change
-		void doCheck(opencodeUrl)
+		void doCheck(opencodeUrl) // eslint-disable-line react-hooks/set-state-in-effect
 
 		// Periodic recheck
 		intervalRef.current = setInterval(
@@ -114,7 +116,7 @@ export function useOpencodeClient(
 		return () => {
 			if (intervalRef.current) clearInterval(intervalRef.current)
 		}
-	}, [opencodeUrl, doCheck, recheckRef.current]) // eslint-disable-line react-hooks/exhaustive-deps
+	}, [opencodeUrl, doCheck, recheckCount])
 
 	const mode: OpencodeConnectionMode = !opencodeUrl
 		? 'none'

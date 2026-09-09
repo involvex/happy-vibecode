@@ -66,9 +66,9 @@ interface Message {
 function TypingIndicator() {
 	const {colorScheme} = useColorScheme()
 	const isDark = colorScheme === 'dark'
-	const dot1 = useRef(new Animated.Value(0)).current
-	const dot2 = useRef(new Animated.Value(0)).current
-	const dot3 = useRef(new Animated.Value(0)).current
+	const [dot1] = useState(() => new Animated.Value(0))
+	const [dot2] = useState(() => new Animated.Value(0))
+	const [dot3] = useState(() => new Animated.Value(0))
 
 	useEffect(() => {
 		const makeAnim = (dot: Animated.Value, delay: number) =>
@@ -166,81 +166,105 @@ export default function ChatTab() {
 	const apiTokenRef = useRef(apiToken)
 	const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-	bridgeCodeRef.current = bridgeCode
-	serverUrlRef.current = serverUrl
-	apiTokenRef.current = apiToken
+	useEffect(() => {
+		bridgeCodeRef.current = bridgeCode
+		serverUrlRef.current = serverUrl
+		apiTokenRef.current = apiToken
+	}, [bridgeCode, serverUrl, apiToken])
 
 	// Load bridge code from SecureStore
 	useEffect(() => {
+		let cancelled = false
 		SecureStore.getItemAsync(BRIDGE_CODE_KEY).then(code => {
-			if (code) setBridgeCode(code)
-			setBridgeCodeLoaded(true)
+			if (!cancelled) {
+				if (code) setBridgeCode(code)
+				setBridgeCodeLoaded(true)
+			}
 		})
+		return () => {
+			cancelled = true
+		}
 	}, [])
 
 	// Load model settings from SecureStore
 	useEffect(() => {
+		let cancelled = false
 		SecureStore.getItemAsync(MODEL_SETTINGS_KEY).then(raw => {
-			if (raw) {
-				try {
-					setModelSettings(JSON.parse(raw))
-				} catch {}
+			if (!cancelled) {
+				if (raw) {
+					try {
+						setModelSettings(JSON.parse(raw))
+					} catch {}
+				}
 			}
 		})
+		return () => {
+			cancelled = true
+		}
 	}, [])
 
 	// Fetch third-party model lists when settings panel opens
 	useEffect(() => {
 		if (!showModelSettings || !serverUrl) return
-		setModelsLoading(true)
-		const base = serverUrl.replace(/\/$/, '')
-		Promise.all([
-			fetch(`${base}/api/models/opencode`)
-				.then(r => r.json() as Promise<{models: unknown[]}>)
-				.catch(() => ({models: [] as unknown[]})),
-			fetch(`${base}/api/models/kilo`)
-				.then(r => r.json() as Promise<{models: unknown[]}>)
-				.catch(() => ({models: [] as unknown[]})),
-		])
-			.then(([oc, kilo]) => {
-				const mapModel = (
-					m: {
-						id: string
-						name?: string
-						pricing?: {prompt: number; completion: number}
-					},
-					provider: string,
-				): ModelInfo => ({
-					id: m.id,
-					name: m.name || m.id,
-					provider,
-					pricing: m.pricing,
-					isFree: m.pricing
-						? m.pricing.prompt === 0 && m.pricing.completion === 0
-						: false,
-				})
-				setOpenCodeModels(
-					(Array.isArray(oc.models) ? oc.models : []).map(raw => {
-						const m = raw as {
+		let cancelled = false
+		const run = async () => {
+			if (!cancelled) setModelsLoading(true)
+			try {
+				const base = serverUrl.replace(/\/$/, '')
+				const [oc, kilo] = await Promise.all([
+					fetch(`${base}/api/models/opencode`)
+						.then(r => r.json() as Promise<{models: unknown[]}>)
+						.catch(() => ({models: [] as unknown[]})),
+					fetch(`${base}/api/models/kilo`)
+						.then(r => r.json() as Promise<{models: unknown[]}>)
+						.catch(() => ({models: [] as unknown[]})),
+				])
+				if (!cancelled) {
+					const mapModel = (
+						m: {
 							id: string
 							name?: string
 							pricing?: {prompt: number; completion: number}
-						}
-						return mapModel(m, 'opencode')
-					}),
-				)
-				setKiloModels(
-					(Array.isArray(kilo.models) ? kilo.models : []).map(raw => {
-						const m = raw as {
-							id: string
-							name?: string
-							pricing?: {prompt: number; completion: number}
-						}
-						return mapModel(m, 'kilo')
-					}),
-				)
-			})
-			.finally(() => setModelsLoading(false))
+						},
+						provider: string,
+					): ModelInfo => ({
+						id: m.id,
+						name: m.name || m.id,
+						provider,
+						pricing: m.pricing,
+						isFree: m.pricing
+							? m.pricing.prompt === 0 && m.pricing.completion === 0
+							: false,
+					})
+					setOpenCodeModels(
+						(Array.isArray(oc.models) ? oc.models : []).map(raw => {
+							const m = raw as {
+								id: string
+								name?: string
+								pricing?: {prompt: number; completion: number}
+							}
+							return mapModel(m, 'opencode')
+						}),
+					)
+					setKiloModels(
+						(Array.isArray(kilo.models) ? kilo.models : []).map(raw => {
+							const m = raw as {
+								id: string
+								name?: string
+								pricing?: {prompt: number; completion: number}
+							}
+							return mapModel(m, 'kilo')
+						}),
+					)
+				}
+			} finally {
+				if (!cancelled) setModelsLoading(false)
+			}
+		}
+		run()
+		return () => {
+			cancelled = true
+		}
 	}, [showModelSettings, serverUrl])
 
 	useEffect(() => {

@@ -1,5 +1,5 @@
 import {Ionicons} from '@expo/vector-icons'
-import {useCallback, useEffect, useRef, useState} from 'react'
+import {useCallback, useEffect, useState} from 'react'
 import {Animated, Text, View} from 'react-native'
 import {dp} from '../lib/scale'
 
@@ -41,8 +41,8 @@ function ToastItem({
 	variant: ToastVariant
 	onDone: () => void
 }) {
-	const translateY = useRef(new Animated.Value(-100)).current
-	const opacity = useRef(new Animated.Value(0)).current
+	const [translateY] = useState(() => new Animated.Value(-100))
+	const [opacity] = useState(() => new Animated.Value(0))
 	const styles = variantStyles[variant]
 
 	useEffect(() => {

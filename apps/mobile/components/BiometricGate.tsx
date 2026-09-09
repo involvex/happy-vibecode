@@ -31,8 +31,16 @@ export function BiometricGate({
 	}, [unlocking, unlock])
 
 	useEffect(() => {
-		if (isLocked && isAvailable && !unlocking) {
-			handleUnlock()
+		if (!(isLocked && isAvailable && !unlocking)) return
+		let cancelled = false
+		const run = async () => {
+			if (!cancelled) {
+				await handleUnlock()
+			}
+		}
+		run()
+		return () => {
+			cancelled = true
 		}
 	}, [isLocked, isAvailable, unlocking, handleUnlock])
 
