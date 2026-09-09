@@ -124,7 +124,9 @@
 		function search(query) {
 			if (!query || query.length < 2) {
 				resultsContainer.classList.remove('active')
-				resultsContainer.innerHTML = ''
+				while (resultsContainer.firstChild) {
+					resultsContainer.removeChild(resultsContainer.firstChild)
+				}
 				return
 			}
 
@@ -145,43 +147,48 @@
 			})
 
 			if (matches.length === 0) {
-				resultsContainer.innerHTML =
-					'<div class="search-no-results">No results found</div>'
+				var noResults = document.createElement('div')
+				noResults.className = 'search-no-results'
+				noResults.textContent = 'No results found'
+				resultsContainer.appendChild(noResults)
 				resultsContainer.classList.add('active')
 				return
 			}
 
-			var html = matches
-				.slice(0, 8)
-				.map(function (m) {
-					var excerpt = ''
-					var idx = m.item.content.toLowerCase().indexOf(q)
-					if (idx !== -1) {
-						var start = Math.max(0, idx - 40)
-						var end = Math.min(m.item.content.length, idx + q.length + 60)
-						excerpt =
-							(start > 0 ? '...' : '') +
-							m.item.content.substring(start, end) +
-							(end < m.item.content.length ? '...' : '')
-					} else {
-						excerpt = m.item.content.substring(0, 80) + '...'
-					}
-					return (
-						'<a class="search-result-item" href="' +
-						m.item.url +
-						'">' +
-						'<div class="search-result-item__title">' +
-						escapeHtml(m.item.title) +
-						'</div>' +
-						'<div class="search-result-item__excerpt">' +
-						escapeHtml(excerpt) +
-						'</div>' +
-						'</a>'
-					)
-				})
-				.join('')
+			while (resultsContainer.firstChild) {
+				resultsContainer.removeChild(resultsContainer.firstChild)
+			}
 
-			resultsContainer.innerHTML = html
+			matches.slice(0, 8).forEach(function (m) {
+				var excerpt = ''
+				var idx = m.item.content.toLowerCase().indexOf(q)
+				if (idx !== -1) {
+					var start = Math.max(0, idx - 40)
+					var end = Math.min(m.item.content.length, idx + q.length + 60)
+					excerpt =
+						(start > 0 ? '...' : '') +
+						m.item.content.substring(start, end) +
+						(end < m.item.content.length ? '...' : '')
+				} else {
+					excerpt = m.item.content.substring(0, 80) + '...'
+				}
+
+				var link = document.createElement('a')
+				link.className = 'search-result-item'
+				link.href = m.item.url
+
+				var titleDiv = document.createElement('div')
+				titleDiv.className = 'search-result-item__title'
+				titleDiv.textContent = m.item.title
+
+				var excerptDiv = document.createElement('div')
+				excerptDiv.className = 'search-result-item__excerpt'
+				excerptDiv.textContent = excerpt
+
+				link.appendChild(titleDiv)
+				link.appendChild(excerptDiv)
+				resultsContainer.appendChild(link)
+			})
 			resultsContainer.classList.add('active')
 		}
 
@@ -196,7 +203,9 @@
 			if (e.key === 'Escape') {
 				input.value = ''
 				resultsContainer.classList.remove('active')
-				resultsContainer.innerHTML = ''
+				while (resultsContainer.firstChild) {
+					resultsContainer.removeChild(resultsContainer.firstChild)
+				}
 				input.blur()
 			}
 		})
@@ -244,13 +253,6 @@
 				})
 			})
 		})
-	}
-
-	/* ── Utility ──────────────────────────────────────────────────────── */
-	function escapeHtml(str) {
-		var div = document.createElement('div')
-		div.appendChild(document.createTextNode(str))
-		return div.innerHTML
 	}
 
 	/* ── Init ─────────────────────────────────────────────────────────── */

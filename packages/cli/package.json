@@ -33,8 +33,6 @@
 		"@clack/prompts": "^1.8.0",
 		"@happy-vibecode/shared": "workspace:*",
 		"@opencode-ai/sdk": "1.18.29",
-		"chalk": "^5.3.0",
-		"cli-highlight": "^2.1.11",
 		"commander": "^14.0.0",
 		"node-pty": "^1.1.0",
 		"ora": "^6.3.1",

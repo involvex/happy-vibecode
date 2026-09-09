@@ -378,7 +378,6 @@ export async function runSetupWizard(): Promise<void> {
 		const result = spawnSync('bun', ['run', 'deploy:web'], {
 			cwd: REPO_ROOT,
 			stdio: 'inherit',
-			shell: true,
 		})
 		if (result.status === 0) {
 			clack.log.success('Deployed successfully! 🚀')

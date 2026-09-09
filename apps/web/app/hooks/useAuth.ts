@@ -2,7 +2,6 @@
 import type {UserSubscription} from '@happy-vibecode/shared'
 import {useCallback, useEffect, useState} from 'react'
 import {authClient} from '../../lib/auth-client'
-import {secureStorage} from '../../lib/storage'
 
 interface UserPreferences {
 	theme: 'light' | 'dark' | 'system'
@@ -26,20 +25,6 @@ interface AuthState {
 
 const DEFAULT_SERVER_URL = ''
 
-const AUTH_KEYS = {
-	token: 'happy-api-token',
-	userId: 'happy-user-id',
-	serverUrl: 'happy-server-url',
-}
-
-type BetterAuthUser = {
-	apiToken?: string
-	role?: string
-	id: string
-	email?: string | null
-	name?: string | null
-}
-
 export function useAuth() {
 	const {data: session, isPending} = authClient.useSession()
 
@@ -61,31 +46,29 @@ export function useAuth() {
 		if (isPending) return
 
 		if (session?.user) {
-			const u = session.user as BetterAuthUser
-			const apiToken = u.apiToken ?? secureStorage.getItem(AUTH_KEYS.token)
-			const userId = u.id
+			const u = session.user as {
+				apiToken?: string
+				role?: string
+				id: string
+				email?: string | null
+				name?: string | null
+			}
 			setAuth(prev => ({
 				...prev,
-				apiToken: apiToken ?? null,
-				userId,
+				apiToken: u.apiToken ?? null,
+				userId: u.id,
 				email: u.email ?? null,
 				nickname: u.name ?? null,
 				role: (u.role as 'user' | 'admin') ?? 'user',
 				subscription: prev.subscription,
-				serverUrl:
-					localStorage.getItem(AUTH_KEYS.serverUrl) ?? DEFAULT_SERVER_URL,
 				isLoaded: true,
 			}))
-			// Keep localStorage in sync for legacy paths
-			if (apiToken) secureStorage.setItem(AUTH_KEYS.token, apiToken)
-			localStorage.setItem(AUTH_KEYS.userId, userId)
 			return
 		}
 
-		// No Better Auth session — fall back to localStorage (CLI/email users)
 		setAuth({
-			apiToken: secureStorage.getItem(AUTH_KEYS.token),
-			userId: localStorage.getItem(AUTH_KEYS.userId),
+			apiToken: null,
+			userId: null,
 			email: null,
 			nickname: null,
 			preferences: null,
@@ -93,8 +76,7 @@ export function useAuth() {
 			hasPassword: false,
 			role: 'user',
 			subscription: null,
-			serverUrl:
-				localStorage.getItem(AUTH_KEYS.serverUrl) || DEFAULT_SERVER_URL,
+			serverUrl: DEFAULT_SERVER_URL,
 			isLoaded: true,
 		})
 	}, [session, isPending])
@@ -110,9 +92,6 @@ export function useAuth() {
 			githubId?: string,
 			hasPassword?: boolean,
 		) => {
-			secureStorage.setItem(AUTH_KEYS.token, apiToken)
-			localStorage.setItem(AUTH_KEYS.userId, userId)
-			if (serverUrl) localStorage.setItem(AUTH_KEYS.serverUrl, serverUrl)
 			setAuth({
 				apiToken,
 				userId,
@@ -132,8 +111,6 @@ export function useAuth() {
 
 	const logout = useCallback(async () => {
 		await authClient.signOut()
-		secureStorage.removeItem(AUTH_KEYS.token)
-		localStorage.removeItem(AUTH_KEYS.userId)
 		setAuth({
 			apiToken: null,
 			userId: null,
@@ -150,11 +127,9 @@ export function useAuth() {
 	}, [])
 
 	const refreshUser = useCallback(async () => {
-		if (!auth.apiToken) return null
+		if (!auth.userId) return null
 		try {
-			const res = await fetch('/api/user/profile', {
-				headers: {Authorization: `Bearer ${auth.apiToken}`},
-			})
+			const res = await fetch('/api/user/profile')
 			if (!res.ok) return null
 			const data = (await res.json()) as {
 				email: string | null
@@ -179,11 +154,11 @@ export function useAuth() {
 		} catch {
 			return null
 		}
-	}, [auth.apiToken])
+	}, [auth.userId])
 
 	return {
 		...auth,
-		isAuthed: !!auth.apiToken,
+		isAuthed: !!auth.userId,
 		login,
 		logout,
 		refreshUser,

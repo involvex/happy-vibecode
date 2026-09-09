@@ -7,6 +7,27 @@ import {createAuth} from './auth'
 
 export {BridgeAgent} from './bridge-agent'
 
+const SECURITY_HEADERS = {
+	'X-Frame-Options': 'DENY',
+	'X-Content-Type-Options': 'nosniff',
+	'Referrer-Policy': 'strict-origin-when-cross-origin',
+	'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
+	'Content-Security-Policy':
+		"default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' wss: https: https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+}
+
+function withSecurityHeaders(response: Response): Response {
+	const headers = new Headers(response.headers)
+	for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+		headers.set(key, value)
+	}
+	return new Response(response.body, {
+		status: response.status,
+		statusText: response.statusText,
+		headers,
+	})
+}
+
 interface Env {
 	ASSETS: Fetcher
 	DB: D1Database
@@ -57,17 +78,41 @@ export default {
 		if (url.pathname.startsWith('/api/auth')) {
 			const auth = createAuth(env, request.url)
 			const authResponse = await auth.handler(request)
-			if (authResponse.status !== 404) return authResponse
+			if (authResponse.status !== 404) return withSecurityHeaders(authResponse)
 		}
 
 		// Turnstile config endpoint (public)
 		if (url.pathname === '/api/config/turnstile') {
-			return Response.json({siteKey: env.TURNSTILE_SITE_KEY})
+			return withSecurityHeaders(
+				Response.json({siteKey: env.TURNSTILE_SITE_KEY}),
+			)
 		}
 
 		// Mount Hono API at /api/*
 		if (url.pathname.startsWith('/api/')) {
-			return api.fetch(request, env)
+			const auth = createAuth(env, request.url)
+			try {
+				const session = await auth.api.getSession({
+					headers: request.headers,
+				})
+				if (session?.user?.id) {
+					const headers = new Headers(request.headers)
+					headers.set('X-Authenticated-UserId', session.user.id)
+					const authenticatedRequest = new Request(request.url, {
+						method: request.method,
+						headers,
+						body: request.body,
+						// @ts-expect-error duplex is needed for WebSocket upgrade
+						duplex: 'half',
+					})
+					const apiResponse = await api.fetch(authenticatedRequest, env)
+					return withSecurityHeaders(apiResponse)
+				}
+			} catch {
+				// Session validation failed; fall through to token auth
+			}
+			const apiResponse = await api.fetch(request, env)
+			return withSecurityHeaders(apiResponse)
 		}
 
 		// Route BridgeAgent WebSocket connections: /agents/BridgeAgent/<roomId>
@@ -121,7 +166,7 @@ export default {
 			}
 
 			if (!userId) {
-				return new Response('Unauthorized', {status: 401})
+				return withSecurityHeaders(new Response('Unauthorized', {status: 401}))
 			}
 
 			// Pass authenticated userId to BridgeAgent via trusted header
@@ -154,6 +199,7 @@ export default {
 		}
 
 		// Delegate everything else to vinext
-		return handler.fetch(request)
+		const response = await handler.fetch(request)
+		return withSecurityHeaders(response)
 	},
 }

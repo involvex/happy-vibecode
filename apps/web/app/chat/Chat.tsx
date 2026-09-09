@@ -143,9 +143,7 @@ function useBridgeAgent(roomId: string) {
 	const connectWs = useCallback(() => {
 		if (!roomIdRef.current) return
 		const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-		const apiToken = localStorage.getItem('happy-api-token')
-		const tokenParam = apiToken ? `&token=${encodeURIComponent(apiToken)}` : ''
-		const url = `${proto}://${window.location.host}/agents/BridgeAgent/${roomIdRef.current}?type=web${tokenParam}`
+		const url = `${proto}://${window.location.host}/agents/BridgeAgent/${roomIdRef.current}?type=web`
 		const ws = new WebSocket(url)
 		wsRef.current = ws
 		intentionalCloseRef.current = false
@@ -659,19 +657,11 @@ function CustomAgentsModal({onClose}: {onClose: () => void}) {
 	const [creating, setCreating] = useState(false)
 	const [error, setError] = useState('')
 
-	const apiToken = localStorage.getItem('happy-api-token')
-	const authHeaders = {
-		Authorization: `Bearer ${apiToken ?? ''}`,
-		'Content-Type': 'application/json',
-	}
-
 	const fetchAgents = async () => {
 		setLoading(true)
 		setError('')
 		try {
-			const res = await fetch('/api/agents', {
-				headers: {Authorization: `Bearer ${apiToken ?? ''}`},
-			})
+			const res = await fetch('/api/agents')
 			if (!res.ok) throw new Error('Failed to load agents')
 			const data = (await res.json()) as {agents: CustomAgentRow[]}
 			setAgents(data.agents)
@@ -702,7 +692,7 @@ function CustomAgentsModal({onClose}: {onClose: () => void}) {
 	const handleCreate = async (data: CustomAgentFormData) => {
 		const res = await fetch('/api/agents', {
 			method: 'POST',
-			headers: authHeaders,
+			headers: {'Content-Type': 'application/json'},
 			body: JSON.stringify(parseForm(data)),
 		})
 		if (!res.ok) {
@@ -717,7 +707,7 @@ function CustomAgentsModal({onClose}: {onClose: () => void}) {
 		if (!editing) return
 		const res = await fetch(`/api/agents/${editing.id}`, {
 			method: 'PUT',
-			headers: authHeaders,
+			headers: {'Content-Type': 'application/json'},
 			body: JSON.stringify(parseForm(data)),
 		})
 		if (!res.ok) {
@@ -732,7 +722,6 @@ function CustomAgentsModal({onClose}: {onClose: () => void}) {
 		if (!confirm('Delete this agent?')) return
 		const res = await fetch(`/api/agents/${id}`, {
 			method: 'DELETE',
-			headers: authHeaders,
 		})
 		if (!res.ok) {
 			const err = (await res.json()) as {error?: string}

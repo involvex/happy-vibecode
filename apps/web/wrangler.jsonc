@@ -20,9 +20,9 @@
 	"images": {
 		"binding": "IMAGES",
 	},
-	// GitHub OAuth — set AUTH_GITHUB_SECRET via: wrangler secret put AUTH_GITHUB_SECRET
-	// Better Auth — set BETTER_AUTH_SECRET via: wrangler secret put BETTER_AUTH_SECRET
-	// Turnstile — set TURNSTILE_SECRET_KEY via: wrangler secret put TURNSTILE_SECRET_KEY
+	// Public vars (safe to commit): OAuth client ID and Turnstile site key are public by design.
+	// Secrets (DO NOT commit): AUTH_GITHUB_SECRET, BETTER_AUTH_SECRET, TURNSTILE_SECRET_KEY,
+	// STRIPE_API_KEY, STRIPE_WEBHOOK_SECRET, etc. must be set via `wrangler secret put <NAME>`.
 	"vars": {
 		"AUTH_GITHUB_ID": "Ov23liOufGcx2MYgoM0v",
 		"TURNSTILE_SITE_KEY": "0x4AAAAAACkURlXHUh-8pW1d",

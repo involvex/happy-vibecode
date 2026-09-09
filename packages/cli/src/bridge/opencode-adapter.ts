@@ -27,8 +27,8 @@ interface JsonEvent {
 /* eslint-disable no-control-regex */
 function stripAnsi(text: string): string {
 	return text
-		.replace(/\x1b\[[0-9;]*[mGKHFABCDST]/g, '')
-		.replace(/\x1b\].*?\x07/g, '')
+		.replace(/\u001b\[[0-9;]*[mGKHFABCDST]/g, '')
+		.replace(/\u001b\].*?\u0007/g, '')
 }
 /* eslint-enable no-control-regex */
 

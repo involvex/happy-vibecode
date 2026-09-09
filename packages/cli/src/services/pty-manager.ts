@@ -1,4 +1,4 @@
-import {execSync} from 'node:child_process'
+import {execFileSync} from 'node:child_process'
 import {EventEmitter} from 'node:events'
 import {existsSync} from 'node:fs'
 import os from 'node:os'
@@ -99,7 +99,7 @@ export class PtyManager extends EventEmitter {
 	private resolveCommand(cmd: string): string {
 		if (os.platform() !== 'win32') return cmd
 		try {
-			const result = execSync(`where.exe "${cmd}.cmd" 2>nul`, {
+			const result = execFileSync('where.exe', [`${cmd}.cmd`], {
 				encoding: 'utf8',
 				stdio: ['pipe', 'pipe', 'pipe'],
 				timeout: 3000,
@@ -112,7 +112,7 @@ export class PtyManager extends EventEmitter {
 			// fall through
 		}
 		try {
-			const result = execSync(`where.exe "${cmd}" 2>nul`, {
+			const result = execFileSync('where.exe', [cmd], {
 				encoding: 'utf8',
 				stdio: ['pipe', 'pipe', 'pipe'],
 				timeout: 3000,

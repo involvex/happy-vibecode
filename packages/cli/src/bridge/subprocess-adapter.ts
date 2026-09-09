@@ -113,15 +113,16 @@ export class SubprocessAdapter {
 		const child = spawn(resolvedCmd, args, {
 			cwd: this.workspace ?? process.cwd(),
 			env: {...process.env},
-			// shell: true on Windows so .cmd shims resolve correctly
-			shell: os.platform() === 'win32',
+			shell: false,
 			stdio: ['ignore', 'pipe', 'pipe'],
 		})
 
 		child.stdout.on('data', (chunk: Buffer) => {
 			// Strip ANSI escape codes so agents that emit coloured output display cleanly
-			// eslint-disable-next-line no-control-regex
-			const text = chunk.toString('utf8').replace(/\x1B\[[0-9;]*[mGKHFJl]/g, '')
+			const text = chunk
+				.toString('utf8')
+				// eslint-disable-next-line no-control-regex
+				.replace(/\u001B\[[0-9;]*[mGKHFJl]/g, '')
 			debug('SubprocessAdapter stdout chunk:', text.slice(0, 80))
 			onChunk(text)
 		})

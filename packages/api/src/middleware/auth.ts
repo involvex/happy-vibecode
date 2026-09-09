@@ -23,6 +23,21 @@ export const authMiddleware = createMiddleware<{
 	Bindings: ApiEnv
 	Variables: {userId: string; userRole: string}
 }>(async (c, next) => {
+	const db = createDb(c.env.DB)
+
+	const authenticatedUserId = c.req.header('X-Authenticated-UserId')
+	if (authenticatedUserId) {
+		const user = await db.query.users.findFirst({
+			where: (u, {eq}) => eq(u.id, authenticatedUserId),
+		})
+		if (user) {
+			c.set('userId', user.id)
+			c.set('userRole', user.role)
+			await next()
+			return
+		}
+	}
+
 	const authHeader = c.req.header('Authorization')
 	if (!authHeader?.startsWith('Bearer ')) {
 		return c.json({error: 'Missing or invalid Authorization header'}, 401)
@@ -31,8 +46,6 @@ export const authMiddleware = createMiddleware<{
 	if (!token) {
 		return c.json({error: 'Missing token'}, 401)
 	}
-
-	const db = createDb(c.env.DB)
 
 	// Fast path: token is already in the users table (CLI / email users, or GitHub
 	// users whose apiToken was synced by the databaseHook)

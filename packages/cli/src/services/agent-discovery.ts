@@ -1,4 +1,4 @@
-import {execSync} from 'node:child_process'
+import {execFileSync} from 'node:child_process'
 import {existsSync} from 'node:fs'
 import os from 'node:os'
 
@@ -74,7 +74,7 @@ function resolveCommandPath(cmd: string): string | undefined {
 	const isWindows = os.platform() === 'win32'
 	try {
 		if (isWindows) {
-			const result = execSync(`where.exe "${cmd}" 2>nul`, {
+			const result = execFileSync('where.exe', [cmd], {
 				encoding: 'utf8',
 				stdio: ['pipe', 'pipe', 'pipe'],
 				timeout: 3000,
@@ -84,7 +84,7 @@ function resolveCommandPath(cmd: string): string | undefined {
 				?.trim()
 			return result && existsSync(result) ? result : undefined
 		} else {
-			const result = execSync(`command -v "${cmd}" 2>/dev/null`, {
+			const result = execFileSync('command', ['-v', cmd], {
 				encoding: 'utf8',
 				stdio: ['pipe', 'pipe', 'pipe'],
 				timeout: 3000,
@@ -99,7 +99,7 @@ function resolveCommandPath(cmd: string): string | undefined {
 
 function getVersion(fullPath: string, versionFlag: string): string | undefined {
 	try {
-		const raw = execSync(`"${fullPath}" ${versionFlag} 2>&1`, {
+		const raw = execFileSync(fullPath, [versionFlag], {
 			encoding: 'utf8',
 			stdio: ['pipe', 'pipe', 'pipe'],
 			timeout: 5000,
