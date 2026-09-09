@@ -2,6 +2,7 @@
 	"name": "@happy-vibecode/mobile",
 	"version": "0.0.14",
 	"private": true,
+	"type": "module",
 	"main": "expo-router/entry",
 	"scripts": {
 		"android": "expo run:android",
@@ -50,7 +51,7 @@
 		"react-native": "0.86.3",
 		"react-native-css-interop": "^0.2.6",
 		"react-native-gesture-handler": "~2.32.0",
-		"react-native-reanimated": "4.5.1",
+		"react-native-reanimated": "~4.5.2",
 		"react-native-safe-area-context": "~5.7.0",
 		"react-native-screens": "~4.26.0",
 		"react-native-web": "^0.21.0",

@@ -165,6 +165,9 @@ export default function ChatTab() {
 	const serverUrlRef = useRef(serverUrl)
 	const apiTokenRef = useRef(apiToken)
 	const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const reconnectAttemptsRef = useRef(0)
+	const intentionalCloseRef = useRef(false)
 
 	useEffect(() => {
 		bridgeCodeRef.current = bridgeCode
@@ -310,12 +313,18 @@ export default function ChatTab() {
 		setBridgeCodeInput('')
 	}, [bridgeCodeInput, saveBridgeCode])
 
-	const roomId = bridgeCode ?? userId ?? 'pending'
+	const roomId = bridgeCode ?? userId ?? 'default'
 
 	const onRefresh = useCallback(() => {
 		setRefreshing(true)
+		intentionalCloseRef.current = true
+		if (reconnectTimerRef.current) {
+			clearTimeout(reconnectTimerRef.current)
+			reconnectTimerRef.current = null
+		}
 		wsRef.current?.close()
 		setCliConnected(false)
+		reconnectAttemptsRef.current = 0
 
 		const code = bridgeCodeRef.current
 		if (!code) {
@@ -335,6 +344,7 @@ export default function ChatTab() {
 		ws.onopen = () => {
 			ws.send(JSON.stringify({type: 'ping'}))
 			setRefreshing(false)
+			reconnectAttemptsRef.current = 0
 		}
 		ws.onmessage = event => {
 			try {
@@ -348,13 +358,16 @@ export default function ChatTab() {
 				}
 			} catch {}
 		}
-		ws.onclose = () => setCliConnected(false)
+		ws.onclose = () => {
+			setCliConnected(false)
+		}
 		setTimeout(() => setRefreshing(false), 2000)
 	}, [])
 
-	useEffect(() => {
-		if (!isAuthed || !bridgeCodeLoaded) return
+	const MAX_RECONNECT = 5
+	const connectWsRef = useRef<(ws?: WebSocket) => void>(() => {})
 
+	const connectWs = useCallback(() => {
 		const host = (
 			serverUrl ?? 'https://happy-vibecode.involvex.workers.dev'
 		).replace('http', 'ws')
@@ -366,6 +379,7 @@ export default function ChatTab() {
 
 		ws.onopen = () => {
 			ws.send(JSON.stringify({type: 'ping'}))
+			reconnectAttemptsRef.current = 0
 		}
 
 		ws.onmessage = event => {
@@ -440,12 +454,40 @@ export default function ChatTab() {
 
 		ws.onclose = () => {
 			setCliConnected(false)
+			if (intentionalCloseRef.current) return
+			if (reconnectAttemptsRef.current < MAX_RECONNECT) {
+				const delay = Math.min(1000 * 2 ** reconnectAttemptsRef.current, 10_000)
+				reconnectAttemptsRef.current++
+				if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
+				reconnectTimerRef.current = setTimeout(
+					() => connectWsRef.current(),
+					delay,
+				)
+			}
 		}
+	}, [roomId, apiToken, serverUrl])
 
-		return () => {
-			ws.close()
+	useEffect(() => {
+		connectWsRef.current = connectWs
+	}, [connectWs])
+
+	useEffect(() => {
+		if (!isAuthed || !bridgeCodeLoaded) return
+		intentionalCloseRef.current = false
+		if (reconnectTimerRef.current) {
+			clearTimeout(reconnectTimerRef.current)
+			reconnectTimerRef.current = null
 		}
-	}, [isAuthed, bridgeCodeLoaded, roomId, apiToken, serverUrl])
+		connectWsRef.current()
+		return () => {
+			intentionalCloseRef.current = true
+			if (reconnectTimerRef.current) {
+				clearTimeout(reconnectTimerRef.current)
+				reconnectTimerRef.current = null
+			}
+			wsRef.current?.close()
+		}
+	}, [isAuthed, bridgeCodeLoaded])
 
 	if (!isAuthed) {
 		return (

@@ -1,7 +1,7 @@
 import {Ionicons} from '@expo/vector-icons'
 import {useLocalSearchParams, useRouter} from 'expo-router'
 import * as SecureStore from 'expo-secure-store'
-import {useEffect, useRef, useState} from 'react'
+import {useCallback, useEffect, useRef, useState} from 'react'
 import {
 	FlatList,
 	KeyboardAvoidingView,
@@ -50,6 +50,9 @@ export default function SessionScreen() {
 	const [opencodeUrl, setOpencodeUrl] = useState<string | null>(null)
 	const wsRef = useRef<WebSocket | null>(null)
 	const flatListRef = useRef<FlatList>(null)
+	const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const reconnectAttemptsRef = useRef(0)
+	const intentionalCloseRef = useRef(false)
 
 	const opencode = useOpencodeClient(opencodeUrl)
 
@@ -57,11 +60,20 @@ export default function SessionScreen() {
 		SecureStore.getItemAsync(BRIDGE_CODE_KEY).then(code => {
 			if (code) setBridgeCode(code)
 		})
+		return () => {
+			if (reconnectTimerRef.current) {
+				clearTimeout(reconnectTimerRef.current)
+				reconnectTimerRef.current = null
+			}
+		}
 	}, [])
 
 	const roomId = id ?? bridgeCode ?? userId ?? 'default'
 
-	useEffect(() => {
+	const MAX_RECONNECT = 5
+	const connectWsRef = useRef<(ws?: WebSocket) => void>(() => {})
+
+	const connectWs = useCallback(() => {
 		const host = (
 			serverUrl ?? 'https://happy-vibecode.involvex.workers.dev'
 		).replace('http', 'ws')
@@ -74,12 +86,23 @@ export default function SessionScreen() {
 		ws.onopen = () => {
 			setConnected(true)
 			ws.send(JSON.stringify({type: 'ping'}))
+			reconnectAttemptsRef.current = 0
 		}
 
 		ws.onclose = () => {
 			setConnected(false)
 			setCliConnected(false)
 			setOpencodeUrl(null)
+			if (intentionalCloseRef.current) return
+			if (reconnectAttemptsRef.current < MAX_RECONNECT) {
+				const delay = Math.min(1000 * 2 ** reconnectAttemptsRef.current, 10_000)
+				reconnectAttemptsRef.current++
+				if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current)
+				reconnectTimerRef.current = setTimeout(
+					() => connectWsRef.current(),
+					delay,
+				)
+			}
 		}
 
 		ws.onmessage = event => {
@@ -163,9 +186,28 @@ export default function SessionScreen() {
 				// ignore
 			}
 		}
-
-		return () => ws.close()
 	}, [roomId, apiToken, serverUrl])
+
+	useEffect(() => {
+		connectWsRef.current = connectWs
+	}, [connectWs])
+
+	useEffect(() => {
+		intentionalCloseRef.current = false
+		if (reconnectTimerRef.current) {
+			clearTimeout(reconnectTimerRef.current)
+			reconnectTimerRef.current = null
+		}
+		connectWsRef.current()
+		return () => {
+			intentionalCloseRef.current = true
+			if (reconnectTimerRef.current) {
+				clearTimeout(reconnectTimerRef.current)
+				reconnectTimerRef.current = null
+			}
+			wsRef.current?.close()
+		}
+	}, [])
 
 	const sendWsMessage = (msg: object) => {
 		if (wsRef.current?.readyState === WebSocket.OPEN) {

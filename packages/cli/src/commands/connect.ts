@@ -287,7 +287,10 @@ export const connectCommand = new Command('connect')
 			process.exit(1)
 		}
 
-		// Determine room ID: explicit --room > saved bridge code > generate new > userId fallback
+		// Determine room ID: explicit --room > stored bridge code > userId
+		// Using userId as the default room makes pairing automatic — any client
+		// authenticated as the same user shares the same bridge room.
+		// Bridge code is kept as an optional override for cross-device pairing.
 		let roomId: string
 		if (opts.room) {
 			roomId = opts.room
@@ -295,16 +298,27 @@ export const connectCommand = new Command('connect')
 		} else if (config.bridgeCode) {
 			roomId = config.bridgeCode
 			debug('Room ID from stored bridge code:', roomId)
+		} else if (userId) {
+			roomId = userId
+			debug('Room ID from userId:', roomId)
 		} else {
 			const bridgeCode = generateBridgeCode()
 			writeConfig({...config, bridgeCode})
 			roomId = bridgeCode
-			debug('Generated new bridge code:', bridgeCode)
+			debug('Generated fallback bridge code:', bridgeCode)
 		}
 
 		if (!opts.room) {
-			console.log(`Bridge code: ${roomId}`)
-			console.log('  Enter this code in the web or mobile app to pair.')
+			const isUserId = roomId === userId
+			if (isUserId) {
+				console.log(`Room: ${roomId} (your user ID)`)
+				console.log(
+					'  Any device signed in as you will auto-connect to this room.',
+				)
+			} else {
+				console.log(`Bridge code: ${roomId}`)
+				console.log('  Enter this code in the web or mobile app to pair.')
+			}
 			console.log(`  Or open: ${serverUrl}/chat?room=${roomId}\n`)
 		}
 

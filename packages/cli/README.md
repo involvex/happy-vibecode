@@ -83,7 +83,7 @@ happy connect claude --model anthropic/claude-opus-4-5
 
 ## Features
 
-- **opencode model server** — All agents run through `opencode serve` as a unified AI backend; no per-agent subprocess spawning
+- **Dual adapter architecture** — `opencode-ai` agent routes through `opencode serve`; all other agents (Gemini, Claude, Codex, Copilot, Kilo, Cline) run as subprocesses and stream stdout directly
 - **Hybrid server startup** — SDK `createOpencodeServer` used first; falls back to manual `child_process` spawn for compatibility
 - **Multi-agent support** — Gemini, Claude Code, Codex, OpenCode AI, GitHub Copilot, Kilo, Cline, and custom agents
 - **Provider/model discovery** — `happy providers` lists all opencode-configured providers and their models
@@ -152,7 +152,7 @@ happy connect claude --model anthropic/claude-opus-4-5
 ```
 happy connect <agent>
     │
-    ├── 1. ensureOpencodeServer()
+    ├── 1. ensureOpencodeServer() [openencode-ai agent only]
     │       ├── a) Already running at :4096 → attach (health check passes)
     │       ├── b) SDK createOpencodeServer() → managed spawn
     │       └── c) child_process.spawn opencode serve :4096 + health poll (fallback)
@@ -163,13 +163,15 @@ happy connect <agent>
     │             └── Format: "claude" → {providerID: "anthropic", modelID: "default"}
     │
     ├── 3. Open WebSocket to BridgeAgent Durable Object (cloud)
-    │       └── On WS open → send { type: 'opencode_url', url: 'http://127.0.0.1:4096' }
+    │       └── On WS open → send { type: 'opencode_url', url: 'http://127.0.0.1:4096' } [opencode-ai only]
     │                       → send { type: 'status', status: 'cli_connected' }
     │
     └── 4. Relay loop
-            ├── WS message (prompt) → opencode session.prompt(text)
-            ├── opencode events → WS response chunks
-            └── SIGTERM / WS close → opencodeServer.close()
+            ├── WS message (prompt) → adapter.sendPromptStreaming()
+            │       ├── opencode-ai: OpencodeBridgeAdapter → opencode run --format json
+            │       └── other agents: SubprocessAdapter → spawn agent CLI directly
+            ├── opencode/subprocess events → WS response chunks
+            └── SIGTERM / WS close → adapter.cleanup()
 ```
 
 ### Model Flag Format
@@ -218,16 +220,16 @@ When the CLI connects, it sends `{ type: 'opencode_url', url }` through the WebS
 
 ## Supported Agents
 
-| Agent         | Resolved Provider | Notes                                          |
-| ------------- | ----------------- | ---------------------------------------------- |
-| `gemini`      | `google`          | Routes through opencode, no direct spawn       |
-| `claude`      | `anthropic`       | Routes through opencode, no direct spawn       |
-| `codex`       | `openai`          | Routes through opencode, no direct spawn       |
-| `opencode-ai` | `anthropic`       | Native opencode agent                          |
-| `copilot`     | `github`          | Routes through opencode                        |
-| `kilo`        | `anthropic`       | Routes through opencode                        |
-| `cline`       | `anthropic`       | Routes through opencode                        |
-| Custom        | User-defined      | Extend `PROVIDER_CONFIGS` in `llm-provider.ts` |
+| Agent         | Resolved Provider | Adapter        | Notes                                          |
+| ------------- | ----------------- | -------------- | ---------------------------------------------- |
+| `gemini`      | `google`          | Subprocess     | Spawns gemini CLI directly                     |
+| `claude`      | `anthropic`       | Subprocess     | Spawns claude CLI directly                     |
+| `codex`       | `openai`          | Subprocess     | Spawns codex CLI directly                      |
+| `opencode-ai` | `anthropic`       | opencode serve | Routes through opencode run --format json      |
+| `copilot`     | `github`          | Subprocess     | Spawns copilot CLI directly                    |
+| `kilo`        | `anthropic`       | Subprocess     | Spawns kilo CLI directly                       |
+| `cline`       | `cline`           | Subprocess     | Spawns cline CLI directly                      |
+| Custom        | User-defined      | Subprocess     | Extend `PROVIDER_CONFIGS` in `llm-provider.ts` |
 
 ## Project Structure
 

@@ -44,6 +44,14 @@ export function useOpencodeClient(
 
 	const checkHealth = useCallback(async (url: string): Promise<boolean> => {
 		try {
+			const parsed = new URL(url)
+			const isLocalhost =
+				parsed.hostname === '127.0.0.1' ||
+				parsed.hostname === 'localhost' ||
+				parsed.hostname === '::1'
+			if (isLocalhost) {
+				return false
+			}
 			const ctrl = new AbortController()
 			const timer = setTimeout(() => ctrl.abort(), HEALTH_TIMEOUT_MS)
 			const res = await fetch(`${url}/global/health`, {

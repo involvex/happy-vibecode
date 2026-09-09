@@ -22,6 +22,7 @@ import {Suspense, useCallback, useEffect, useRef, useState} from 'react'
 import {Streamdown} from 'streamdown'
 import {ModelSelector} from '../components/ModelSelector'
 import {ModelSettingsModal} from '../components/ModelSettingsModal'
+import {useAuth} from '../hooks/useAuth'
 import {useWorkspaces} from '../hooks/useWorkspaces'
 
 // ── Small components ──────────────────────────────────────────────────
@@ -877,7 +878,8 @@ function ChatInner({roomId: roomIdProp}: {roomId?: string}) {
 	const [bridgeCode, setBridgeCodeState] = useState<string | null>(
 		() => roomIdProp ?? getBridgeCode(),
 	)
-	const roomId = bridgeCode ?? ''
+	const {userId} = useAuth()
+	const roomId = bridgeCode ?? userId ?? ''
 
 	const {workspaces, activeWorkspaceId, setActiveWorkspace} = useWorkspaces()
 
