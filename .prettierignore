@@ -18,3 +18,4 @@ node_modules
 */*/wrangler.toml
 */*/dist
 */*/build
+apps/mobile/android/app/.cxx

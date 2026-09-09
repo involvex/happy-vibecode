@@ -40,6 +40,7 @@ export function useAppLock(): AppLockState {
 			'change',
 			(nextState: AppStateStatus) => {
 				if (
+					appState.current &&
 					appState.current.match(/inactive|background/) &&
 					nextState === 'active'
 				) {

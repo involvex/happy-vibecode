@@ -107,6 +107,7 @@ export async function runSetupWizard(): Promise<void> {
 		clack.cancel('Setup cancelled.')
 		process.exit(0)
 	}
+	const githubIdStr = githubId as string
 
 	const githubSecret = await clack.password({
 		message: 'GitHub OAuth App Client Secret:',
@@ -116,6 +117,7 @@ export async function runSetupWizard(): Promise<void> {
 		clack.cancel('Setup cancelled.')
 		process.exit(0)
 	}
+	const githubSecretStr = githubSecret as string
 
 	// ── Step 3: Better Auth secret ───────────────────────────────────────────
 	const betterAuthSecret = await clack.text({
@@ -127,9 +129,10 @@ export async function runSetupWizard(): Promise<void> {
 		clack.cancel('Setup cancelled.')
 		process.exit(0)
 	}
+	const authSecret = betterAuthSecret as string
 	const finalAuthSecret =
-		betterAuthSecret && betterAuthSecret.length >= 32
-			? betterAuthSecret
+		authSecret.length >= 32
+			? authSecret
 			: (() => {
 					const gen = tryExec('openssl rand -hex 32')
 					if (gen) {
@@ -186,6 +189,7 @@ export async function runSetupWizard(): Promise<void> {
 		clack.cancel('Setup cancelled.')
 		process.exit(0)
 	}
+	const cfApiTokenStr = cfApiToken as string
 
 	// ── Step 6: D1 Database ──────────────────────────────────────────────────
 	clack.log.step('D1 Database')
@@ -226,7 +230,7 @@ export async function runSetupWizard(): Promise<void> {
 			clack.cancel('Setup cancelled.')
 			process.exit(0)
 		}
-		d1DatabaseId = d1Input
+		d1DatabaseId = d1Input as string
 	}
 
 	// ── Step 7: KV Namespace ─────────────────────────────────────────────────
@@ -270,7 +274,7 @@ export async function runSetupWizard(): Promise<void> {
 			clack.cancel('Setup cancelled.')
 			process.exit(0)
 		}
-		kvId = kvInput
+		kvId = kvInput as string
 	}
 
 	// ── Step 8: Stripe (optional) ─────────────────────────────────────────────
@@ -292,16 +296,16 @@ export async function runSetupWizard(): Promise<void> {
 		const sk = await clack.password({
 			message: 'Stripe Secret Key (sk_test_... or sk_live_...):',
 		})
-		if (!clack.isCancel(sk)) stripeSecretKey = sk
+		if (!clack.isCancel(sk)) stripeSecretKey = sk as string
 		const wh = await clack.password({
 			message: 'Stripe Webhook Secret (whsec_...):',
 		})
-		if (!clack.isCancel(wh)) stripeWebhookSecret = wh
+		if (!clack.isCancel(wh)) stripeWebhookSecret = wh as string
 		const pr = await clack.text({
 			message: 'Stripe Price ID (price_...):',
 			placeholder: 'price_xxx',
 		})
-		if (!clack.isCancel(pr)) stripePriceId = pr
+		if (!clack.isCancel(pr)) stripePriceId = pr as string
 	}
 
 	// ── Step 9: Write .env file ───────────────────────────────────────────────
@@ -318,12 +322,12 @@ export async function runSetupWizard(): Promise<void> {
 	}
 
 	const envValues = new Map<string, string>([
-		['AUTH_GITHUB_ID', githubId],
-		['AUTH_GITHUB_SECRET', githubSecret],
+		['AUTH_GITHUB_ID', githubIdStr],
+		['AUTH_GITHUB_SECRET', githubSecretStr],
 		['BETTER_AUTH_SECRET', finalAuthSecret],
 		['BETTER_AUTH_URL', workerUrl as string],
 		['CLOUDFLARE_ACCOUNT_ID', accountIdInput as string],
-		['CLOUDFLARE_API_TOKEN', cfApiToken],
+		['CLOUDFLARE_API_TOKEN', cfApiTokenStr],
 		['STRIPE_SECRET_KEY', stripeSecretKey],
 		['STRIPE_WEBHOOK_SECRET', stripeWebhookSecret],
 		['STRIPE_PRICE_ID', stripePriceId],

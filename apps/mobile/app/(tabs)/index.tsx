@@ -629,7 +629,7 @@ export default function ChatTab() {
 							)}
 						</View>
 					)}
-					ListFooterComponent={isAgentTyping ? <TypingIndicator /> : null}
+					ListFooterComponent={isAgentTyping ? <TypingIndicator /> : undefined}
 					ListEmptyComponent={
 						<View className="items-center justify-center py-16">
 							<Text className="text-5xl mb-4">

@@ -19,12 +19,12 @@
 		"version:patch": "expo-version-bump --patch"
 	},
 	"dependencies": {
-		"@babel/plugin-transform-react-jsx": "^7.28.6",
-		"@better-auth/expo": "^1.6.9",
+		"@babel/plugin-transform-react-jsx": "^7.29.7",
+		"@better-auth/expo": "^1.7.3",
 		"@expo/vector-icons": "^15.0.2",
 		"@react-native-async-storage/async-storage": "2.2.0",
 		"babel-preset-expo": "~57.0.0",
-		"better-auth": "^1.6.9",
+		"better-auth": "^1.7.3",
 		"crypto": "^1.0.1",
 		"expo": "^57.0.21",
 		"expo-clipboard": "~57.0.1",
@@ -44,11 +44,11 @@
 		"expo-updates": "~57.0.21",
 		"expo-version-bump": "^1.0.2",
 		"expo-web-browser": "~57.0.2",
-		"nativewind": "^4.0.36",
+		"nativewind": "^4.2.6",
 		"react": "19.2.3",
 		"react-dom": "19.2.3",
 		"react-native": "0.86.3",
-		"react-native-css-interop": "^0.2.3",
+		"react-native-css-interop": "^0.2.6",
 		"react-native-gesture-handler": "~2.32.0",
 		"react-native-reanimated": "4.5.1",
 		"react-native-safe-area-context": "~5.7.0",
@@ -58,7 +58,7 @@
 		"tailwindcss": "^3.4.15"
 	},
 	"devDependencies": {
-		"@types/react": "^19.0.0",
+		"@types/react": "^19.2.18",
 		"eslint": "^9.0.0",
 		"eslint-config-expo": "~57.0.2",
 		"typescript": "~6.0.3"

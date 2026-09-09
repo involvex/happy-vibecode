@@ -14,11 +14,11 @@
 		"@happy-vibecode/shared": "workspace:*",
 		"drizzle-orm": "^0.45.2",
 		"hono": "^4.13.7",
-		"zod": "^4.4.0"
+		"zod": "^4.5.4"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20260702.1",
 		"@types/bun": "^1.4.2",
-		"typescript": "^5"
+		"typescript": "5.9.3"
 	}
 }

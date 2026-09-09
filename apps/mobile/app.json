@@ -8,12 +8,6 @@
 		"userInterfaceStyle": "automatic",
 		"githubUrl": "https://github.com/involvex/happy-vibecode.git",
 		"platforms": ["android", "web"],
-		"owner": "involvex",
-		"splash": {
-			"image": "assets/icon512x512.png",
-			"resizeMode": "contain",
-			"backgroundColor": "#0f0f0f"
-		},
 		"ios": {
 			"supportsTablet": true,
 			"bundleIdentifier": "com.happyvibecode.app",
