@@ -1,6 +1,6 @@
 import process from 'node:process'
 
-type ChalkInstance = typeof import('chalk').default
+type ChalkInstance = typeof import('chalk')
 
 let _chalk: ChalkInstance | undefined
 let _highlight:
